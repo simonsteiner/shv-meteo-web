@@ -982,7 +982,7 @@ export class MapView {
       S: 180, SSW: 202.5, SW: 225, WSW: 247.5, W: 270, WNW: 292.5, NW: 315, NNW: 337.5
     };
 
-    let iconHtml = '';
+    let iconHtml;
     if (isLaunch) {
       // STARTPLATZ (Take-off): Green badge with upward mountain launch peak + prominent directional pointer
       const isClosed = openingStatus === 'closed';
@@ -1399,7 +1399,6 @@ export class MapView {
 
   bindAirspaceEvents(feature, layer) {
     const p = feature.properties || {};
-    const t = store.t;
 
     const lowerStr = p.lowerMetricAltitude !== null && p.lowerMetricAltitude !== undefined
       ? `${p.lowerMetricAltitude}m ${p.lowerMetricReference || 'AGL'}`

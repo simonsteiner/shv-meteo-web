@@ -593,7 +593,7 @@ app.post('/api/emagram/calculate', (req, res) => {
     try {
       const result = JSON.parse(stdout);
       res.json(result);
-    } catch (e) {
+    } catch {
       res.status(500).json({ error: 'Failed to parse python output', raw: stdout });
     }
   });
@@ -745,7 +745,7 @@ app.get('/api/meteo/previtemps/sounding', (req, res) => {
     try {
       const result = JSON.parse(stdout);
       res.json(result);
-    } catch (e) {
+    } catch {
       res.status(500).json({ error: 'Failed to parse python output', raw: stdout });
     }
   });
@@ -794,7 +794,7 @@ app.get('/api/meteo/previtemps/sounding/:stationName', (req, res) => {
       try {
         const result = JSON.parse(stdout);
         res.json(result);
-      } catch (e) {
+      } catch {
         res.status(500).json({ error: 'Parse error' });
       }
     });

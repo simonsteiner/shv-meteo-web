@@ -382,7 +382,6 @@ export class SafetyView {
 
     const modalClose = this.container.querySelector('#modal-close-btn');
     const modalCancel = this.container.querySelector('#modal-cancel-btn');
-    const scrim = this.container.querySelector('#flight-modal-scrim');
 
     const closeModal = () => {
       this.showAddModal = false;

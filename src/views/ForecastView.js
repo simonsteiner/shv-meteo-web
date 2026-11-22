@@ -559,7 +559,7 @@ export class ForecastView {
     }, 200);
   }
 
-  renderOutlooksSection(lang) {
+  renderOutlooksSection() {
     const files = this.getOutlookFiles();
     const totalFiles = files.length;
     
@@ -801,7 +801,7 @@ export class ForecastView {
   // 3. EMAGRAM & PREVITEMPS SECTION (Android-style Sounding Diagram & Timeline)
   // =========================================================================
 
-  renderEmagramSection(lang) {
+  renderEmagramSection() {
     const popularStations = [
       'Interlaken', 'Engelberg', 'Payerne', 'Fiesch', 'Zermatt', 'Scuol', 'Davos', 'Chur', 'Zürich', 'Sion'
     ];
@@ -915,7 +915,6 @@ export class ForecastView {
     const padB = 60;
 
     const plotW = 340;
-    const windW = 100;
     const plotH = svgH - padT - padB;
 
     // Pressure coordinates (600 hPa to 1000 hPa)
@@ -1256,7 +1255,7 @@ export class ForecastView {
         const prevY = pToY(prevLvl.pressHpa);
         const prevXT = tToX(prevLvl.tempC, prevY);
 
-        let strokeColor = '#22C55E';
+        let strokeColor;
         const gamma = lvl.lapseRate;
         if (gamma >= 0.0) {
           strokeColor = '#EAB308';

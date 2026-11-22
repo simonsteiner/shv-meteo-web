@@ -27,7 +27,6 @@ const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 let featureCollection = null;
 let spatialGrid = null;
-let isInitializing = false;
 let initPromise = null;
 
 if (!fs.existsSync(CACHE_DIR)) {

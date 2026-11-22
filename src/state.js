@@ -233,7 +233,7 @@ class AppState {
   }
 
   toggleLayer(layerKey) {
-    if (this.state.layers.hasOwnProperty(layerKey)) {
+    if (Object.hasOwn(this.state.layers, layerKey)) {
       this.state.layers[layerKey] = !this.state.layers[layerKey];
       this.notify();
     }
