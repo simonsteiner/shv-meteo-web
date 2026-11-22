@@ -1596,7 +1596,7 @@ export class MapView {
 
       const badgeHtml = `
         <div class="foehn-map-badge ${badgeClass}" title="${pair.nameDe || pair.name}">
-          <span class="foehn-badge-id">${(pair.id || '').replace('_', ' – ')}</span>
+          <span class="foehn-badge-id">${(pair.id || '').replace('_', ' \u2013 ')}</span>
           <span class="foehn-badge-val">Δ: ${deltaStr}</span>
         </div>
       `;

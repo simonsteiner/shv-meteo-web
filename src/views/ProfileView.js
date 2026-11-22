@@ -108,7 +108,7 @@ export async function renderProfileView(container) {
               <ol style="margin: 0; padding-left: 20px; font-size: 0.82rem; line-height: 1.5; color: var(--text-muted); display: flex; flex-direction: column; gap: 6px;">
                 <li>Klicke oben auf <strong>«1. Mit SHV-Konto anmelden»</strong>. Das offizielle SHV-Login öffnet sich in einem neuen Tab.</li>
                 <li>Melde dich mit deinen offiziellen SHV-Zugangsdaten an.</li>
-                <li>Nach der Anmeldung erscheint die Bestätigungsseite <em>«Anmeldung erfolgreich – SHV»</em>.</li>
+                <li>Nach der Anmeldung erscheint die Bestätigungsseite <em>«Anmeldung erfolgreich \u2013 SHV»</em>.</li>
                 <li>Kopiere die vollständige Webadresse (URL) aus der Browser-Adresszeile und füge sie unten ein:</li>
               </ol>
             </div>
@@ -169,7 +169,7 @@ export async function renderProfileView(container) {
           feedbackBox.style.color = 'var(--text-main)';
           feedbackBox.innerHTML = `
             <strong>Login-Fenster geöffnet:</strong><br>
-            Bitte melde dich im geöffneten Tab an. Kopiere anschliessend die URL der Seite <em>«Anmeldung erfolgreich – SHV»</em> und füge sie oben ein.
+            Bitte melde dich im geöffneten Tab an. Kopiere anschliessend die URL der Seite <em>«Anmeldung erfolgreich \u2013 SHV»</em> und füge sie oben ein.
           `;
           if (inputUrl) inputUrl.focus();
         } catch (err) {
@@ -234,11 +234,11 @@ export async function renderProfileView(container) {
     ? `${firstName} ${lastName}`
     : (firstName || lastName || p.companyName || 'SHV Mitglied');
 
-  const shvId = p.shvNummer || p.shvNumber || p.extId || '–';
+  const shvId = p.shvNummer || p.shvNumber || p.extId || '\u2013';
   const town = resolveLocalizedString(p.address?.ort || p.ort || p.address?.city) || '';
   const cantonCode = resolveLocalizedString(p.address?.kanton || p.address?.kantonId || p.canton) || '';
   const locationLabel = cantonCode && !town ? 'Kanton' : 'Wohnort';
-  const locationValue = town && cantonCode ? `${town} (${cantonCode})` : (town || cantonCode || '–');
+  const locationValue = town && cantonCode ? `${town} (${cantonCode})` : (town || cantonCode || '\u2013');
 
   // Resolve Category name cleanly
   const rawCat = p.memberships?.[0]?.mitgliedkategorie?.name

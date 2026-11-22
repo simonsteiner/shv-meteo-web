@@ -574,7 +574,7 @@ export class ForecastView {
       const dEnd = new Date(currentFileObj.end);
       const optionsDay = { weekday: 'short', day: '2-digit', month: '2-digit' };
       const optionsTime = { hour: '2-digit', minute: '2-digit' };
-      intervalLabel = `${dStart.toLocaleDateString('de-CH', optionsDay)} ${dStart.toLocaleTimeString('de-CH', optionsTime)} – ${dEnd.toLocaleTimeString('de-CH', optionsTime)}`;
+      intervalLabel = `${dStart.toLocaleDateString('de-CH', optionsDay)} ${dStart.toLocaleTimeString('de-CH', optionsTime)} \u2013 ${dEnd.toLocaleTimeString('de-CH', optionsTime)}`;
     }
 
     const legendConfig = {
@@ -705,7 +705,7 @@ export class ForecastView {
       const dEnd = new Date(currentFileObj.end);
       const optionsDay = { weekday: 'short', day: '2-digit', month: '2-digit' };
       const optionsTime = { hour: '2-digit', minute: '2-digit' };
-      timeEl.textContent = `${dStart.toLocaleDateString('de-CH', optionsDay)} ${dStart.toLocaleTimeString('de-CH', optionsTime)} – ${dEnd.toLocaleTimeString('de-CH', optionsTime)}`;
+      timeEl.textContent = `${dStart.toLocaleDateString('de-CH', optionsDay)} ${dStart.toLocaleTimeString('de-CH', optionsTime)} \u2013 ${dEnd.toLocaleTimeString('de-CH', optionsTime)}`;
     }
 
     // 2. Update step indicator

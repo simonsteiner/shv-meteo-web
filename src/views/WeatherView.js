@@ -64,7 +64,7 @@ export class WeatherView {
     const pairs = this.foehnData?.pairs || [];
     const activePair = pairs.find(p => p.id === this.selectedPairId) || pairs[0] || {
       id: 'KLO_LUG',
-      nameDe: 'Gotthard-Achse (Zürich/Kloten – Lugano)',
+      nameDe: 'Gotthard-Achse (Zürich/Kloten \u2013 Lugano)',
       unit: 'hPa',
       delta: 0,
       status: 'CALM',
@@ -117,7 +117,7 @@ export class WeatherView {
           <div class="pair-switcher-row">
             ${pairs.map(p => `
               <button data-pair-id="${p.id}" class="pair-pill-btn ${p.id === this.selectedPairId ? 'active' : ''}">
-                <span class="pair-pill-id">${p.id.replace('_', ' – ')}</span>
+                <span class="pair-pill-id">${p.id.replace('_', ' \u2013 ')}</span>
                 <span class="pair-pill-val ${p.alertLevel === 'DANGER' ? 'text-danger' : p.alertLevel === 'MODERATE' ? 'text-warning' : ''}">${p.delta > 0 ? '+' : ''}${p.delta} ${p.unit}</span>
               </button>
             `).join('')}
@@ -139,7 +139,7 @@ export class WeatherView {
             <div class="transect-station">
               <span class="station-side">${activePair.isNorthSouth ? 'Südseite' : 'Ostseite'}</span>
               <span class="st-name">${activePair.station2?.name || 'Station 2'}</span>
-              <span class="st-qnh">${activePair.isPressure ? `${activePair.station2?.pressureHpa ?? '–'} hPa` : `${activePair.station2?.temperatureC ?? '–'}°C`}</span>
+              <span class="st-qnh">${activePair.isPressure ? `${activePair.station2?.pressureHpa ?? '\u2013'} hPa` : `${activePair.station2?.temperatureC ?? '\u2013'}°C`}</span>
               <span class="st-alt">${activePair.station2?.altitude ? `${activePair.station2.altitude} m` : ''}</span>
             </div>
             <div class="transect-arrow-box">
@@ -149,7 +149,7 @@ export class WeatherView {
             <div class="transect-station">
               <span class="station-side">${activePair.isNorthSouth ? 'Nordseite' : 'Westseite'}</span>
               <span class="st-name">${activePair.station1?.name || 'Station 1'}</span>
-              <span class="st-qnh">${activePair.isPressure ? `${activePair.station1?.pressureHpa ?? '–'} hPa` : `${activePair.station1?.temperatureC ?? '–'}°C`}</span>
+              <span class="st-qnh">${activePair.isPressure ? `${activePair.station1?.pressureHpa ?? '\u2013'} hPa` : `${activePair.station1?.temperatureC ?? '\u2013'}°C`}</span>
               <span class="st-alt">${activePair.station1?.altitude ? `${activePair.station1.altitude} m` : ''}</span>
             </div>
           </div>
@@ -229,19 +229,19 @@ export class WeatherView {
                     <div class="st-card-stats">
                       <div class="st-stat">
                         <span class="st-stat-lbl">Wind</span>
-                        <span class="st-stat-val ${windSpeed >= 30 ? 'text-danger' : windSpeed >= 20 ? 'text-warning' : ''}">${windSpeed !== null ? `${windSpeed} km/h` : '–'}</span>
+                        <span class="st-stat-val ${windSpeed >= 30 ? 'text-danger' : windSpeed >= 20 ? 'text-warning' : ''}">${windSpeed !== null ? `${windSpeed} km/h` : '\u2013'}</span>
                       </div>
                       <div class="st-stat">
                         <span class="st-stat-lbl">Böe</span>
-                        <span class="st-stat-val text-warning">${windGust !== null ? `${windGust} km/h` : '–'}</span>
+                        <span class="st-stat-val text-warning">${windGust !== null ? `${windGust} km/h` : '\u2013'}</span>
                       </div>
                       <div class="st-stat">
                         <span class="st-stat-lbl">Temp</span>
-                        <span class="st-stat-val">${temp !== null ? `${temp}°` : '–'}</span>
+                        <span class="st-stat-val">${temp !== null ? `${temp}°` : '\u2013'}</span>
                       </div>
                       <div class="st-stat">
                         <span class="st-stat-lbl">QNH</span>
-                        <span class="st-stat-val">${press !== null ? `${press}` : '–'}</span>
+                        <span class="st-stat-val">${press !== null ? `${press}` : '\u2013'}</span>
                       </div>
                     </div>
                   </div>
@@ -307,28 +307,28 @@ export class WeatherView {
           <div class="modal-telemetry-grid">
             <div class="stat-box">
               <span class="stat-label">Wind</span>
-              <span class="stat-val ${windSpeedKmH >= 30 ? 'text-danger' : windSpeedKmH >= 20 ? 'text-warning' : ''}">${windSpeedKmH !== null ? `${windSpeedKmH} km/h` : '–'}</span>
+              <span class="stat-val ${windSpeedKmH >= 30 ? 'text-danger' : windSpeedKmH >= 20 ? 'text-warning' : ''}">${windSpeedKmH !== null ? `${windSpeedKmH} km/h` : '\u2013'}</span>
               <span class="stat-sub">${p.windDirectionValue ? `${Math.round(p.windDirectionValue)}°` : ''}</span>
             </div>
             <div class="stat-box">
               <span class="stat-label">Böe</span>
-              <span class="stat-val text-warning">${windGustKmH !== null ? `${windGustKmH} km/h` : '–'}</span>
+              <span class="stat-val text-warning">${windGustKmH !== null ? `${windGustKmH} km/h` : '\u2013'}</span>
             </div>
             <div class="stat-box">
               <span class="stat-label">Temperatur</span>
-              <span class="stat-val">${tempC !== null ? `${tempC}°C` : '–'}</span>
+              <span class="stat-val">${tempC !== null ? `${tempC}°C` : '\u2013'}</span>
             </div>
             <div class="stat-box">
               <span class="stat-label">Taupunkt</span>
-              <span class="stat-val">${dewC !== null ? `${dewC}°C` : '–'}</span>
+              <span class="stat-val">${dewC !== null ? `${dewC}°C` : '\u2013'}</span>
             </div>
             <div class="stat-box">
               <span class="stat-label">Luftfeuchte</span>
-              <span class="stat-val">${humidity !== null && humidity !== undefined ? `${Math.round(humidity)}%` : '–'}</span>
+              <span class="stat-val">${humidity !== null && humidity !== undefined ? `${Math.round(humidity)}%` : '\u2013'}</span>
             </div>
             <div class="stat-box">
               <span class="stat-label">Luftdruck QNH</span>
-              <span class="stat-val">${qnh !== null ? `${qnh} hPa` : '–'}</span>
+              <span class="stat-val">${qnh !== null ? `${qnh} hPa` : '\u2013'}</span>
             </div>
           </div>
 
@@ -359,13 +359,13 @@ export class WeatherView {
   getChartTitle(activePair) {
     if (!activePair) return 'Verlauf Druckdifferenz (24h)';
     if (activePair.id === 'KLO_LUG') {
-      return 'Verlauf Gotthard-Druckdifferenz (Lugano – Kloten, 24h)';
+      return 'Verlauf Gotthard-Druckdifferenz (Lugano \u2013 Kloten, 24h)';
     } else if (activePair.id === 'GVE_GUT') {
-      return 'Verlauf Ost-West-Gradient (Genf – Güttingen, 24h)';
+      return 'Verlauf Ost-West-Gradient (Genf \u2013 Güttingen, 24h)';
     } else if (activePair.id === 'PIL_MTR') {
-      return 'Verlauf Alpenkamm Temperatur (Pilatus – Matro, 24h)';
+      return 'Verlauf Alpenkamm Temperatur (Pilatus \u2013 Matro, 24h)';
     } else if (activePair.id === 'DEM_GRE') {
-      return 'Verlauf Jura-Querung Druckdifferenz (Grenchen – Delémont, 24h)';
+      return 'Verlauf Jura-Querung Druckdifferenz (Grenchen \u2013 Delémont, 24h)';
     }
     return `Verlauf ${activePair.nameDe || activePair.name || 'Gradient'} (24h)`;
   }
@@ -381,7 +381,7 @@ export class WeatherView {
     const pairs = this.foehnData?.pairs || [];
     const activePair = pairs.find(p => p.id === this.selectedPairId) || pairs[0] || {
       id: 'KLO_LUG',
-      nameDe: 'Gotthard-Achse (Zürich/Kloten – Lugano)',
+      nameDe: 'Gotthard-Achse (Zürich/Kloten \u2013 Lugano)',
       unit: 'hPa',
       isPressure: true,
     };
