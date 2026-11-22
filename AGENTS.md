@@ -40,6 +40,8 @@ node scripts/generate_screenshots.js  # capture all views, see docs/setup.md fir
 - **Never add mock, sample or synthesized data.** No fake profiles, placeholder ratings, simulated measurements or generated trend curves; show an empty or error state when real data is missing.
 - **Never accept or store SHV passwords.** Login happens only on the SHV Keycloak page through the PKCE copy-paste flow in `server/auth.js`.
 - **Never send tokens to the browser.** Access and refresh tokens stay in the server session; the browser holds only the session id (`x-session-id` header).
+- **Never bypass the git hooks** (`--no-verify`, `LEFTHOOK=0`). lefthook (`lefthook.yml`, installed by `npm install`) blocks staged files over 5,000 tokens and any em or en dash. Split an oversized file along its seams; write a dash a user must see as a JavaScript unicode escape, as the views already do.
+
 ## Gotchas
 
 - **The code was written by LLMs without human review.** Treat comments and doc claims as hints and check them against the code.
