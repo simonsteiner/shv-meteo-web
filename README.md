@@ -79,158 +79,27 @@ Click any image to view in full resolution (2880×1800):
 
 ---
 
-## Prerequisites
-
-* **Node.js**: v20.x or higher (v22+ supported)
-* **npm**: v9.x or higher
-
----
-
 ## Quick Start
 
-### 1. Clone & Install Dependencies
+Needs Node.js 20 or newer.
 
 ```bash
-git clone https://github.com/unbe/ai-shv-app.git
-cd ai-shv-app
 npm install
+npm run dev   # Vite on http://localhost:3000, API on port 3001
 ```
 
-### 2. Run in Development Mode
-
-The development script starts both the **Vite Frontend Server** (Port `3000`) and the **Express Backend API** (Port `3001`):
-
-```bash
-npm run dev
-```
-
-Open your browser and navigate to:
-```
-http://localhost:3000
-```
-
-> **Note**: Vite proxies `/api/*` requests directly to `http://127.0.0.1:3001`.
+Or with Docker: `docker compose up --build -d`, then open <http://localhost:3000>.
 
 ---
 
-## Individual Server Commands
+## Documentation
 
-If you prefer running the frontend and backend in separate terminal tabs:
-
-* **Backend API Server only** (Port `3001`):
-  ```bash
-  npm run server
-  ```
-
-* **Frontend Vite Dev Server only** (Port `3000`):
-  ```bash
-  npm run dev:vite
-  ```
-
----
-
-## Production Build & Preview
-
-To build the client bundle for production:
-
-```bash
-npm run build
-```
-
-To preview the production build locally:
-
-```bash
-npm run preview
-```
-
----
-
-## Running with Docker
-
-You can run the entire application (frontend + backend API + aerological sounding calculations) inside a lightweight container:
-
-### Using Docker Compose (Recommended)
-
-```bash
-docker compose up --build -d
-```
-
-Open `http://localhost:3000` in your browser.
-
-To stop the container:
-```bash
-docker compose down
-```
-
-### Using Plain Docker
-
-```bash
-# 1. Build the production image
-docker build -t swiss-free-flight .
-
-# 2. Run the container
-docker run -d --name swiss-free-flight -p 3000:3000 swiss-free-flight
-```
-
----
-
-## Automated Screenshots & Chrome DevTools MCP
-
-The repository includes a Puppeteer automation script to capture clean, high-DPI screenshots of all app views:
-
-```bash
-node scripts/generate_screenshots.js
-```
-
-### Chrome DevTools MCP Server Configuration
-
-For AI coding agents (such as Antigravity, Claude, or Cursor) using the Model Context Protocol (MCP) to interact with Chrome, configure [.agents/mcp_config.json](.agents/mcp_config.json):
-
-```json
-{
-  "mcpServers": {
-    "chrome-devtools": {
-      "command": "npx",
-      "args": [
-        "chrome-devtools-mcp@latest",
-        "--wsEndpoint",
-        "ws://host.lima.internal:9222/devtools/browser"
-      ]
-    }
-  }
-}
-```
-
----
-
-## Project Structure
-
-```
-├── public/
-│   └── data/                 # GeoJSON datasets (flyingsites, airspaces, obstacles)
-├── server/
-│   ├── index.js              # Express API server (weather, webcams, soundings proxy)
-│   ├── start-dev.js          # Concurrent launcher for API + Vite
-│   ├── emagram_provider.js   # Atmospheric soundings provider
-│   └── obstacles_provider.js # Aviation obstacles query provider
-├── src/
-│   ├── components/           # Header, BottomNav, BottomSheet UI components
-│   ├── services/             # API client services & variometer audio
-│   ├── styles/               # CSS styles & theme definitions
-│   ├── views/
-│   │   ├── MapView.js        # Leaflet interactive map, sites, circuits, layers
-│   │   ├── WeatherView.js    # Föhn pressure difference & weather stations list
-│   │   ├── ForecastView.js   # Alpenwetter text, Aussichten overlay, Emagramm
-│   │   ├── SafetyView.js     # DABS, safety checklist, logbook, vario
-│   │   └── ProfileView.js    # Pilot license & membership profile
-│   ├── main.js               # Application entry point & router
-│   └── state.js              # Central reactive application state store
-├── scripts/
-│   └── generate_screenshots.js # Automated screenshot capturing tool
-├── screenshots/              # High-DPI screenshots of all application views
-├── vite.config.js            # Vite configuration with /api proxy
-└── package.json
-```
+* [docs/setup.md](docs/setup.md): local setup, scripts, screenshots tool, troubleshooting.
+* [docs/deployment.md](docs/deployment.md): the Docker image and running it.
+* [docs/architecture.md](docs/architecture.md): data sources, which calls are proxied and why, how the code is organised.
+* [docs/reference/shv-native-app.md](docs/reference/shv-native-app.md): reverse-engineered notes on the official SHV FSVL app and its backends.
+* [GLOSSARY.md](GLOSSARY.md): domain terms (German and English).
+* [AGENTS.md](AGENTS.md): rules for changing the code, for AI agents and humans.
 
 ---
 
