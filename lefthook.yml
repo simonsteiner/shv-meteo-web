@@ -42,6 +42,16 @@ pre-commit:
       runner: python3
       args: "{staged_files}"
   commands:
+    # Reads only; same command and config as `npm run lint`.
+    oxlint:
+      glob: "*.{js,mjs,ts,tsx,astro}"
+      run: npm exec -- oxlint --deny-warnings {staged_files}
+    # The only fixer of code, JSON and CSS. Deliberately not Markdown: rumdl
+    # fixes that, and two fixers fight. Ignores live in .prettierignore.
+    prettier:
+      glob: "*.{js,mjs,ts,tsx,astro,json,css,html}"
+      run: npm exec -- prettier --write --ignore-unknown {staged_files}
+      stage_fixed: true
     # The only fixer of *.md. Config and excludes in .rumdl.toml; an excluded
     # staged file is skipped, not an error.
     rumdl:
