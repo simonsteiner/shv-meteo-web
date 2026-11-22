@@ -23,6 +23,18 @@ pre-commit:
       script: check-file-tokens.py
       runner: python3
       args: --max-tokens 5000 {staged_files}
+      # Temporary: hand-written legacy files already over budget. The Astro
+      # migration (docs/plan) rewrites each one into smaller modules; the PR
+      # that does drops it here. Never add a file to this list.
+      exclude:
+        - src/styles/main.css
+        - src/views/ForecastView.js
+        - src/views/MapView.js
+        - src/views/WeatherView.js
+        - src/views/ProfileView.js
+        - src/components/BottomSheet.js
+        - server/index.js
+        - docs/architecture.md
     # No em or en dashes in the staged files: they read as machine-written. Same
     # exemptions as file-tokens; a file that must hold them goes in `exclude:`.
     - name: dashes
