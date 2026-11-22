@@ -1,0 +1,38 @@
+# Ref: https://github.com/evilmartians/lefthook
+# Installed by `npm install` (the `prepare` script); by hand: npm exec -- lefthook install
+
+min_version: 2.0.5 # `args:` on script jobs
+
+remotes:
+  # The shared token-budget and dash scripts. A tag, never a commit SHA. Bump
+  # `ref` to update; the next commit fetches it.
+  - git_url: https://github.com/simonsteiner/skills
+    ref: hooks.v1.0.0
+    configs:
+      - lefthook/hooks.yml
+
+pre-commit:
+  parallel: true
+  jobs:
+    # Every staged file an agent writes stays under 5,000 tokens (bytes / 4), so
+    # an agent can read it whole. Lockfiles, build output, binaries and generated
+    # files are skipped; mark more with linguist-generated in .gitattributes.
+    # On failure it prints how to split the file. The script comes from the
+    # remote above; the budget is set here.
+    - name: file-tokens
+      script: check-file-tokens.py
+      runner: python3
+      args: --max-tokens 5000 {staged_files}
+    # No em or en dashes in the staged files: they read as machine-written. Same
+    # exemptions as file-tokens; a file that must hold them goes in `exclude:`.
+    - name: dashes
+      script: check-dashes.py
+      runner: python3
+      args: "{staged_files}"
+  commands:
+    # The only fixer of *.md. Config and excludes in .rumdl.toml; an excluded
+    # staged file is skipped, not an error.
+    rumdl:
+      glob: "*.md"
+      run: npm exec -- rumdl check --fix {staged_files}
+      stage_fixed: true

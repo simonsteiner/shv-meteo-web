@@ -1,0 +1,17 @@
+# Ref: https://rumdl.dev/ - the Markdown linter lefthook and the VS Code
+# extension (rvben.rumdl) both read this file.
+
+[global]
+# The docs wrap prose by hand and keep tables and links on one line.
+disable = ["MD013"]
+exclude = [
+    # lefthook clones its remotes into .git/info/lefthook-remotes/, and rumdl
+    # doesn't skip .git on its own.
+    ".git/**",
+    # Build output and installed packages, not hand-written.
+    "dist/**",
+    "node_modules/**",
+    # Runtime caches and local analysis dumps; git-ignored, never linted.
+    "server/cache/**",
+    "apk_analysis/**",
+]
