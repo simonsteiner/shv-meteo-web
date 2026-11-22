@@ -21,24 +21,33 @@ async function getGridPoint(lat, lon) {
   if (!tile) {
     const tileUrl = `https://static-prod.ubmeteo.io/v1/products/grid/10/${i}/${i2}.json`;
     const res = await fetch(tileUrl);
-    if (!res.ok) throw new Error(`Failed to fetch tile ${tileUrl}: ${res.status}`);
+    if (!res.ok)
+      throw new Error(`Failed to fetch tile ${tileUrl}: ${res.status}`);
     tile = await res.json();
     tileCache.set(tileKey, tile);
   }
 
   // Look for ICON-CH1 first, fallback to ICON-CH2
-  const def = tile.definitions?.find(d => d.products?.some(p => p.identifier === 'meteo_swiss:icon_ch1'))
-           || tile.definitions?.find(d => d.products?.some(p => p.identifier === 'meteo_swiss:icon_ch2'));
+  const def =
+    tile.definitions?.find((d) =>
+      d.products?.some((p) => p.identifier === "meteo_swiss:icon_ch1"),
+    ) ||
+    tile.definitions?.find((d) =>
+      d.products?.some((p) => p.identifier === "meteo_swiss:icon_ch2"),
+    );
 
   if (!def || !def.gridPoints || def.gridPoints.length === 0) {
-    throw new Error('No MeteoSwiss ICON grid found for coordinates');
+    throw new Error("No MeteoSwiss ICON grid found for coordinates");
   }
 
   // Find nearest grid point
   let nearest = def.gridPoints[0];
   let minDist = Infinity;
   for (const pt of def.gridPoints) {
-    const d = Math.hypot(pt.coordinate.latitude - lat, pt.coordinate.longitude - lon);
+    const d = Math.hypot(
+      pt.coordinate.latitude - lat,
+      pt.coordinate.longitude - lon,
+    );
     if (d < minDist) {
       minDist = d;
       nearest = pt;
@@ -50,17 +59,21 @@ async function getGridPoint(lat, lon) {
     elevation: nearest.coordinate?.elevation || 0,
     latitude: nearest.coordinate?.latitude || lat,
     longitude: nearest.coordinate?.longitude || lon,
-    model: def.products[0].identifier.includes('icon_ch1') ? 'ICON-CH1' : 'ICON-CH2',
-    modelKey: def.products[0].identifier.includes('icon_ch1') ? 'meteo_swiss:icon_ch1' : 'meteo_swiss:icon_ch2',
+    model: def.products[0].identifier.includes("icon_ch1")
+      ? "ICON-CH1"
+      : "ICON-CH2",
+    modelKey: def.products[0].identifier.includes("icon_ch1")
+      ? "meteo_swiss:icon_ch1"
+      : "meteo_swiss:icon_ch2",
   };
 }
 
 /**
  * Returns latest model run timestamp
  */
-async function getLatestRun(modelKey = 'meteo_swiss:icon_ch1') {
+async function getLatestRun(modelKey = "meteo_swiss:icon_ch1") {
   const now = Date.now();
-  if (runsCache.run && (now - runsCache.timestamp < 10 * 60 * 1000)) {
+  if (runsCache.run && now - runsCache.timestamp < 10 * 60 * 1000) {
     return runsCache.run;
   }
   const url = `https://weather-ws-prod.ubmeteo.io/v1/point-data/${modelKey}/runs`;
@@ -93,7 +106,7 @@ async function getEmagramForecast(stationName, lat, lon) {
   const cacheKey = `${stationName}_${lat.toFixed(3)}_${lon.toFixed(3)}`;
   const cached = soundingCache.get(cacheKey);
   const now = Date.now();
-  if (cached && (now - cached.timestamp < 20 * 60 * 1000)) {
+  if (cached && now - cached.timestamp < 20 * 60 * 1000) {
     return cached.data;
   }
 
@@ -102,12 +115,12 @@ async function getEmagramForecast(stationName, lat, lon) {
   const base = `https://weather-ws-prod.ubmeteo.io/v1/point-data/${grid.modelKey}/${run}/`;
 
   const [tRes, pRes, qRes, hRes, uRes, vRes] = await Promise.all([
-    fetch(`${base}temperature/${grid.pointIndex}`).then(r => r.json()),
-    fetch(`${base}pressure/${grid.pointIndex}`).then(r => r.json()),
-    fetch(`${base}specific_humidity/${grid.pointIndex}`).then(r => r.json()),
-    fetch(`${base}height_half_level/${grid.pointIndex}`).then(r => r.json()),
-    fetch(`${base}wind_u/${grid.pointIndex}`).then(r => r.json()),
-    fetch(`${base}wind_v/${grid.pointIndex}`).then(r => r.json()),
+    fetch(`${base}temperature/${grid.pointIndex}`).then((r) => r.json()),
+    fetch(`${base}pressure/${grid.pointIndex}`).then((r) => r.json()),
+    fetch(`${base}specific_humidity/${grid.pointIndex}`).then((r) => r.json()),
+    fetch(`${base}height_half_level/${grid.pointIndex}`).then((r) => r.json()),
+    fetch(`${base}wind_u/${grid.pointIndex}`).then((r) => r.json()),
+    fetch(`${base}wind_v/${grid.pointIndex}`).then((r) => r.json()),
   ]);
 
   const validTimes = tRes.validTimes || [];
@@ -123,10 +136,12 @@ async function getEmagramForecast(stationName, lat, lon) {
     // We reverse or inspect from surface up to ~550 hPa (approx 5000m AMSL)
     for (let l = numLevels - 1; l >= 0; l--) {
       const tempK = tRes.data?.levels[l]?.ensembleMembers?.[0]?.timeSeries?.[t];
-      const pressPa = pRes.data?.levels[l]?.ensembleMembers?.[0]?.timeSeries?.[t];
+      const pressPa =
+        pRes.data?.levels[l]?.ensembleMembers?.[0]?.timeSeries?.[t];
       const qKg = qRes.data?.levels[l]?.ensembleMembers?.[0]?.timeSeries?.[t];
       const hSeries = hRes.data?.levels[l]?.ensembleMembers?.[0]?.timeSeries;
-      const heightM = (hSeries && hSeries.length > 1) ? hSeries[t] : (hSeries ? hSeries[0] : 0);
+      const heightM =
+        hSeries && hSeries.length > 1 ? hSeries[t] : hSeries ? hSeries[0] : 0;
       const uMs = uRes.data?.levels[l]?.ensembleMembers?.[0]?.timeSeries?.[t];
       const vMs = vRes.data?.levels[l]?.ensembleMembers?.[0]?.timeSeries?.[t];
 
@@ -141,7 +156,8 @@ async function getEmagramForecast(stationName, lat, lon) {
 
       const speedMs = Math.hypot(uMs || 0, vMs || 0);
       const speedKmH = speedMs * 3.6;
-      const dirDeg = (Math.atan2(-(uMs || 0), -(vMs || 0)) * (180 / Math.PI) + 360) % 360;
+      const dirDeg =
+        (Math.atan2(-(uMs || 0), -(vMs || 0)) * (180 / Math.PI) + 360) % 360;
 
       levels.push({
         levelIndex: l,
@@ -163,13 +179,14 @@ async function getEmagramForecast(stationName, lat, lon) {
       if (i === 0) {
         levels[i].lapseRate = 0;
       } else {
-        const dz = (levels[i].heightM - levels[i - 1].heightM);
-        const dt = (levels[i].tempC - levels[i - 1].tempC);
+        const dz = levels[i].heightM - levels[i - 1].heightM;
+        const dt = levels[i].tempC - levels[i - 1].tempC;
         // Lapse rate Gamma = -dT/dz in °C / 100m
         // Normal troposphere has dt < 0, so Gamma is negative/positive depending on sign convention
         // In Swiss aviation: temperature drop rate: -0.65 °C / 100m is normal standard lapse.
         // If dT = -0.65 over 100m, lapseRate = -0.65 °C/100m.
-        levels[i].lapseRate = dz > 10 ? Math.round((dt / (dz / 100)) * 10) / 10 : 0;
+        levels[i].lapseRate =
+          dz > 10 ? Math.round((dt / (dz / 100)) * 10) / 10 : 0;
       }
     }
 
@@ -195,8 +212,4 @@ async function getEmagramForecast(stationName, lat, lon) {
   return payload;
 }
 
-export {
-  getGridPoint,
-  getLatestRun,
-  getEmagramForecast,
-};
+export { getGridPoint, getLatestRun, getEmagramForecast };

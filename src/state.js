@@ -1,26 +1,26 @@
-import { getTranslation } from './i18n/index.js';
+import { getTranslation } from "./i18n/index.js";
 
 class AppState {
   constructor() {
     this.listeners = new Set();
 
     // Load persisted settings
-    const savedLang = localStorage.getItem('shv_lang') || 'de';
-    const savedTheme = localStorage.getItem('shv_theme') || 'dark';
+    const savedLang = localStorage.getItem("shv_lang") || "de";
+    const savedTheme = localStorage.getItem("shv_theme") || "dark";
     const savedLogs = this.loadSavedLogs();
-    const savedSession = localStorage.getItem('shv_session_id') || null;
+    const savedSession = localStorage.getItem("shv_session_id") || null;
     const savedProfile = this.loadSavedProfile();
 
     this.state = {
-      activeTab: 'map', // 'map' | 'weather' | 'forecast' | 'safety' | 'profile'
+      activeTab: "map", // 'map' | 'weather' | 'forecast' | 'safety' | 'profile'
       lang: savedLang,
       theme: savedTheme,
       sid: savedSession,
-      
+
       // Map configuration
-      baseMap: 'topoLight', // 'topoLight' | 'topoColor' | 'topoSatellite' | 'topoOsm'
-      mapCategory: 'METEO', // 'METEO' | 'AIRSPACE' | 'FLYING_AREAS'
-      meteoMode: 'WIND', // 'WIND' | 'TEMPERATURE' | 'PRESSURE_DIFFERENCE' | 'WEBCAM' | 'NONE'
+      baseMap: "topoLight", // 'topoLight' | 'topoColor' | 'topoSatellite' | 'topoOsm'
+      mapCategory: "METEO", // 'METEO' | 'AIRSPACE' | 'FLYING_AREAS'
+      meteoMode: "WIND", // 'WIND' | 'TEMPERATURE' | 'PRESSURE_DIFFERENCE' | 'WEBCAM' | 'NONE'
       layers: {
         launches: false,
         landings: false,
@@ -32,7 +32,7 @@ class AppState {
         webcams: false,
         foehnAxis: false,
       },
-      searchQuery: '',
+      searchQuery: "",
       windFilter: [], // e.g. ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
       selectedSite: null,
       selectedStation: null,
@@ -69,28 +69,34 @@ class AppState {
 
   loadSavedLogs() {
     try {
-      const data = localStorage.getItem('shv_flights');
+      const data = localStorage.getItem("shv_flights");
       if (data) return JSON.parse(data);
     } catch (e) {
-      console.error('[AppState.loadSavedLogs] Failed to parse saved flights from localStorage:', e);
+      console.error(
+        "[AppState.loadSavedLogs] Failed to parse saved flights from localStorage:",
+        e,
+      );
     }
     return [];
   }
 
   loadSavedProfile() {
     try {
-      const raw = localStorage.getItem('shv_profile');
+      const raw = localStorage.getItem("shv_profile");
       if (!raw) return null;
       const data = JSON.parse(raw);
       // Purge any previously synthesized dummy/rubbish profile data
-      if (!data || data.firstName === 'Pilot' || !data.firstName) {
-        localStorage.removeItem('shv_profile');
+      if (!data || data.firstName === "Pilot" || !data.firstName) {
+        localStorage.removeItem("shv_profile");
         return null;
       }
       return data;
     } catch (e) {
-      console.error('[AppState.loadSavedProfile] Failed to parse saved profile from localStorage:', e);
-      localStorage.removeItem('shv_profile');
+      console.error(
+        "[AppState.loadSavedProfile] Failed to parse saved profile from localStorage:",
+        e,
+      );
+      localStorage.removeItem("shv_profile");
       return null;
     }
   }
@@ -99,14 +105,14 @@ class AppState {
     this.state.sid = sid;
     this.state.profile = profile;
     if (sid) {
-      localStorage.setItem('shv_session_id', sid);
+      localStorage.setItem("shv_session_id", sid);
     } else {
-      localStorage.removeItem('shv_session_id');
+      localStorage.removeItem("shv_session_id");
     }
     if (profile) {
-      localStorage.setItem('shv_profile', JSON.stringify(profile));
+      localStorage.setItem("shv_profile", JSON.stringify(profile));
     } else {
-      localStorage.removeItem('shv_profile');
+      localStorage.removeItem("shv_profile");
     }
     this.notify();
   }
@@ -114,9 +120,9 @@ class AppState {
   setProfile(profile) {
     this.state.profile = profile;
     if (profile) {
-      localStorage.setItem('shv_profile', JSON.stringify(profile));
+      localStorage.setItem("shv_profile", JSON.stringify(profile));
     } else {
-      localStorage.removeItem('shv_profile');
+      localStorage.removeItem("shv_profile");
     }
     this.notify();
   }
@@ -136,7 +142,7 @@ class AppState {
       try {
         listener(this.state);
       } catch (err) {
-        console.error('[AppState.notify] Listener threw error:', err);
+        console.error("[AppState.notify] Listener threw error:", err);
       }
     }
   }
@@ -145,9 +151,9 @@ class AppState {
     const listenersCopy = Array.from(this.listeners);
     for (const listener of listenersCopy) {
       try {
-        listener(this.state, { type: 'TAB_REPEAT', tab });
+        listener(this.state, { type: "TAB_REPEAT", tab });
       } catch (err) {
-        console.error('[AppState.notifyTabRepeat] Listener threw error:', err);
+        console.error("[AppState.notifyTabRepeat] Listener threw error:", err);
       }
     }
   }
@@ -158,7 +164,7 @@ class AppState {
 
   setTab(tab) {
     if (this.state.activeTab === tab) {
-      if (tab === 'map') {
+      if (tab === "map") {
         this.resetMapState();
       }
       this.notifyTabRepeat(tab);
@@ -169,7 +175,7 @@ class AppState {
   }
 
   resetMapState() {
-    this.state.searchQuery = '';
+    this.state.searchQuery = "";
     this.state.windFilter = [];
     this.state.selectedSite = null;
     this.state.selectedStation = null;
@@ -180,7 +186,7 @@ class AppState {
 
   setMapCategory(category) {
     this.state.mapCategory = category;
-    if (category === 'METEO') {
+    if (category === "METEO") {
       this.state.layers.stations = true;
       this.state.layers.launches = false;
       this.state.layers.landings = false;
@@ -190,7 +196,7 @@ class AppState {
       this.state.layers.obstacles = false;
       this.state.layers.webcams = false;
       this.state.layers.foehnAxis = false;
-    } else if (category === 'AIRSPACE') {
+    } else if (category === "AIRSPACE") {
       this.state.layers.airspace = true;
       this.state.layers.wildschutz = true;
       this.state.layers.stations = false;
@@ -200,7 +206,7 @@ class AppState {
       this.state.layers.obstacles = false;
       this.state.layers.webcams = false;
       this.state.layers.foehnAxis = false;
-    } else if (category === 'FLYING_AREAS') {
+    } else if (category === "FLYING_AREAS") {
       this.state.layers.launches = true;
       this.state.layers.landings = true;
       this.state.layers.landingPatterns = true;
@@ -216,14 +222,14 @@ class AppState {
 
   setLang(lang) {
     this.state.lang = lang;
-    localStorage.setItem('shv_lang', lang);
+    localStorage.setItem("shv_lang", lang);
     this.notify();
   }
 
   setTheme(theme) {
     this.state.theme = theme;
-    localStorage.setItem('shv_theme', theme);
-    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem("shv_theme", theme);
+    document.documentElement.setAttribute("data-theme", theme);
     this.notify();
   }
 
@@ -241,19 +247,19 @@ class AppState {
 
   setMeteoMode(mode) {
     this.state.meteoMode = mode;
-    if (mode === 'WIND' || mode === 'TEMPERATURE') {
+    if (mode === "WIND" || mode === "TEMPERATURE") {
       this.state.layers.stations = true;
       this.state.layers.webcams = false;
       this.state.layers.foehnAxis = false;
-    } else if (mode === 'PRESSURE_DIFFERENCE') {
+    } else if (mode === "PRESSURE_DIFFERENCE") {
       this.state.layers.stations = false;
       this.state.layers.webcams = false;
       this.state.layers.foehnAxis = true;
-    } else if (mode === 'WEBCAM') {
+    } else if (mode === "WEBCAM") {
       this.state.layers.stations = false;
       this.state.layers.webcams = true;
       this.state.layers.foehnAxis = false;
-    } else if (mode === 'NONE') {
+    } else if (mode === "NONE") {
       this.state.layers.stations = false;
       this.state.layers.webcams = false;
       this.state.layers.foehnAxis = false;
@@ -318,14 +324,14 @@ class AppState {
   }
 
   checkAllChecklist() {
-    Object.keys(this.state.checklist).forEach(k => {
+    Object.keys(this.state.checklist).forEach((k) => {
       this.state.checklist[k] = true;
     });
     this.notify();
   }
 
   resetChecklist() {
-    Object.keys(this.state.checklist).forEach(k => {
+    Object.keys(this.state.checklist).forEach((k) => {
       this.state.checklist[k] = false;
     });
     this.notify();
@@ -333,43 +339,52 @@ class AppState {
 
   addFlight(flight) {
     this.state.flights.unshift(flight);
-    localStorage.setItem('shv_flights', JSON.stringify(this.state.flights));
+    localStorage.setItem("shv_flights", JSON.stringify(this.state.flights));
     this.notify();
   }
 
   updateProfile(profile) {
     this.state.profile = { ...this.state.profile, ...profile };
-    localStorage.setItem('shv_profile', JSON.stringify(this.state.profile));
+    localStorage.setItem("shv_profile", JSON.stringify(this.state.profile));
     this.notify();
   }
 
   setProfilePreset(presetName) {
-    if (presetName === 'tandem') {
+    if (presetName === "tandem") {
       this.updateProfile({
-        shvNumber: '42199',
-        firstName: 'Christian',
-        lastName: 'Maurer',
-        birthDate: '27.07.1982',
-        ratings: ['Brevet Gleitschirm', 'Passagierberechtigung BIX', 'Fluglehrer SHV', 'IPPI Card Stage 5'],
-        club: 'Gleitschirmclub Frutigen',
+        shvNumber: "42199",
+        firstName: "Christian",
+        lastName: "Maurer",
+        birthDate: "27.07.1982",
+        ratings: [
+          "Brevet Gleitschirm",
+          "Passagierberechtigung BIX",
+          "Fluglehrer SHV",
+          "IPPI Card Stage 5",
+        ],
+        club: "Gleitschirmclub Frutigen",
       });
-    } else if (presetName === 'student') {
+    } else if (presetName === "student") {
       this.updateProfile({
-        shvNumber: '79201',
-        firstName: 'Laura',
-        lastName: 'Zenger',
-        birthDate: '15.09.2003',
-        ratings: ['Aspirant Gleitschirm (Schülerkontrollheft)'],
-        club: 'Fluggruppe Aletsch',
+        shvNumber: "79201",
+        firstName: "Laura",
+        lastName: "Zenger",
+        birthDate: "15.09.2003",
+        ratings: ["Aspirant Gleitschirm (Schülerkontrollheft)"],
+        club: "Fluggruppe Aletsch",
       });
     } else {
       this.updateProfile({
-        shvNumber: '58412',
-        firstName: 'Marco',
-        lastName: 'Odermatt',
-        birthDate: '12.05.1992',
-        ratings: ['Brevet Gleitschirm', 'IPPI Card Stage 5', 'Passagierberechtigung BAX'],
-        club: 'Gleitschirmclub Jungfrau',
+        shvNumber: "58412",
+        firstName: "Marco",
+        lastName: "Odermatt",
+        birthDate: "12.05.1992",
+        ratings: [
+          "Brevet Gleitschirm",
+          "IPPI Card Stage 5",
+          "Passagierberechtigung BAX",
+        ],
+        club: "Gleitschirmclub Jungfrau",
       });
     }
   }
