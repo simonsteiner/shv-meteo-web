@@ -12,6 +12,8 @@ npm run server  # Express API only, port 3001
 npm run dev:vite  # Vite only, port 3000
 npm run build  # bundle the frontend into dist/
 npm run preview  # serve dist/ on 3000, needs the API on 3001
+npm run lint  # oxlint and prettier --check, as in the pre-commit hook
+npm run format  # prettier --write
 node scripts/generate_screenshots.js  # capture all views, see docs/setup.md first
 ```
 
@@ -45,7 +47,7 @@ node scripts/generate_screenshots.js  # capture all views, see docs/setup.md fir
 ## Gotchas
 
 - **The code was written by LLMs without human review.** Treat comments and doc claims as hints and check them against the code.
-- **There are no tests, linter, type checker or CI.** Check a change with `npm run build` and by using it in the browser on `npm run dev`.
+- **There are no tests, type checker or CI.** Check a change with `npm run lint`, `npm run build` and by using it in the browser on `npm run dev`.
 - **Views switch by tab state, not by URL.** `store.setTab` swaps the view in `src/main.js`; there are no routes or deep links.
 - **Sessions and pending logins live in memory** in `server/auth.js`, so restarting the server logs everyone out.
 - **`previtemps_stations.json` exists three times** (`server/data/`, `public/data/`, `src/data/`); the server reads `server/data/` and `src/data/` is unused. Keep the copies identical.
