@@ -1,7 +1,7 @@
 # Swiss Free Flight
 
 A web app for Swiss paraglider and hang glider pilots that shows flying sites, airspace hazards, live weather and soaring forecasts from the public data behind the official SHV FSVL app. It is a vanilla JavaScript single-page app bundled by Vite (`src/`) plus an Express API (`server/`). The browser loads static GIS data from `public/data/` and calls everything else through `/api/*` on the Express server, which proxies, caches and processes the upstream services (Ubique weather and webcams, SHV, MeteoSwiss ICON, BAZL obstacles, SHV Keycloak).
-Domain terms are in `GLOSSARY.md`. A move to Astro on Cloudflare Pages is planned; until it lands, this file describes the current code.
+Domain terms are in `GLOSSARY.md`. A move to Astro on Cloudflare Pages is planned (`docs/plan/2026-11-23-astro-cloudflare/`); until it lands, this file describes the current code.
 
 ## Commands
 
@@ -63,3 +63,4 @@ node scripts/generate_screenshots.js  # capture all views, see docs/setup.md fir
 - `docs/architecture.md`: data sources, which calls are proxied and why, every `/api` route, how the code is organised. Read before adding or changing an endpoint.
 - `docs/reference/shv-native-app.md`: reverse-engineered notes on the official app, Keycloak and the member web service. Read before touching auth or member data.
 - `GLOSSARY.md`: domain terms in English and German.
+- `docs/plan/2026-11-23-astro-cloudflare/`: the migration plan and PR stack. Read before starting a migration PR.
