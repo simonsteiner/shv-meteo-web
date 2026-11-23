@@ -59,7 +59,7 @@ function endpointHtml(pair: StationPair, st: StationPair["station1"]): string {
     : st.temperatureC === null
       ? DASH
       : `${st.temperatureC}°C`;
-  return `<div class="transect-endpoint-dot" title="${escapeHtml(`${name}: ${value}`)}"><span>${escapeHtml(name.split(" ")[0])}</span></div>`;
+  return `<div class="pair-endpoint-dot" title="${escapeHtml(`${name}: ${value}`)}"><span>${escapeHtml(name.split(" ")[0])}</span></div>`;
 }
 
 /** The axes to draw for `report`: the pairs whose two stations both have a

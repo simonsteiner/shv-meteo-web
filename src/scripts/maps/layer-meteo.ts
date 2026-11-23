@@ -53,11 +53,7 @@ export function drawFoehn(
     for (const [i, at] of [axis.from, axis.to].entries())
       layer.addLayer(
         L.marker(at, {
-          icon: centredIcon(
-            "transect-dot-icon",
-            axis.endpointsHtml[i],
-            [60, 20],
-          ),
+          icon: centredIcon("pair-dot-icon", axis.endpointsHtml[i], [60, 20]),
         }),
       );
     const badge = L.marker(axis.badgeAt, {
