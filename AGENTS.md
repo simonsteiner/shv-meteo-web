@@ -15,6 +15,7 @@ npm run typecheck  # astro check, also the pre-push hook
 npm test  # node --test over src/scripts/**/*.test.ts
 npm run lint  # oxlint and prettier --check, as in the pre-commit hook
 npm run format  # prettier --write
+npm run grid  # rewrite src/data/previtemps_grid.json from the station catalogue (needs network)
 npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a running dev server; see docs/setup.md
 ```
 
@@ -50,8 +51,8 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 - **Only new code is tested and type-checked.** `astro check` covers `.ts` and `.astro` files; the legacy `.js` is not checked (`checkJs` is off) and has no tests. CI (`.github/workflows/ci.yml`) runs lint, rumdl, tests, typecheck and build on every push and pull request, and `deploy.yml` deploys `main` to Cloudflare Pages once it passes. Check a change with `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` and by using it in the browser on `npm run dev`.
 - **Every tab is its own page.** `src/pages/<tab>/index.astro` sets `<body data-view>` through `src/layouts/Base.astro`, and `src/main.js` mounts that view; `store.setTab` navigates. A selection handed to the map travels in its URL (`src/scripts/handoff.ts`), and settings that must outlive a page load persist through `src/scripts/settings.ts`.
 - **Browser code stays at ES2020.** `astro.config.mjs` keeps the old build target (Safari 14, Chrome 87, Firefox 78) on purpose; syntax is lowered but builtins are not polyfilled, so don't use newer ones (`Object.hasOwn`, `Array.prototype.at`, `structuredClone`) in browser code.
-- **`previtemps_stations.json` exists twice** (`public/data/`, `src/data/`); `src/data/` is unused. Keep the copies identical.
-- **Not every `/api` route is ported yet.** The sounding stations and forecast (PR11) and obstacles (PR12) answer 404 until their PR lands, in dev as in production; member login is gone. `ShvApi.getEmagramSounding` and the parcel-analysis methods call routes that no longer exist.
+- **The sounding Function reads a generated grid.** `src/data/previtemps_grid.json` maps each station of `public/data/previtemps_stations.json` to its ICON grid point; rerun `npm run grid` after changing the catalogue, or when a station's sounding answers 503 for a day.
+- **Not every `/api` route is ported yet.** Obstacles (PR12) answer 404 until their PR lands, in dev as in production; member login is gone. `ShvApi.getEmagramSounding` and the parcel-analysis methods call routes that no longer exist.
 - **`public/data/*.geojson` are snapshots of the upstream CDN datasets.** `ShvApi` loads them first and falls back to the CDN URLs in `src/services/api.js`.
 
 ## Docs

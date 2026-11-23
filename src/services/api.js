@@ -250,7 +250,7 @@ export class ShvApi {
 
   static async getPrevitempsStations() {
     try {
-      const resp = await fetch("/api/meteo/previtemps/stations");
+      const resp = await fetch("/data/previtemps_stations.json");
       if (resp.ok) return await resp.json();
       console.error(
         "[ShvApi.getPrevitempsStations] HTTP error:",

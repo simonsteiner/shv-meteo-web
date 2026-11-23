@@ -128,7 +128,7 @@ Reversed from `fl5.java`, `sl2.java`, `xh7.java`, `ki4.java`, and `u62.java`:
     $x = \lfloor (180.0 + \text{lon}) / 0.3515625 \rfloor$, $y = \lfloor (90.0 - \text{lat}) / 0.17578125 \rfloor$.
   - Grid definition fetched from `https://static-prod.ubmeteo.io/v1/products/grid/10/{x}/{y}.json`.
   - Maps any station to the nearest `meteo_swiss:icon_ch1` or `meteo_swiss:icon_ch2` model grid point.
-- **Hourly Point-Data Sounding Engine (the deleted `server/emagram_provider.js`, ported to a Function in PR11)**:
+- **Hourly Point-Data Sounding Engine ([src/scripts/emagram/](../../src/scripts/emagram/), behind `/api/meteo/previtemps/forecast/:name`)**:
   - Latest model run fetched from `https://weather-ws-prod.ubmeteo.io/v1/point-data/meteo_swiss:icon_ch1/runs`.
   - Multi-level atmospheric profiles fetched across 34 hourly timesteps:
     `temperature`, `pressure`, `specific_humidity`, `height_half_level`, `wind_u`, `wind_v`.
