@@ -11,6 +11,10 @@ npx wrangler login
 npx wrangler pages project create shv-meteo --production-branch main
 ```
 
+## Deploy on merge
+
+[.github/workflows/deploy.yml](../.github/workflows/deploy.yml) deploys every merge to `main` once [ci](../.github/workflows/ci.yml) has passed on it, and only `main`'s head: when ci finishes on an older commit, that run is skipped. It needs two repo secrets (Settings, Secrets and variables, Actions): `CLOUDFLARE_API_TOKEN`, a token with the Account permission "Cloudflare Pages: Edit", and `CLOUDFLARE_ACCOUNT_ID`. Actions, deploy, "Run workflow" on `main` redeploys by hand.
+
 ## Deploy by hand
 
 ```bash
