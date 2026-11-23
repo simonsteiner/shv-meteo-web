@@ -35,6 +35,7 @@ test("stationValues converts Kelvin and tenths of hPa, keeps km/h", () => {
       dewC: -3,
       humidity: 82,
       qnhHpa: 1021,
+      surfaceHpa: null,
     },
   );
 });
@@ -51,7 +52,9 @@ test("stationValues keeps 0 and falls back to the other fields", () => {
   assert.equal(v.windKmh, 0);
   assert.equal(v.tempC, 0);
   assert.equal(v.humidity, 40);
-  assert.equal(v.qnhHpa, 850);
+  // station pressure is no QNH; it stays in its own field
+  assert.equal(v.qnhHpa, null);
+  assert.equal(v.surfaceHpa, 850);
   assert.equal(v.gustKmh, null);
   assert.equal(v.dewC, null);
 });

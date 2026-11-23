@@ -43,6 +43,11 @@ export function stationCardHtml(
   const wind = v.windKmh === null ? null : Math.round(v.windKmh);
   const gust = v.gustKmh === null ? null : Math.round(v.gustKmh);
   const dir = v.dirDeg ?? 0;
+  // a station without QNH shows its own pressure, labelled QFE, not QNH
+  const [pressureLabel, pressure] =
+    v.qnhHpa === null && v.surfaceHpa !== null
+      ? ["QFE", v.surfaceHpa]
+      : ["QNH", v.qnhHpa];
   // upstream sends 0 for an unknown altitude
   const meta = [
     p.altitude ? `${p.altitude}m` : "",
@@ -64,7 +69,7 @@ export function stationCardHtml(
     <div class="st-stat"><span class="st-stat-lbl">${escapeHtml(text.wind)}</span><span class="st-stat-val ${windClass(wind)}">${wind === null ? DASH : `${wind} km/h`}</span></div>
     <div class="st-stat"><span class="st-stat-lbl">${escapeHtml(text.gust)}</span><span class="st-stat-val text-warning">${gust === null ? DASH : `${gust} km/h`}</span></div>
     <div class="st-stat"><span class="st-stat-lbl">${escapeHtml(text.temp)}</span><span class="st-stat-val">${v.tempC === null ? DASH : `${v.tempC}°`}</span></div>
-    <div class="st-stat"><span class="st-stat-lbl">QNH</span><span class="st-stat-val">${v.qnhHpa === null ? DASH : v.qnhHpa}</span></div>
+    <div class="st-stat"><span class="st-stat-lbl">${pressureLabel}</span><span class="st-stat-val">${pressure === null ? DASH : pressure}</span></div>
   </div>
 </div>`;
 }

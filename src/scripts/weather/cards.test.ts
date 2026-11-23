@@ -28,6 +28,25 @@ test("stationCardHtml escapes upstream names and ids", () => {
   assert.ok(html.includes("31 km/h"));
 });
 
+test("stationCardHtml labels station pressure QFE, never QNH", () => {
+  const card = (properties: Record<string, number>) =>
+    stationCardHtml(
+      {
+        id: "slf:X",
+        geometry: { type: "Point", coordinates: [8, 47] },
+        properties,
+      },
+      text,
+    );
+  const qfe = card({ pressureSurfaceValue: 850.4 });
+  assert.ok(qfe.includes(">QFE<"));
+  assert.ok(!qfe.includes("QNH"));
+  assert.ok(qfe.includes(">850<"));
+  const qnh = card({ pressureMslValue: 1021.2, pressureSurfaceValue: 850.4 });
+  assert.ok(qnh.includes(">QNH<"));
+  assert.ok(qnh.includes(">1021<"));
+});
+
 test("webcamCardHtml escapes text and refuses non-http image URLs", () => {
   const html = webcamCardHtml({
     identifier: "cam:1",

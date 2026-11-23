@@ -29,8 +29,10 @@ export interface StationValues {
   dewC: number | null;
   /** %, rounded */
   humidity: number | null;
-  /** hPa, rounded */
+  /** Sea-level pressure (QNH), hPa, rounded */
   qnhHpa: number | null;
+  /** Pressure at the station itself (QFE), hPa, rounded; not a QNH */
+  surfaceHpa: number | null;
 }
 
 function num(v: unknown): number | null {
@@ -45,11 +47,8 @@ export function stationValues(st: MeasurementFeature): StationValues {
   const p = st.properties;
   const wind = num(p.windSpeedValue);
   const gust = num(p.windGustValue);
-  const qnh = toHpa(
-    num(p.pressureMslValue) ??
-      num(p.pressureStandardMslValue) ??
-      num(p.pressureSurfaceValue),
-  );
+  const qnh = toHpa(num(p.pressureMslValue) ?? num(p.pressureStandardMslValue));
+  const surface = toHpa(num(p.pressureSurfaceValue));
   const humidity =
     num(p.relativeHumidity2mValue) ?? num(p.relativeHumidityValue);
   return {
@@ -62,6 +61,7 @@ export function stationValues(st: MeasurementFeature): StationValues {
     dewC: rounded(toCelsius(num(p.dewPoint2mValue))),
     humidity: humidity === null ? null : Math.round(humidity),
     qnhHpa: qnh === null ? null : Math.round(qnh),
+    surfaceHpa: surface === null ? null : Math.round(surface),
   };
 }
 
