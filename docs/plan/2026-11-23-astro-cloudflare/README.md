@@ -21,6 +21,30 @@ Domain terms (station pair, sounding, DABS) are in [GLOSSARY.md](../../../GLOSSA
 
 The implementation PRs start at PR5.
 
+## Status (2026-11-23)
+
+PR5 to PR14 have merged, with four follow-ups that the stack's reviews and its first deploys called for, and production runs on `https://shv-meteo.pages.dev`. Where the merged code differs from these files, [data-queries.md](../../architecture/data-queries.md) records what shipped and why, and the plan files say so where it matters.
+
+| Plan | PR | Branch | Notes |
+| --- | --- | --- | --- |
+| PR5 | [#6](https://github.com/simonsteiner/shv-meteo-web/pull/6) | `feat/astro-shell` |  |
+| PR6 | [#7](https://github.com/simonsteiner/shv-meteo-web/pull/7) | `ci/workflows` |  |
+| PR7 | [#9](https://github.com/simonsteiner/shv-meteo-web/pull/9) | `chore/shot-script` |  |
+| PR8 | [#10](https://github.com/simonsteiner/shv-meteo-web/pull/10) | `refactor/split-main-css` |  |
+| PR9 | [#11](https://github.com/simonsteiner/shv-meteo-web/pull/11) | `feat/functions-proxies` | the spike found the edge cache works |
+| PR10 | [#12](https://github.com/simonsteiner/shv-meteo-web/pull/12) | `feat/functions-foehn` | over 10 ms CPU, fixed in [#18](https://github.com/simonsteiner/shv-meteo-web/pull/18) |
+| PR11 | [#13](https://github.com/simonsteiner/shv-meteo-web/pull/13) | `feat/functions-emagram` | over 10 ms CPU, fixed in [#20](https://github.com/simonsteiner/shv-meteo-web/pull/20) |
+| PR12 | [#14](https://github.com/simonsteiner/shv-meteo-web/pull/14) | `feat/obstacles` | the tiles fell short at z7 and z8, so the shard path |
+| PR13 | [#15](https://github.com/simonsteiner/shv-meteo-web/pull/15) | `chore/drop-auth` |  |
+| PR14 | [#16](https://github.com/simonsteiner/shv-meteo-web/pull/16) | `refactor/api-client-ts` |  |
+| follow-up | [#17](https://github.com/simonsteiner/shv-meteo-web/pull/17) | `fix/stack-review` | the review findings on [#6](https://github.com/simonsteiner/shv-meteo-web/pull/6) to [#16](https://github.com/simonsteiner/shv-meteo-web/pull/16) |
+| follow-up | [#18](https://github.com/simonsteiner/shv-meteo-web/pull/18) | `fix/foehn-cpu` | filtered upstream calls: `/api/foehn` 5.5 ms CPU median |
+| follow-up | [#19](https://github.com/simonsteiner/shv-meteo-web/pull/19) | `fix/sounding-run` | the newest run, not the oldest |
+| follow-up | [#20](https://github.com/simonsteiner/shv-meteo-web/pull/20) | `perf/sounding-cpu` | levels built in the browser: a sounding 3 ms CPU median |
+| follow-up | [#21](https://github.com/simonsteiner/shv-meteo-web/pull/21) | `fix/review-leftovers` | the deferred review findings that were cheap to fix; open |
+
+Next: PR16 `refactor/safety-page`, then PR18 to PR20 in parallel, then PR21 and PR22 ([prs-views.md](prs-views.md)). Each branches off `main`; the plan numbers stay, GitHub's differ.
+
 ## Contents
 
 - [audit.md](audit.md): current architecture, per-route Workers compatibility, dead code, security issues, hook constraints
@@ -30,5 +54,5 @@ The implementation PRs start at PR5.
 - [prs.md](prs.md): PR5 to PR8, shell, CI, screenshots, CSS split
 - [prs-api.md](prs-api.md): PR9 to PR14, API Functions, removal of Express
 - [prs-views.md](prs-views.md): PR16 to PR22, view refactors, CSP, dependency graph
-- [questions.md](questions.md): open questions with recommended defaults
+- [questions.md](questions.md): decisions, open questions with recommended defaults, and what is left for later
 - [branching.md](branching.md): `master` mirrors upstream, `main` is ours

@@ -2,6 +2,13 @@
 
 The rules at the top of [prs.md](prs.md) hold here too.
 
+All six have merged ([#11](https://github.com/simonsteiner/shv-meteo-web/pull/11) to [#16](https://github.com/simonsteiner/shv-meteo-web/pull/16), see the [README](README.md)). Where they shipped otherwise, [data-queries.md](../../architecture/data-queries.md) has the measurements:
+
+- **PR9:** the spike found the edge cache works, so the cache path in [target.md](target.md) shipped and nothing took the browser path.
+- **PR10:** the Swiss-bbox call took 8 to 29 ms CPU. [#18](https://github.com/simonsteiner/shv-meteo-web/pull/18) replaced it with filtered calls: one per parameter, limited to the pair stations' box, and series from 25 hours back. `/api/measurements/ch` and the browser path were never built.
+- **PR11:** the Function took up to 25 ms CPU. [#20](https://github.com/simonsteiner/shv-meteo-web/pull/20) moved the level maths to the browser, and the Function now passes the point data through, checked by `pointProblem`. [#19](https://github.com/simonsteiner/shv-meteo-web/pull/19) takes the newest run rather than the oldest.
+- **PR12:** the tiles fell short at z7 and z8, so the shard path shipped.
+
 ## PR9 `feat/functions-proxies`
 
 - Functions for `measurements`, `measurements/timeseries/[id]`, `webcams` and `meteo/text-forecast/[lang]`, one-line adapters over `src/scripts/upstream/{fetch,respond,routes,params}.ts` (timeout, User-Agent, streaming, headers and the other rules in [target.md](target.md)). Create `src/scripts/types.ts`.
@@ -28,7 +35,7 @@ The rules at the top of [prs.md](prs.md) hold here too.
 - `scripts/previtemps-grid.ts` (`npm run grid`) reads `public/data/previtemps_stations.json` and writes `src/data/previtemps_grid.json`, marked `linguist-generated` in a new `.gitattributes`. `src/scripts/emagram/levels.ts` from `e1e5525:server/emagram_provider.js:79-181`, and `emagram/grid.ts` (station name to grid point; takes the grid as a parameter, only the Function imports the JSON). A Function for `previtemps/forecast/[name]`. `ShvApi` loads the station list from `/data/previtemps_stations.json`. Delete `src/data/previtemps_stations.json`; AGENTS.md's "exists three times" gotcha goes.
 - **Files.** Create: `scripts/previtemps-grid.ts`, `src/data/previtemps_grid.json`, `.gitattributes`, `src/scripts/emagram/{levels,grid,gridpoint,fetch}.ts`, `functions/api/meteo/previtemps/forecast/[name].ts` (or `[[name]].ts`, joining the segments with `/`, if the spike shows `%2F` splits the path), tests. Change: `src/services/api.js`, `src/scripts/types.ts`, `package.json` (`grid`), AGENTS.md. Delete: `src/data/previtemps_stations.json`.
 - **Tests:** levels: dew point from specific humidity and pressure, the 550 hPa cut-off, the lapse rate when two levels are 10 m or less apart, a missing `height_half_level` series. grid (given the decoded name): case-insensitive match, `Zürich` and `Disentis/Mustér` found, unknown name gives `null`. The grid script's pure part (`emagram/gridpoint.ts`: CH1 before CH2, nearest grid point, no grid is an error naming the station) has its own tests.
-- **Accept:** locally, Interlaken returns more than 20 time steps; an unknown name returns 404; the station list loads; the sounding on `/forecast/` animates through its time steps. `curl localhost:8788/api/meteo/previtemps/forecast/Disentis%2FMust%C3%A9r` returns 200. After deploy, the Functions metrics show the forecast route under 10 ms CPU (p99); if not, there is no browser fallback (point data refuses browsers), so the Workers paid plan is the answer ([questions.md](questions.md) item 1).
+- **Accept:** locally, Interlaken returns more than 20 time steps; an unknown name returns 404; the station list loads; the sounding on `/forecast/` animates through its time steps. `curl localhost:8788/api/meteo/previtemps/forecast/Disentis%2FMust%C3%A9r` returns 200. After deploy, the Functions metrics show the forecast route under 10 ms CPU (p99). It wasn't: the fix keeps the upstream calls in the Function (point data refuses browsers) and moves the level maths to the browser ([#20](https://github.com/simonsteiner/shv-meteo-web/pull/20)).
 
 ## PR12 `feat/obstacles` (the shard path needs PR6)
 
