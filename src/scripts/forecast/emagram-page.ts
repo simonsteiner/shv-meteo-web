@@ -9,14 +9,16 @@ import { ShvApi } from "../api.ts";
 import { must } from "../dom.ts";
 import { escapeHtml } from "../escape.ts";
 import { page } from "./page.ts";
-import { applyText, say as sayIn, type Dictionary } from "../i18n/text.ts";
+import { applyText } from "../i18n/text.ts";
+import {
+  storeDictionary as dictionary,
+  storeSay as say,
+} from "../i18n/store.ts";
 import type { SoundingStation } from "../types.ts";
 import { emagramCard } from "./emagram-card.ts";
 import { readStation, withParams } from "./query.ts";
 import { localeFor } from "./text.ts";
 
-const dictionary = () => store.t as unknown as Dictionary;
-const say = (key: string) => sayIn(dictionary(), key);
 const POPULAR = [
   "Interlaken",
   "Engelberg",

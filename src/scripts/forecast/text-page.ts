@@ -6,7 +6,11 @@ import { store } from "../../state.js";
 import { ShvApi } from "../api.ts";
 import { must } from "../dom.ts";
 import { page } from "./page.ts";
-import { applyText, say as sayIn, type Dictionary } from "../i18n/text.ts";
+import { applyText } from "../i18n/text.ts";
+import {
+  storeDictionary as dictionary,
+  storeSay as say,
+} from "../i18n/store.ts";
 import { readChoice, withParams } from "./query.ts";
 import { browserParse, sanitizeForecastHtml } from "./sanitize.ts";
 import {
@@ -17,9 +21,6 @@ import {
   type Region,
   type TextCategory,
 } from "./text.ts";
-
-const dictionary = () => store.t as unknown as Dictionary;
-const say = (key: string) => sayIn(dictionary(), key);
 
 const TITLE: Record<TextCategory, string> = {
   weather_report: "forecast.titleWeatherReport",

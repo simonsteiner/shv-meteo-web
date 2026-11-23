@@ -6,12 +6,11 @@ import L from "leaflet";
 import { store } from "../../state.js";
 import { ShvApi } from "../api.ts";
 import { must } from "../dom.ts";
+import { applyText, fill } from "../i18n/text.ts";
 import {
-  applyText,
-  fill,
-  say as sayIn,
-  type Dictionary,
-} from "../i18n/text.ts";
+  storeDictionary as dictionary,
+  storeSay as say,
+} from "../i18n/store.ts";
 import {
   colorize,
   colorLut,
@@ -29,8 +28,6 @@ import { page } from "./page.ts";
 import { readChoice, withParams } from "./query.ts";
 import { localeFor } from "./text.ts";
 
-const dictionary = () => store.t as unknown as Dictionary;
-const say = (key: string) => sayIn(dictionary(), key);
 const SWISS_BOUNDS: L.LatLngBoundsExpression = [
   [45.8, 5.9],
   [47.8, 10.5],

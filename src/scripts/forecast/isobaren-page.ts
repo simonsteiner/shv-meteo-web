@@ -5,7 +5,8 @@ import { store } from "../../state.js";
 import { isobarenUrl } from "../api.ts";
 import { must } from "../dom.ts";
 import { page } from "./page.ts";
-import { applyText, type Dictionary } from "../i18n/text.ts";
+import { applyText } from "../i18n/text.ts";
+import { storeDictionary } from "../i18n/store.ts";
 
 export function mountIsobaren(root: HTMLElement): void {
   const img = must<HTMLImageElement>(root, "[data-isobaren-img]");
@@ -16,7 +17,7 @@ export function mountIsobaren(root: HTMLElement): void {
   function render(): void {
     if (store.state.lang === lang) return;
     lang = store.state.lang;
-    applyText(page(root), store.t as unknown as Dictionary);
+    applyText(page(root), storeDictionary());
     img.src = isobarenUrl(store.state.lang);
   }
   store.subscribe(render);
