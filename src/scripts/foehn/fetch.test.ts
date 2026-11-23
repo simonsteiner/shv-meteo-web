@@ -29,7 +29,7 @@ function request(url: string) {
   const q = new URL(url).searchParams;
   const n = (k: string) => Number(q.get(k));
   return {
-    parameter: q.get("parameters") ?? "",
+    parameters: (q.get("parameters") ?? "").split(","),
     minLat: n("minLat"),
     minLon: n("minLon"),
     maxLat: n("maxLat"),
@@ -43,10 +43,11 @@ const inside = (url: string, [lon, lat]: [number, number]) => {
 };
 
 /** A fetch that answers each measurements call with the pair stations in
- * its box (all but `missing`), carrying only the asked parameter; `status`
+ * its box (all but `missing`), carrying only the asked parameter (for
+ * `surfaceOnly`, only its surface pressure, when that is asked for); 502
  * for the `failing` parameter's call; and fails every series. */
 function fakeFetch(
-  options: { failing?: string; missing?: string } = {},
+  options: { failing?: string; missing?: string; surfaceOnly?: string } = {},
   calls: string[] = [],
 ) {
   return (async (input: RequestInfo | URL) => {
@@ -54,16 +55,26 @@ function fakeFetch(
     calls.push(url);
     if (!url.includes("/measurements/current"))
       return new Response("down", { status: 500 });
-    const { parameter } = request(url);
+    const { parameters } = request(url);
+    const [parameter] = parameters;
     if (parameter === options.failing)
       return new Response("bad gateway", { status: 502 });
     const features = Object.entries(STATION_POSITIONS)
       .filter(([id, pos]) => id !== options.missing && inside(url, pos))
-      .map(([id, coordinates]) => ({
-        id,
-        geometry: { type: "Point", coordinates },
-        properties: { name: id, [PROPERTY[parameter]]: VALUES[id] ?? 1000 },
-      }));
+      .map(([id, coordinates]) => {
+        const property =
+          id === options.surfaceOnly
+            ? parameters.includes("pressure_surface") && "pressureSurfaceValue"
+            : PROPERTY[parameter];
+        return {
+          id,
+          geometry: { type: "Point", coordinates },
+          properties: {
+            name: id,
+            ...(property ? { [property]: VALUES[id] ?? 1000 } : {}),
+          },
+        };
+      });
     return Response.json({ type: "FeatureCollection", features });
   }) as typeof fetch;
 }
@@ -88,7 +99,7 @@ test("one call per parameter, its box holding its stations", () => {
   assert.equal(groups.get("pressure_msl")?.length, 6);
   for (const [parameter, ids] of groups) {
     const url = measurementsUrl(parameter, ids);
-    assert.equal(request(url).parameter, parameter);
+    assert.equal(request(url).parameters[0], parameter);
     for (const id of ids) assert.ok(inside(url, STATION_POSITIONS[id]), id);
   }
 });
@@ -171,4 +182,18 @@ test("a failed measurements call gives the route's 503", async () => {
   assert.deepEqual(await res.json(), {
     error: "Föhndaten vorübergehend nicht erreichbar",
   });
+});
+
+test("a pressure station without an MSL value keeps its pair", async () => {
+  const res = await foehnResponse(
+    "GVE_GUT",
+    fakeFetch({ surfaceOnly: "meteo_swiss:GUT" }),
+    () => NOW,
+  );
+  const body = await res.json();
+  // GUT's surface pressure stands in, as stationPressure falls back to it
+  assert.equal(
+    body.pairs.find((p: { id: string }) => p.id === "GVE_GUT").delta,
+    7,
+  );
 });

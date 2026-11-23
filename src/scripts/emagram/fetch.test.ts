@@ -31,15 +31,26 @@ const ctx = (path: string) =>
  * `{"runs":[1795435200000,1795413600000]}` (12 and 06 UTC). */
 const RUNS = [3, 2, 1];
 
+/** A series still being written: every humidity value null. */
+const NO_HUMIDITY = {
+  ...COLUMN,
+  specific_humidity: [null, null, null, null],
+} as unknown as Record<string, number[]>;
+
 /** Upstream listing runs 3, 2, 1 and answering each point with `column`,
- * except a 404 for any URL holding `failing`. */
-function fakeFetch(calls: string[], failing = "", column = COLUMN) {
+ * except a 404 for any URL holding `failing`; `runs` is the listed order. */
+function fakeFetch(
+  calls: string[],
+  failing = "",
+  column = COLUMN,
+  runs = RUNS,
+) {
   return (async (input: RequestInfo | URL) => {
     const url = String(input);
     calls.push(url);
     if (failing && url.includes(failing))
       return new Response("", { status: 404 });
-    if (url.endsWith("/runs")) return Response.json({ runs: RUNS });
+    if (url.endsWith("/runs")) return Response.json({ runs });
     return Response.json(pointAnswer(column));
   }) as typeof fetch;
 }
@@ -95,6 +106,16 @@ test("a catalogue name with a slash returns the latest run's point data as upstr
   });
 });
 
+test("the newest run is taken whatever order upstream lists them in", async () => {
+  const res = await soundingRoute(
+    ctx("Disentis%2FMust%C3%A9r"),
+    grid,
+    fakeFetch([], "", COLUMN, [1, 3, 2]),
+  );
+  assert.equal(res.status, 200);
+  assert.equal((await res.json()).run, 3);
+});
+
 test("a newest run without data falls back to the one before", async () => {
   const calls: string[] = [];
   const res = await quietly(() =>
@@ -114,6 +135,21 @@ test("an unknown name is a 404 without an upstream call", async () => {
     error: "Unbekannte Sondierungsstation",
   });
   assert.equal(calls.length, 0);
+});
+
+test("a run without one complete level is the route's 503", async () => {
+  const calls: string[] = [];
+  const res = await quietly(() =>
+    soundingRoute(
+      ctx("Disentis%2FMust%C3%A9r"),
+      grid,
+      fakeFetch(calls, "", NO_HUMIDITY),
+    ),
+  );
+  assert.equal(res.status, 503);
+  // the runs list, then each of the three runs: none has a complete level,
+  // so each falls back to the one before
+  assert.equal(calls.length, 4);
 });
 
 test("a failed point fetch is the route's 503", async () => {

@@ -33,24 +33,36 @@ const DOWNLOAD_TIMEOUT_MS = 5 * 60 * 1000;
 
 const { values } = parseArgs({ options: { source: { type: "string" } } });
 
-async function download(): Promise<void> {
+/** The dataset's features; throws on a payload without any. */
+function features(text: string): ObstacleFeature[] {
+  const raw = JSON.parse(text) as { features?: unknown };
+  if (!Array.isArray(raw.features) || raw.features.length === 0)
+    throw new Error("[obstacles] the dataset holds no features");
+  return raw.features as ObstacleFeature[];
+}
+
+/** Downloads the dataset and caches it once it has features, so a 200 with
+ * a maintenance page or `{}` never overwrites the copy the fallback uses. */
+async function download(): Promise<ObstacleFeature[]> {
   console.log(`downloading ${SOURCE_URL}`);
   const res = await fetch(SOURCE_URL, {
     headers: { "User-Agent": USER_AGENT },
     signal: AbortSignal.timeout(DOWNLOAD_TIMEOUT_MS),
   });
   if (!res.ok) throw new Error(`${SOURCE_URL} answered ${res.status}`);
-  const data = Buffer.from(await res.arrayBuffer());
+  const text = await res.text();
+  const all = features(text);
   mkdirSync(dirname(CACHED), { recursive: true });
-  writeFileSync(CACHED, data);
+  writeFileSync(CACHED, text);
+  return all;
 }
 
-async function source(): Promise<string> {
-  if (values.source) return values.source;
+async function load(): Promise<ObstacleFeature[]> {
+  if (values.source) return features(await readFile(values.source, "utf8"));
   if (existsSync(CACHED) && Date.now() - statSync(CACHED).mtimeMs < DAY_MS)
-    return CACHED;
+    return features(await readFile(CACHED, "utf8"));
   try {
-    await download();
+    return await download();
   } catch (err) {
     if (!existsSync(CACHED)) throw err;
     const from = statSync(CACHED).mtime.toISOString();
@@ -58,16 +70,11 @@ async function source(): Promise<string> {
       `[obstacles] Download failed, using the cached copy from ${from}:`,
       err,
     );
+    return features(await readFile(CACHED, "utf8"));
   }
-  return CACHED;
 }
 
-const raw = JSON.parse(await readFile(await source(), "utf8")) as {
-  features?: unknown;
-};
-if (!Array.isArray(raw.features) || raw.features.length === 0)
-  throw new Error("[obstacles] the dataset holds no features");
-const all = (raw.features as ObstacleFeature[]).map(slim);
+const all = (await load()).map(slim);
 rmSync(OUT, { recursive: true, force: true });
 const { index, files, largest } = buildShards(all, TIERS, (path, json) => {
   const file = join(OUT, path);
