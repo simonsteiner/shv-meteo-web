@@ -71,3 +71,10 @@ pre-commit:
           - name: oxlint
             glob: "*.{js,mjs,cjs,jsx,ts,mts,cts,tsx,astro}"
             run: npm exec -- oxlint --deny-warnings {staged_files}
+
+pre-push:
+  jobs:
+    # astro check over every .ts and .astro file: too slow for pre-commit.
+    # CI runs it too.
+    - name: typecheck
+      run: npm run typecheck
