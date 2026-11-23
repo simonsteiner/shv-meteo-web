@@ -48,6 +48,7 @@ import { MAX_DURATION } from "../../scripts/safety/flights.ts";
           type="text"
           name="site"
           required
+          pattern=".*\S.*"
           data-t-placeholder="safety.sitePlaceholder"
         />
       </div>
@@ -58,13 +59,20 @@ import { MAX_DURATION } from "../../scripts/safety/flights.ts";
           type="text"
           name="landing"
           required
+          pattern=".*\S.*"
           data-t-placeholder="safety.landingPlaceholder"
         />
       </div>
       <div class="form-row">
         <div class="form-group">
           <label for="flight-glider" data-t="safety.glider"></label>
-          <input id="flight-glider" type="text" name="glider" required />
+          <input
+            id="flight-glider"
+            type="text"
+            name="glider"
+            required
+            pattern=".*\S.*"
+          />
         </div>
         <div class="form-group">
           <label for="flight-distance" data-t="safety.distance"></label>
