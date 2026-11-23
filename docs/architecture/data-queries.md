@@ -5,7 +5,7 @@ The browser calls an upstream directly when it allows CORS and the payload is li
 - **[routes.ts](../../src/scripts/upstream/routes.ts)**: each route's fixed upstream URL, TTL, timeout and German error body. No request picks a host.
 - **[params.ts](../../src/scripts/upstream/params.ts)**: path parameters decoded once; a timeseries id must be `<provider>:<id>` without `/` (else 400 "Ungültige Stations-ID"); the text forecast's language is `de`, `fr` or `it`, anything else `de`.
 - **[fetch.ts](../../src/scripts/upstream/fetch.ts)**: the User-Agent `shv-meteo-web (+https://github.com/simonsteiner/shv-meteo-web)`, never an `Origin`, a timeout on the response headers.
-- **[respond.ts](../../src/scripts/upstream/respond.ts)**: a 200 streams upstream's body unparsed with upstream's `Content-Type` and `Cache-Control: max-age=<TTL>`, nothing else from upstream; a timeout, network error or any upstream non-2xx is a 503 with the route's error body and `no-store`. Each 200 is kept in the edge cache (`caches.default`) for a day: a copy younger than the TTL is served without calling upstream (`x-cache: hit`), an older one is refetched and still served when the refetch fails (`x-cache: stale`, `no-store`). Whether `pages.dev` really keeps these copies is PR9's spike, below.
+- **[respond.ts](../../src/scripts/upstream/respond.ts)**: a 200 streams upstream's body unparsed with upstream's `Content-Type` and `Cache-Control: max-age=<TTL>`, nothing else from upstream; a timeout, network error or any upstream non-2xx is a 503 with the route's error body and `no-store`. Each 200 is kept in the edge cache (`caches.default`) for a day: a copy younger than the TTL is served without calling upstream (`x-cache: hit`), an older one is refetched and still served when the refetch fails (`x-cache: stale`, `no-store`). PR9's spike, below, showed `pages.dev` keeps these copies.
 
 ## Data flow
 
@@ -28,9 +28,14 @@ The browser calls an upstream directly when it allows CORS and the payload is li
 
 Express and its Python parcel analysis are gone (PR9), and so is `/api/obstacles` (PR12). The routes nothing called (`/api/health`, `/api/emagram/calculate`, `/api/meteo/previtemps/sounding*`, `/api/obstacles/tiles/*`) were not ported.
 
-## Spike: edge caching and CPU on pages.dev
+## Spike: edge caching and CPU on pages.dev (PR9, 2026-11-23)
 
-Pending: the repo owner runs the spike from PR9's description on a branch deploy and records the results here. Until then the code assumes the edge cache works (the plan's default path). If it doesn't, an upstream failure shows the 503 state, and the Foehn badge moves to the browser in PR10 ([target.md](../plan/2026-11-23-astro-cloudflare/target.md)).
+Run as branch previews of project `shv-meteo`: PR9's spike Function (`spike`), then the stack head with the real routes (`stack`). CPU times are Cloudflare's own, from the GraphQL analytics (`pagesFunctionsInvocationsAdaptiveGroups`) for the spike and from `wrangler pages deployment tail` per request for the real routes; `Date.now()` inside a Function stands still during compute, so it can't time it.
+
+- **Edge cache: works.** `caches.default` on `pages.dev` kept the copy: the first request said `x-cache: miss`, requests 46 s and 2 min 17 s later said `hit` with the first one's `x-fetched-at`. On the stack preview every route answered `miss` first and carried its `max-age`.
+- **Params: one undecoded segment.** `/api/_spike/Disentis%2FMust%C3%A9r` gave `params.path = ["Disentis%2FMust%C3%A9r"]`, as `wrangler pages dev` does locally, so `[name].ts` with `decodeURIComponent` (`params.ts`) is right, and `Disentis%2FMust%C3%A9r` answers 200 on the preview.
+- **CPU: over the 10 ms Free limit for Foehn.** The spike route (Swiss-bbox measurements and two six-parameter series parsed) took p50 10.6 ms, p90 14.9 ms, p99 21.4 ms over 28 requests. The real `/api/foehn`, freshly computed (each pair once a minute, 12 requests), took 8 to 29 ms, median 16.5 ms; served from the edge cache it takes about 1 ms. Every request succeeded, but the Free plan does not promise that above 10 ms. Most of it is parsing the 0.8 MB Swiss measurements for eight stations: a ±0.01° box around each station returns about 2 KB holding it, and each pair's one-parameter series is about 80 KB. A fresh sounding (`Disentis/Mustér`) took 13 ms.
+- **Sounding coverage: 6 of 107 stations.** Upstream point data exists only for some ICON-CH1 points: in the 06 UTC run only Beggingen, Zürich, Buochs, Schiers, Disentis/Mustér and Interlaken answered; every other station's points (and Interlaken's neighbours) answer 404, so their soundings are the 503 state. `npm run grid` resolves the same points, and the legacy Express code (`e1e5525:server/emagram_provider.js:92-110`) made the same calls, so this is upstream's, not the migration's.
 
 ## Spike: BAZL vector tiles (PR12, 2026-11-23)
 
