@@ -12,3 +12,17 @@ export function escapeHtml(text: unknown): string {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+
+/** `url` when it is an absolute http(s) URL, else null: an upstream image
+ * or link URL goes through this before it lands in `src` or `href`. */
+export function safeUrl(url: unknown): string | null {
+  if (typeof url !== "string") return null;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" || parsed.protocol === "http:"
+      ? parsed.href
+      : null;
+  } catch {
+    return null;
+  }
+}
