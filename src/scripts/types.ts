@@ -116,3 +116,35 @@ export interface Sounding {
   validTimes: number[];
   timeSteps: { timestamp: number; timeIso: string; levels: SoundingLevel[] }[];
 }
+
+/** A BAZL aviation obstacle as the map draws it: a GeoJSON feature with
+ * the properties the map's icons, LOD rules and bottom sheet read, plus
+ * `_uid`, the key that identifies it across cells. */
+export interface ObstacleFeature {
+  type: "Feature";
+  id?: string | number;
+  geometry: { type: string; coordinates: unknown };
+  properties: {
+    id?: string;
+    sourceId?: string;
+    partIndex?: number | null;
+    obstacleType?: string;
+    marking?: string;
+    lighting?: string;
+    maxHeightAgl?: number | null;
+    topElevationAmsl?: number | null;
+    styleId?: string;
+    airport?: string | null;
+    geometryType?: string;
+    small?: boolean;
+    _uid?: string;
+  };
+}
+
+/** A lon/lat box. */
+export interface Bbox {
+  minLon: number;
+  minLat: number;
+  maxLon: number;
+  maxLat: number;
+}
