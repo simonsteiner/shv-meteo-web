@@ -147,3 +147,42 @@ export interface Bbox {
   maxLon: number;
   maxLat: number;
 }
+
+/** A feature of the flying-site snapshot (public/data/flyingsites.geojson):
+ * a take-off or landing (Point), its areas (Polygon), its landing pattern
+ * (LineString) and more, all sharing their site's `siteId`. Take-offs and
+ * landings each have a `siteId` of their own. */
+export interface FlyingSiteFeature {
+  type?: "Feature";
+  geometry: { type: string; coordinates: unknown } | null;
+  properties: {
+    siteId?: string;
+    siteName?: string | null;
+    type?: string | null;
+    description?: string | null;
+    elevation?: number | null;
+    featureIndex?: number | null;
+    launchDirections?: string[] | null;
+    siteDescription?: string | null;
+    hazards?: string | null;
+    access?: string | null;
+    fees?: string | null;
+    difficulty?: string | null;
+    responsible?: string | null;
+    clubLink?: string | null;
+    feeQrCodeUrl?: string | null;
+    feePaymentLink?: string | null;
+    openingStatus?: string | null;
+    openingInfo?: string | null;
+    paraglider?: boolean | null;
+    hangglider?: boolean | null;
+    speedflyer?: boolean | null;
+    groundhandling?: boolean | null;
+    toplanding?: boolean | null;
+    hikeAndFly?: boolean | null;
+    soaring?: boolean | null;
+    crossCountry?: boolean | null;
+    accessibleByCar?: boolean | null;
+    publicTransport?: boolean | null;
+  };
+}

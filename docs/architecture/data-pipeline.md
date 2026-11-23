@@ -23,8 +23,8 @@ The app integrates live telemetry and static GIS layers across Switzerland:
 The SHV flying sites spatial dataset (`public/data/flyingsites.geojson`) contains 1,341 total features representing take-offs, landings, perimeter boundaries, and auxiliary facilities:
 
 - **Interactive Map Pins**: Strictly filtered to `type === 'launch'` (358 take-offs) and `type === 'landing'` (199 landings). Perimeter boundaries (`launcharea`, `landingarea`, `landingpattern`, `access`, `parking`) are preserved in spatial indexing but excluded from generating redundant point markers, ensuring 100% of clickable pins possess valid, official `siteName` values and eliminating generic `"Unbenannter Flugplatz"` placeholders.
-- **Parent Site Resolution (`siteId`)**: Auxiliary features (parking, obstacles, landing circuits) link to their primary site via `siteId`. If any feature lacks explicit name attributes, its parent metadata (site name, altitude, rules, club) is inherited from the primary `launch` or `landing` entity through the `store.state.flyingSitesById` index ([src/components/BottomSheet.js](../../src/components/BottomSheet.js)).
-- **Geometry**: Many features are `Polygon`, `MultiPolygon` or `LineString`, not `Point`. Marker positions use the centroid from `getFeatureLatLng()` ([src/views/MapView.js](../../src/views/MapView.js)); the bottom sheet has its own `getSiteCenterLatLng()`.
+- **Parent Site Resolution (`siteId`)**: Auxiliary features (parking, obstacles, landing patterns) link to their primary site via `siteId`. A feature without a name takes its site's from `siteNames()` ([src/scripts/maps/sites.ts](../../src/scripts/maps/sites.ts)); a landing pattern's popup names its landing that way.
+- **Geometry**: Many features are `Polygon`, `MultiPolygon` or `LineString`, not `Point`. Marker and sheet positions come from `featureLatLng()` ([src/scripts/maps/centroid.ts](../../src/scripts/maps/centroid.ts)).
 - **Fees & Payment Integration**:
   - `fees`: Official landing and take-off fee policies (e.g. Unterleimbach Fr. 5.- Tageskarte / Fr. 40.- Jahreskarte).
   - `feePaymentLink`: Deep link to online digital payment providers (e.g. RaiseNow / Twint).
@@ -64,7 +64,7 @@ Ubique Fluid Meteo Services (`weather-ws-prod.ubmeteo.io`) delivers real-time we
 - **Temperatures (`temperatureValue`, `temperature2mValue`, `dewPoint2mValue`)**: If raw value $> 200$, it is expressed in Kelvin and must be converted via $T(^\circ\text{C}) = T(\text{K}) - 273.15$. Values $\le 200$ are natively in Celsius.
 - **Atmospheric Pressure (`pressureMslValue`, `pressureStandardMslValue`)**: Scaled in raw tenths or Pa in some sensors. If raw value $> 5000$, divide by 10 to obtain standard hectopascals (hPa / QNH).
 
-The `/api/measurements` Function passes the body through unparsed; these conversions happen in the browser: the weather page through [src/scripts/units.ts](../../src/scripts/units.ts) ([src/scripts/weather/stations.ts](../../src/scripts/weather/stations.ts)), and [src/components/BottomSheet.js](../../src/components/BottomSheet.js) and the temperature mode in [src/views/MapView.js](../../src/views/MapView.js) with their own copies until their refactor.
+The `/api/measurements` Function passes the body through unparsed; these conversions happen in the browser, through [src/scripts/units.ts](../../src/scripts/units.ts): on the weather page in [src/scripts/weather/stations.ts](../../src/scripts/weather/stations.ts), on the map page and its sheets in [src/scripts/maps/stations.ts](../../src/scripts/maps/stations.ts).
 
 ## Live Map Meteo Modes (`LiveMapMeteoType`)
 
@@ -180,8 +180,8 @@ Reversed from `apk_analysis/unpacked/assets/map/layers/bazl_obstacles/style.json
   - Transmission lines colored `#0054FF` (blue) or `#CC0000` (red if marked), with line width scaling from 1.5 to 5.0.
   - Endpoints rendered as red dots (`red_circle.svg`) or triangles (`triangle.svg`).
   - Point obstacles rendered using authentic SVG symbols (`ms_pole.svg`, `ms_tree_group.svg`, `ms_crane.svg`, `ms_building.svg`, `ms_windmill.svg`).
-- **Obstacle Details Bottom Sheet (`BottomSheet.js`)**:
-  - Displays obstacle type in German (`Freileitung`, `Baukran`, `Mast`, `Baumgruppe`, `Seilbahn`, etc.).
-  - Technical metrics: `Maximale Höhe (AGL)` in meters, `Maximale Höhe (AMSL)` in meters ü. M., `Gesamtlänge`, `Radius`, `Flugplatz` code (if within aerodrome zone).
-  - Official markings (`Markierung: Markiert / Keine`), lighting status (`Beleuchtung: Beleuchtet / Keine`), sanction decree notice (`Verfügung`), and effective date (`Inkrafttretensdatum`).
-  - Direct navigation link to Apple/Google Maps and Skybriefing DABS consultation.
+- **Obstacle Details Bottom Sheet ([src/scripts/sheet/obstacle.ts](../../src/scripts/sheet/obstacle.ts))**:
+  - The obstacle type in the UI language (`Freileitung`, `Baukran`, `Mast`, `Seilbahn`, etc.), upstream's code when unknown.
+  - Heights: maximum above ground (AGL) and top elevation (AMSL) in metres, and the aerodrome code when the obstacle lies in an aerodrome zone.
+  - Marking (`Markierung: Markiert / Keine`) and lighting (`Beleuchtung`). The shards keep only these properties (`slim()` in [src/scripts/obstacles/lod.ts](../../src/scripts/obstacles/lod.ts)), so length, radius, decree and dates are not shown.
+  - Directions in the device's maps app and a link to the Skybriefing DABS.

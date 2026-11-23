@@ -1,0 +1,27 @@
+---
+// A drawer section of layer switches. The same layer can sit under more
+// than one tab; page.ts keeps every copy of its switch in step.
+import { LAYER_DOTS, type LayerKey } from "../../scripts/maps/drawer.ts";
+
+interface Props {
+  title: string;
+  layers: LayerKey[];
+}
+const { title, layers } = Astro.props;
+---
+
+<div class="drawer-section">
+  <h4 class="drawer-subtitle" data-t={`map.section.${title}`}></h4>
+  <div class="layer-switch-list">
+    {layers.map((layer) => (
+      <label class="layer-switch-item">
+        <div class="layer-switch-label">
+          <span class={`chip-dot ${LAYER_DOTS[layer] ?? ""}`} />
+          <span data-t={`map.layer.${layer}`} />
+        </div>
+        <input type="checkbox" data-layer={layer} />
+        <span class="switch-toggle" />
+      </label>
+    ))}
+  </div>
+</div>

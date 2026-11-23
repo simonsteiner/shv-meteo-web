@@ -1,0 +1,38 @@
+---
+// The weather overlay picker: wind, temperature, Foehn, webcams or none.
+import { METEO_PILLS } from "../../scripts/maps/drawer.ts";
+---
+
+<div class="drawer-section">
+  <h4 class="drawer-subtitle" data-t="map.section.meteo"></h4>
+  <div class="drawer-meteo-pills-row">
+    {METEO_PILLS.map(({ mode, icon }) =>
+      mode === "NONE" ? (
+        <button
+          type="button"
+          class="meteo-pill pill-none"
+          data-meteo-mode={mode}
+          aria-pressed="false"
+          data-t-title={`map.meteoHint.${mode}`}
+        >
+          <span>
+            {icon} <span data-t={`map.meteoMode.${mode}`} />
+          </span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          class="meteo-pill"
+          data-meteo-mode={mode}
+          aria-pressed="false"
+          data-t-title={`map.meteoHint.${mode}`}
+        >
+          <span class="pill-icon" aria-hidden="true">
+            {icon}
+          </span>
+          <span data-t={`map.meteoMode.${mode}`} />
+        </button>
+      ),
+    )}
+  </div>
+</div>

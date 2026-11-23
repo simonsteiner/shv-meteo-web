@@ -63,6 +63,10 @@ export function applyText(
     }
 }
 
+/** A page's string lookup: the current language's string at a dotted key,
+ * so pure modules that build text or HTML take it as a parameter. */
+export type Say = (key: string) => string;
+
 /** The string at `key`, or "" after logging that the dictionary lacks it. */
 export function say(dict: Dictionary, key: string): string {
   const text = lookup(dict, key);
