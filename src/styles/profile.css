@@ -1,0 +1,542 @@
+/* ==========================================================
+   PROFILE & DIGITAL MEMBER CARD
+   ========================================================== */
+.profile-top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.preset-switcher {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.preset-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.preset-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-preset {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-preset.active {
+  background: var(--shv-red);
+  color: white;
+  border-color: var(--shv-red);
+}
+
+/* Official SHV Digital Member Card */
+.card-presentation-box {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.shv-digital-card {
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 1.586; /* Standard ISO/IEC 7810 ID-1 credit card ratio */
+  border-radius: 18px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+  background: linear-gradient(135deg, #a81b14 0%, #d52b1e 50%, #87130e 100%);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.card-watermark {
+  position: absolute;
+  right: -20px;
+  bottom: -20px;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.card-logo-watermark {
+  width: 260px;
+  height: 260px;
+}
+
+.card-inner {
+  height: 100%;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+}
+
+.card-header-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.card-org {
+  display: flex;
+  flex-direction: column;
+}
+
+.org-name {
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+}
+
+.org-sub {
+  font-size: 0.62rem;
+  opacity: 0.85;
+  letter-spacing: 0.4px;
+}
+
+.card-glider-icon {
+  width: 32px;
+  height: 32px;
+  filter: brightness(0) invert(1);
+}
+
+.card-center-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.pilot-fullname {
+  display: block;
+  font-size: 1.45rem;
+  font-weight: 900;
+  letter-spacing: 0.3px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.pilot-shv-id {
+  font-size: 0.88rem;
+  opacity: 0.9;
+  letter-spacing: 0.5px;
+}
+
+.card-qr-box {
+  background: white;
+  color: black;
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.qr-label {
+  font-size: 0.52rem;
+  font-weight: 900;
+  margin-top: 2px;
+  letter-spacing: 0.2px;
+}
+
+.card-footer-line {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  padding-top: 8px;
+}
+
+.card-sub-lbl {
+  display: block;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.card-sub-val {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.ratings-card-box,
+.insurance-card-box,
+.edit-profile-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rating-badge-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg-primary);
+  padding: 12px 16px;
+  border-radius: 12px;
+}
+
+.rating-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(0, 165, 81, 0.15);
+  color: var(--shv-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rating-title {
+  font-size: 0.92rem;
+  font-weight: 800;
+  display: block;
+}
+
+.rating-status {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ==========================================================
+   MEMBER BLOCKER & LOGIN SCREEN
+   ========================================================== */
+.member-blocker-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-strong);
+  border-radius: 24px;
+  padding: 40px 24px;
+  max-width: 500px;
+  margin: 30px auto;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.blocker-icon-badge {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(213, 43, 30, 0.12);
+  border: 1px solid rgba(213, 43, 30, 0.3);
+  color: var(--shv-red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.blocker-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 12px 0 8px;
+  color: var(--text-primary);
+}
+
+.blocker-text {
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: 0 0 24px;
+  max-width: 420px;
+}
+
+.login-form-box {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+}
+
+.login-form-box .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.login-form-box label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.login-form-box input {
+  height: 46px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 0 14px;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.login-form-box input:focus {
+  border-color: var(--shv-red);
+}
+
+.btn-login-submit {
+  height: 48px;
+  background: var(--shv-red);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 0.98rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+  margin-top: 6px;
+}
+
+.btn-login-submit:hover {
+  background: var(--shv-red-hover);
+  transform: translateY(-1px);
+}
+
+.login-links-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  font-size: 0.82rem;
+}
+
+.login-links-row a {
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s;
+}
+
+.login-links-row a:hover {
+  color: var(--text-primary);
+}
+
+.blocker-actions-column {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ins-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.ins-amount {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--text-primary);
+}
+
+.ins-status-badge {
+  background: rgba(0, 165, 81, 0.15);
+  color: var(--shv-green);
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 10px;
+}
+
+.ins-notice {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.ins-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-color);
+  padding-top: 8px;
+}
+
+/* Forms & Modals */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.form-group label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.form-group input,
+.form-group textarea {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--text-primary);
+  font-size: 0.88rem;
+  outline: none;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: var(--shv-red);
+}
+
+.btn-primary {
+  background: var(--shv-red);
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s;
+}
+
+.btn-primary:hover {
+  background: var(--shv-red-hover);
+}
+
+.btn-secondary {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-text {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px;
+}
+
+.modal-scrim {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  font-size: 1.4rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.modal-body {
+  padding: 16px 20px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 50vh;
+  gap: 14px;
+  color: var(--text-muted);
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--shv-red);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.error-notice {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  padding: 16px;
+  border-radius: 12px;
+  text-align: center;
+  margin-top: 40px;
+}

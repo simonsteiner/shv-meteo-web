@@ -52,7 +52,6 @@ pre-commit:
             # modules; the PR that does drops it here. Never add a file to
             # this list.
             exclude:
-              - src/styles/main.css
               - src/views/ForecastView.js
               - src/views/MapView.js
               - src/views/WeatherView.js

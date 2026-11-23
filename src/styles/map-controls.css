@@ -1,0 +1,323 @@
+/* ==========================================================
+   MAP VIEW & CONTROLS
+   ========================================================== */
+.map-view-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.leaflet-map-element {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* Top Search & Filter Bar (Floating Centered) */
+.map-top-container {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 100px);
+  max-width: 460px;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.map-top-container > * {
+  pointer-events: auto;
+}
+
+.map-search-wrapper {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  background: var(--bg-elevated);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color);
+  border-radius: 24px;
+  padding: 0 14px;
+  height: 44px;
+  box-shadow: var(--shadow-md);
+  transition:
+    box-shadow 0.2s,
+    border-color 0.2s;
+}
+
+.map-search-wrapper:focus-within {
+  border-color: var(--shv-red);
+  box-shadow:
+    0 0 0 3px rgba(213, 43, 30, 0.2),
+    var(--shadow-md);
+}
+
+.map-search-wrapper .search-icon {
+  color: var(--text-muted);
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.map-search-wrapper input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.map-search-wrapper input::placeholder {
+  color: var(--text-muted);
+}
+
+.clear-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clear-btn:hover {
+  color: var(--text-primary);
+}
+
+/* Active Filter Indicator Pills */
+.active-filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.active-filter-pills.hidden {
+  display: none;
+}
+
+.active-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-elevated);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.active-pill button {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 2px;
+}
+
+.active-pill button:hover {
+  color: var(--shv-red);
+}
+
+.pill-wind {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.pill-search {
+  border-color: rgba(59, 130, 246, 0.4);
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+/* Right Floating Action Buttons (FAB Column) */
+.map-fab-column {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: auto;
+}
+
+.map-fab {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  position: relative;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.map-fab:hover {
+  background: var(--bg-tertiary);
+  transform: scale(1.05);
+}
+
+.map-fab:active {
+  transform: scale(0.95);
+}
+
+.map-fab.fab-active {
+  background: var(--shv-red);
+  color: white;
+  border-color: var(--shv-red);
+}
+
+.fab-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--shv-green);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 800;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg-primary);
+}
+
+/* Slide-out / Flyout Drawers */
+.map-drawer {
+  position: absolute;
+  top: 14px;
+  right: 68px;
+  width: 330px;
+  max-width: calc(100vw - 84px);
+  max-height: calc(100% - 28px);
+  background: var(--bg-elevated);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border-strong);
+  border-radius: 18px;
+  box-shadow: var(--shadow-xl);
+  z-index: 550;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: drawerSlide 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.map-drawer.hidden {
+  display: none !important;
+}
+
+/* Bottom Map Drawer & Floating Stack (Android Native Style) */
+.map-bottom-stack {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 550;
+  pointer-events: none;
+}
+
+.map-bottom-floating-row {
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px 10px 16px;
+  pointer-events: auto;
+}
+
+.map-floating-dabs {
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s,
+    opacity 0.2s;
+  cursor: pointer;
+}
+
+.map-floating-dabs:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+.map-floating-dabs.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+}
+
+.map-floating-info {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(30, 41, 59, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  font-family: serif;
+  font-weight: 700;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: background 0.15s;
+}
+
+.map-floating-info:hover {
+  background: rgba(30, 41, 59, 0.95);
+}

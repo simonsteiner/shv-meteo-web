@@ -3,7 +3,23 @@
 // the four mount points the legacy views render into (src/main.js). The
 // page's script loads main.js, which mounts the view <body data-view> names.
 import "leaflet/dist/leaflet.css";
-import "../styles/main.css";
+// main.css cut at its section banners, in its order, so every rule keeps
+// its place in the cascade
+import "../styles/tokens.css";
+import "../styles/chrome.css";
+import "../styles/map-controls.css";
+import "../styles/map-layers.css";
+import "../styles/map-markers.css";
+import "../styles/sheet.css";
+import "../styles/weather.css";
+import "../styles/forecast.css";
+import "../styles/safety.css";
+import "../styles/profile.css";
+import "../styles/responsive.css";
+import "../styles/meteo-extras.css";
+import "../styles/forecast-text.css";
+import "../styles/forecast-outlooks.css";
+import "../styles/forecast-emagram.css";
 
 interface Props {
   /** The tab this page shows: map, weather, forecast, safety or profile. */
