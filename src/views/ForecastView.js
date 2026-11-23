@@ -204,11 +204,7 @@ export class ForecastView {
     this.updateEmagramDetailDOM();
 
     try {
-      const data = await ShvApi.getEmagramForecast(
-        station.name,
-        station.lat,
-        station.lon,
-      );
+      const data = await ShvApi.getEmagramForecast(station.name);
       if (data && !data.error) {
         this.emagramForecastData = data;
 

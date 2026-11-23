@@ -121,6 +121,7 @@ const CDN = "https://shv-app-static-prod.ubmeteo.io/v1";
 
 // One request per page load: the header's Foehn badge and the view on the
 // same page share a call. Keyed by pair, so the pair switcher gets its own.
+// A failed call (null) is forgotten, so the next caller asks again.
 let measurementsPromise: Promise<FeatureCollection<MeasurementFeature> | null> | null =
   null;
 const foehnPromises = new Map<string, Promise<FoehnReport | null>>();
@@ -145,7 +146,13 @@ async function fetchObstacleCell(
   path: string,
   signal?: AbortSignal,
 ): Promise<unknown> {
-  if (obstacleCells.has(path)) return obstacleCells.get(path);
+  if (obstacleCells.has(path)) {
+    // move it to the end, so eviction drops the cell read longest ago
+    const kept = obstacleCells.get(path);
+    obstacleCells.delete(path);
+    obstacleCells.set(path, kept);
+    return kept;
+  }
   const cell = await fetchObstacleShard(path, signal);
   obstacleCells.set(path, cell);
   if (obstacleCells.size > OBSTACLE_CELLS_KEPT) {
@@ -199,7 +206,17 @@ export const ShvApi = {
   },
 
   getMeasurements(): Promise<FeatureCollection<MeasurementFeature> | null> {
-    measurementsPromise ??= getJson("/api/measurements", "getMeasurements");
+    if (!measurementsPromise) {
+      const pending = getJson<FeatureCollection<MeasurementFeature>>(
+        "/api/measurements",
+        "getMeasurements",
+      ).then((result) => {
+        if (result === null && measurementsPromise === pending)
+          measurementsPromise = null;
+        return result;
+      });
+      measurementsPromise = pending;
+    }
     return measurementsPromise;
   },
 
@@ -212,10 +229,15 @@ export const ShvApi = {
     const pair = pairId || "KLO_LUG";
     let pending = foehnPromises.get(pair);
     if (!pending) {
-      pending = getJson<FoehnReport>(
+      const request = getJson<FoehnReport>(
         `/api/foehn?pair=${encodeURIComponent(pair)}`,
         "getFoehn",
-      );
+      ).then((result) => {
+        if (result === null && foehnPromises.get(pair) === request)
+          foehnPromises.delete(pair);
+        return result;
+      });
+      pending = request;
       foehnPromises.set(pair, pending);
     }
     return pending;

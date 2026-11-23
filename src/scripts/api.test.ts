@@ -28,6 +28,85 @@ test("getFoehn() twice makes one fetch, getFoehn('GVE_GUT') a second", async () 
   }
 });
 
+/** Runs `body` with `fetch` answered by `answer`, console quiet; returns
+ * the URLs fetched. */
+async function withFetch(
+  answer: (url: string) => Response | Promise<Response>,
+  body: () => Promise<void>,
+): Promise<string[]> {
+  const calls: string[] = [];
+  const real = {
+    fetch: globalThis.fetch,
+    warn: console.warn,
+    error: console.error,
+  };
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    calls.push(String(input));
+    return answer(String(input));
+  }) as typeof fetch;
+  console.warn = () => {};
+  console.error = () => {};
+  try {
+    await body();
+  } finally {
+    globalThis.fetch = real.fetch;
+    console.warn = real.warn;
+    console.error = real.error;
+  }
+  return calls;
+}
+
+test("a failed Foehn call is not kept: the next getFoehn asks again", async () => {
+  let fail = true;
+  const calls = await withFetch(
+    () =>
+      fail
+        ? new Response("{}", { status: 503 })
+        : Response.json({ history: [1] }),
+    async () => {
+      assert.equal(await ShvApi.getFoehn("DEM_GRE"), null);
+      fail = false;
+      assert.deepEqual(await ShvApi.getFoehn("DEM_GRE"), { history: [1] });
+      assert.deepEqual(await ShvApi.getFoehn("DEM_GRE"), { history: [1] });
+    },
+  );
+  assert.deepEqual(calls, [
+    "/api/foehn?pair=DEM_GRE",
+    "/api/foehn?pair=DEM_GRE",
+  ]);
+});
+
+test("a snapshot falls back to the CDN once, and retries after both fail", async () => {
+  const sites = await withFetch(
+    (url) =>
+      url.startsWith("/")
+        ? new Response("", { status: 404 })
+        : Response.json({ type: "FeatureCollection", features: [] }),
+    async () => {
+      await Promise.all([ShvApi.getFlyingSites(), ShvApi.getFlyingSites()]);
+      await ShvApi.getFlyingSites();
+    },
+  );
+  assert.deepEqual(sites, [
+    "/data/flyingsites.geojson",
+    "https://shv-app-static-prod.ubmeteo.io/v1/flyingsites.geojson",
+  ]);
+
+  let down = true;
+  const airspaces = await withFetch(
+    () =>
+      down
+        ? new Response("", { status: 500 })
+        : Response.json({ type: "FeatureCollection", features: [] }),
+    async () => {
+      await assert.rejects(ShvApi.getAirspaces());
+      down = false;
+      assert.deepEqual((await ShvApi.getAirspaces()).features, []);
+    },
+  );
+  assert.equal(airspaces.length, 3);
+});
+
 test("en gets the German isobar chart, fr and it keep theirs", () => {
   const base = "https://shv-app-ws-prod.shv-app.ch/v1/text/isobaren/";
   assert.equal(isobarenUrl("en"), `${base}de.svg`);
