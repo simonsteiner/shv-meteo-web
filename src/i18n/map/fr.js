@@ -67,7 +67,7 @@ export const map = {
     airspace: "Espaces aériens & DABS: Skyguide",
   },
   popup: {
-    landingPattern: "Circuit d'atterrissage",
+    landingCircuit: "Circuit d'atterrissage",
     landingSite: "Atterrissage:",
     airspace: "Espace aérien",
     airspaceZone: "Zone d'espace aérien",

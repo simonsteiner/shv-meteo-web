@@ -1,5 +1,5 @@
 // The flying sites on the map: which take-offs and landings the search and
-// the wind filter leave, the landing patterns, and the markers' HTML. Every
+// the wind filter leave, the landing circuits, and the markers' HTML. Every
 // upstream value in that HTML is escaped.
 
 import { escapeHtml } from "../escape.ts";
@@ -122,7 +122,7 @@ export function siteNames(
   return names;
 }
 
-export interface LandingPattern {
+export interface LandingCircuit {
   feature: FlyingSiteFeature;
   /** The circuit's vertices, [lat, lng]. */
   path: LatLngTuple[];
@@ -134,12 +134,12 @@ export interface LandingPattern {
   heading: number | null;
 }
 
-const PATTERN_COLORS = ["#016191", "#9333EA", "#BE177E"];
+const CIRCUIT_COLORS = ["#016191", "#9333EA", "#BE177E"];
 
-/** The colour of a site's `index`th landing pattern. */
-export function patternColor(index: unknown): string {
+/** The colour of a site's `index`th landing circuit. */
+export function circuitColor(index: unknown): string {
   const i = typeof index === "number" && index >= 0 ? Math.floor(index) : 0;
-  return PATTERN_COLORS[i % PATTERN_COLORS.length];
+  return CIRCUIT_COLORS[i % CIRCUIT_COLORS.length];
 }
 
 /** The heading of the last leg of `path`, in degrees clockwise from north,
@@ -155,13 +155,13 @@ export function arrowHeading(path: readonly LatLngTuple[]): number | null {
   return ((Math.atan2(dx, dy) * 180) / Math.PI + 360) % 360;
 }
 
-/** The landing patterns to draw, with their colour, names and arrow. */
-export function landingPatterns(
+/** The landing circuits to draw, with their colour, names and arrow. */
+export function landingCircuits(
   features: readonly FlyingSiteFeature[],
   names: ReadonlyMap<string, string>,
   fallbackName: string,
-): LandingPattern[] {
-  const out: LandingPattern[] = [];
+): LandingCircuit[] {
+  const out: LandingCircuit[] = [];
   for (const feature of features) {
     const p = feature.properties ?? {};
     if (kind(p) !== "landingpattern") continue;
@@ -175,7 +175,7 @@ export function landingPatterns(
     out.push({
       feature,
       path,
-      color: patternColor(p.featureIndex),
+      color: circuitColor(p.featureIndex),
       name: text(p.description) || fallbackName,
       siteName: (p.siteId && names.get(p.siteId)) || "",
       heading: arrowHeading(path),
@@ -184,17 +184,17 @@ export function landingPatterns(
   return out;
 }
 
-/** The arrow at the end of a landing pattern. */
-export function patternArrowHtml(pattern: LandingPattern): string {
-  return `<div class="volte-arrow-pin" style="transform: rotate(${pattern.heading ?? 0}deg);" title="${escapeHtml(pattern.name)}"><svg width="20" height="20" viewBox="0 0 24 24" fill="${pattern.color}" stroke="#0F172A" stroke-width="1.8"><path d="M12 2L21 21L12 17L3 21L12 2Z" /></svg></div>`;
+/** The arrow at the end of a landing circuit. */
+export function circuitArrowHtml(circuit: LandingCircuit): string {
+  return `<div class="volte-arrow-pin" style="transform: rotate(${circuit.heading ?? 0}deg);" title="${escapeHtml(circuit.name)}"><svg width="20" height="20" viewBox="0 0 24 24" fill="${circuit.color}" stroke="#0F172A" stroke-width="1.8"><path d="M12 2L21 21L12 17L3 21L12 2Z" /></svg></div>`;
 }
 
-/** A landing pattern's popup. */
-export function patternPopupHtml(pattern: LandingPattern, say: Say): string {
-  const site = pattern.siteName
-    ? `<p class="popup-desc popup-desc-spaced">${escapeHtml(say("map.popup.landingSite"))} <strong>${escapeHtml(pattern.siteName)}</strong></p>`
+/** A landing circuit's popup. */
+export function circuitPopupHtml(circuit: LandingCircuit, say: Say): string {
+  const site = circuit.siteName
+    ? `<p class="popup-desc popup-desc-spaced">${escapeHtml(say("map.popup.landingSite"))} <strong>${escapeHtml(circuit.siteName)}</strong></p>`
     : "";
-  return `<div class="airspace-popup volte-popup"><span class="popup-badge popup-badge-volte">${escapeHtml(say("map.popup.landingPattern"))}</span><h4 class="popup-title">${escapeHtml(pattern.name)}</h4>${site}</div>`;
+  return `<div class="airspace-popup volte-popup"><span class="popup-badge popup-badge-volte">${escapeHtml(say("map.popup.landingCircuit"))}</span><h4 class="popup-title">${escapeHtml(circuit.name)}</h4>${site}</div>`;
 }
 
 const CLOSED_CROSS = `<line x1="10" y1="10" x2="22" y2="22" stroke="white" stroke-width="2.5" stroke-linecap="round"/><line x1="22" y1="10" x2="10" y2="22" stroke="white" stroke-width="2.5" stroke-linecap="round"/>`;

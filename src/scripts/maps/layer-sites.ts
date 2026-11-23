@@ -1,13 +1,13 @@
-// The flying-site layers: take-offs, landings and landing patterns, drawn
+// The flying-site layers: take-offs, landings and landing circuits, drawn
 // from the snapshot as the search and wind filter leave them.
 
 import L from "leaflet";
 import type { Say } from "../i18n/text.ts";
 import type { FlyingSiteFeature } from "../types.ts";
 import {
-  landingPatterns,
-  patternArrowHtml,
-  patternPopupHtml,
+  landingCircuits,
+  circuitArrowHtml,
+  circuitPopupHtml,
   siteMarkerHtml,
   siteNames,
   visibleSites,
@@ -17,7 +17,7 @@ import { centredIcon, onPick } from "./view.ts";
 export interface SiteLayers {
   launches: L.LayerGroup;
   landings: L.LayerGroup;
-  patterns: L.LayerGroup;
+  circuits: L.LayerGroup;
   /** Each site's name by its id, for the sheet. */
   names: ReadonlyMap<string, string>;
   setData(features: FlyingSiteFeature[]): void;
@@ -33,10 +33,10 @@ export interface SiteLayers {
 export function siteLayers(pick: (f: FlyingSiteFeature) => void): SiteLayers {
   const launches = L.layerGroup();
   const landings = L.layerGroup();
-  const patterns = L.layerGroup();
+  const circuits = L.layerGroup();
   let features: FlyingSiteFeature[] = [];
   let names = new Map<string, string>();
-  let patternsLang: string | null = null;
+  let circuitsLang: string | null = null;
 
   function marker(
     f: FlyingSiteFeature,
@@ -57,12 +57,12 @@ export function siteLayers(pick: (f: FlyingSiteFeature) => void): SiteLayers {
     return m;
   }
 
-  function drawPatterns(say: Say): void {
-    patterns.clearLayers();
-    for (const p of landingPatterns(
+  function drawCircuits(say: Say): void {
+    circuits.clearLayers();
+    for (const p of landingCircuits(
       features,
       names,
-      say("map.popup.landingPattern"),
+      say("map.popup.landingCircuit"),
     )) {
       const casing = L.polyline(p.path, {
         color: "#0F172A",
@@ -80,27 +80,27 @@ export function siteLayers(pick: (f: FlyingSiteFeature) => void): SiteLayers {
         lineJoin: "round",
       });
       const arrow = L.marker(p.path[p.path.length - 1], {
-        icon: centredIcon("volte-arrow-icon", patternArrowHtml(p), [20, 20]),
+        icon: centredIcon("volte-arrow-icon", circuitArrowHtml(p), [20, 20]),
         interactive: false,
       });
-      const popup = patternPopupHtml(p, say);
+      const popup = circuitPopupHtml(p, say);
       line.bindPopup(popup, { maxWidth: 280 });
       casing.bindPopup(popup, { maxWidth: 280 });
-      patterns.addLayer(L.featureGroup([casing, line, arrow]));
+      circuits.addLayer(L.featureGroup([casing, line, arrow]));
     }
   }
 
   return {
     launches,
     landings,
-    patterns,
+    circuits,
     get names() {
       return names;
     },
     setData(fs) {
       features = fs;
       names = siteNames(fs);
-      patternsLang = null;
+      circuitsLang = null;
     },
     draw(search, windFilter, say, lang) {
       launches.clearLayers();
@@ -110,10 +110,10 @@ export function siteLayers(pick: (f: FlyingSiteFeature) => void): SiteLayers {
         launches.addLayer(marker(s.feature, s.at, true, say));
       for (const s of sites.landings)
         landings.addLayer(marker(s.feature, s.at, false, say));
-      // patterns don't follow the filters, only the language
-      if (lang !== patternsLang) {
-        patternsLang = lang;
-        drawPatterns(say);
+      // circuits don't follow the filters, only the language
+      if (lang !== circuitsLang) {
+        circuitsLang = lang;
+        drawCircuits(say);
       }
     },
   };

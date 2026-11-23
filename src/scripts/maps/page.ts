@@ -91,7 +91,8 @@ export function mountMap(root: HTMLElement): void {
   const layerOf: Record<keyof Layers, L.Layer> = {
     launches: sites.launches,
     landings: sites.landings,
-    landingPatterns: sites.patterns,
+    // the layer id stays landingPatterns: it is persisted in shv_* settings
+    landingPatterns: sites.circuits,
     airspace: zones.airspace,
     wildschutz: zones.wildlife,
     obstacles: obstacles.layer,

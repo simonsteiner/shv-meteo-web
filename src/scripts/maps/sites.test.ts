@@ -4,11 +4,11 @@ import type { FlyingSiteFeature } from "../types.ts";
 import {
   arrowHeading,
   findSite,
-  landingPatterns,
+  landingCircuits,
   launchAngle,
   matchesSearch,
-  patternColor,
-  patternPopupHtml,
+  circuitColor,
+  circuitPopupHtml,
   siteMarkerHtml,
   siteNames,
   suitsWind,
@@ -98,10 +98,10 @@ test("siteNames indexes names by site id", () => {
   assert.equal(siteNames([launch, landing]).get("b"), "Goldau");
 });
 
-test("patternColor cycles three colours", () => {
-  assert.equal(patternColor(0), "#016191");
-  assert.equal(patternColor(4), "#9333EA");
-  assert.equal(patternColor(null), "#016191");
+test("circuitColor cycles three colours", () => {
+  assert.equal(circuitColor(0), "#016191");
+  assert.equal(circuitColor(4), "#9333EA");
+  assert.equal(circuitColor(null), "#016191");
 });
 
 test("arrowHeading follows the last leg", () => {
@@ -134,8 +134,8 @@ test("arrowHeading follows the last leg", () => {
   );
 });
 
-test("landingPatterns names a pattern after its description and site", () => {
-  const pattern = site(
+test("landingCircuits names a circuit after its description and site", () => {
+  const circuit = site(
     {
       siteId: "b",
       type: "landingpattern",
@@ -149,7 +149,7 @@ test("landingPatterns names a pattern after its description and site", () => {
     ],
     "LineString",
   );
-  const [p] = landingPatterns([pattern, launch], siteNames([landing]), "Volte");
+  const [p] = landingCircuits([circuit, launch], siteNames([landing]), "Volte");
   assert.equal(p.name, "Volte");
   assert.equal(p.siteName, "Goldau");
   assert.equal(p.color, "#9333EA");
@@ -167,7 +167,7 @@ test("upstream names land in markers and popups as text", () => {
   assert.ok(!html.includes("<img"), html);
   assert.ok(html.includes("&lt;img src=x onerror=alert(1)&gt; (S)"));
   assert.ok(html.includes("rotate(180deg)"));
-  const popup = patternPopupHtml(
+  const popup = circuitPopupHtml(
     {
       feature: launch,
       path: [],
