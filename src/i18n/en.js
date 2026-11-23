@@ -139,8 +139,9 @@ export const en = {
     varioMute: "Turn On Audio",
     varioUnmute: "Mute Audio",
     checklistBadge: "Pre-Flight",
-    checklistSub: "Standard launch check of the Swiss Hang Gliding Association",
-    ready: "READY TO LAUNCH",
+    checklistSub:
+      "Standard pre-flight check of the Swiss Hang Gliding Association",
+    ready: "READY FOR TAKE-OFF",
     sosBadge: "Emergency",
     sosSub: "Direct dial and rescue channel in the Swiss Alps",
     regaName: "Swiss Air-Rescue",
