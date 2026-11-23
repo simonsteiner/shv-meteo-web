@@ -158,7 +158,7 @@ export function mountSafety(root: HTMLElement): void {
     });
     // the byte order mark tells spreadsheet apps the file is UTF-8
     const url = URL.createObjectURL(
-      new Blob(["﻿", csv], { type: "text/csv;charset=utf-8" }),
+      new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8" }),
     );
     const link = document.createElement("a");
     link.href = url;
