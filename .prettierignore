@@ -2,13 +2,11 @@ node_modules/
 dist/
 .astro/
 .wrangler/
-server/cache/
 apk_analysis/
 .claude/
 package-lock.json
 # Data snapshots, not hand-written code
 src/data/
-server/data/
 public/data/
 # rumdl is the only Markdown fixer (lefthook.yml)
 *.md

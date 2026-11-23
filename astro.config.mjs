@@ -2,19 +2,14 @@
 import { defineConfig } from "astro/config";
 
 // Fully static: one page per tab (src/pages/<tab>/index.astro), served by
-// Cloudflare Pages. The API is Express on :3001 until the Pages Functions
-// replace it (docs/plan/2026-11-23-astro-cloudflare/prs-api.md, PR9); in dev
-// `astro dev` proxies /api to it.
+// Cloudflare Pages, with the API as Pages Functions (functions/api/). In dev
+// `astro dev` proxies /api to `wrangler pages dev` on :8788 (scripts/dev.ts).
 export default defineConfig({
   site: "https://shv-meteo.pages.dev",
   vite: {
-    // Until PR9 removes Express, its cookie@0.7 is the one hoisted to
-    // node_modules/, and the prerender bundle would import it in place of
-    // Astro's cookie@2; bundling it resolves Astro's own.
-    environments: { prerender: { resolve: { noExternal: ["cookie"] } } },
     server: {
       proxy: {
-        "/api": { target: "http://127.0.0.1:3001", changeOrigin: true },
+        "/api": { target: "http://127.0.0.1:8788", changeOrigin: true },
       },
     },
     build: {

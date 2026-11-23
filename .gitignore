@@ -3,7 +3,6 @@ dist/
 .DS_Store
 apk_analysis/
 *.log
-server/cache/
 .rumdl_cache/
 .astro/
 .wrangler/

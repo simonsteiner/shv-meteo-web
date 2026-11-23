@@ -12,7 +12,6 @@ exclude = [
     "dist/**",
     "node_modules/**",
     # Runtime caches and local analysis dumps; git-ignored, never linted.
-    "server/cache/**",
     "apk_analysis/**",
 ]
 

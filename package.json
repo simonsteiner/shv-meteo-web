@@ -5,22 +5,19 @@
   "type": "module",
   "description": "Swiss Free Flight Web Application - Soaring Weather, Flying Sites & Airspaces (Data Source: SHV FSVL)",
   "scripts": {
-    "dev": "node server/start-dev.js",
-    "server": "node server/index.js",
+    "dev": "node --experimental-strip-types scripts/dev.ts",
     "build": "astro build",
     "preview": "wrangler pages dev dist",
     "typecheck": "astro check",
     "test": "node --experimental-strip-types --test 'src/scripts/**/*.test.ts'",
     "lint": "oxlint --deny-warnings . && prettier --check .",
     "format": "prettier --write .",
-    "prepare": "lefthook install || true",
-    "shot": "node --experimental-strip-types scripts/shot.ts"
+    "shot": "node --experimental-strip-types scripts/shot.ts",
+    "prepare": "lefthook install || true"
   },
   "dependencies": {
     "astro": "^7.4.13",
     "chart.js": "^4.4.7",
-    "cors": "^2.8.5",
-    "express": "^4.21.2",
     "leaflet": "^1.9.4"
   },
   "devDependencies": {

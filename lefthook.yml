@@ -57,7 +57,6 @@ pre-commit:
               - src/views/WeatherView.js
               - src/views/ProfileView.js
               - src/components/BottomSheet.js
-              - server/index.js
               - docs/architecture.md
           # No em or en dashes in the staged files: they read as machine-written.
           # Same built-in skips as file-tokens (not its legacy exclude list); a
