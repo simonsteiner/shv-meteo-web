@@ -1,15 +1,16 @@
 // /api/meteo/previtemps/forecast/<name>: a catalogue station's ICON point
 // data for the newest usable run, passed on as upstream sent it inside a
 // small envelope (`SoundingForecast`); the browser turns it into levels
-// (sounding.ts). Two upstream calls, 8 s each: the model's runs list, then
-// the point's six series in one answer (`?parameters=`, about 160 KB).
-// Upstream lists its runs newest first (three on 2026-11-23); a run with a
-// series missing (still being ingested) or a column that is no atmosphere
-// (`pointProblem`) is passed over for the one before, as the official app
-// uses only complete runs, but no further: when two runs in a row are
-// unusable upstream is broken, and parsing a third costs CPU for nothing. An unknown name is a 404; no usable
-// run is the route's 503, logged with the station (a station whose grid
-// point moved shows the 503 until `npm run grid` runs again).
+// (sounding.ts). Up to `1 + RUNS_TRIED` upstream calls, 8 s each: the
+// model's runs list, then per run tried the point's six series in one
+// answer (`?parameters=`, about 160 KB). Upstream lists its runs newest
+// first; a run with a series missing (still being ingested) or a column
+// that is no atmosphere (`pointProblem`) is passed over for the one before,
+// as the official app uses only complete runs, but no further: when two
+// runs in a row are unusable upstream is broken, and parsing another costs
+// CPU for nothing. An unknown name is a 404; no usable run is the route's
+// 503, logged with the station (a station whose grid point moved shows the
+// 503 until `npm run grid` runs again).
 import type { Context, GridPoint, PrevitempsGrid } from "../types.ts";
 import { fetchUpstream } from "../upstream/fetch.ts";
 import { serve } from "../upstream/respond.ts";
