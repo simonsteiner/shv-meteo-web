@@ -23,7 +23,7 @@ Date: 2026-11-23. Live checks ran between 12:58 and 13:03 UTC with `curl` (User-
 - `parameters=pressure_msl` over the box spanning the six pressure stations: 19,903 B, 67 stations (all six present); `parameters=temperature` over the box spanning Pilatus and Matro: 20,246 B, 68 stations. Unfiltered, the Swiss bbox is 805,992 B.
 - A series without `start` holds 14 days of 10-minute values (2,012 points, 76,392 B for KLO `pressure_msl`); with `start=<now minus 25 h>` it holds 149 points, 5,776 B. The history uses the last 24 hours (`pairHistory`, `pairs.ts`).
 - First tried: a ±0.01° to 0.02° box per station (eight calls, about 16 KB). Median CPU 10.5 ms (7 to 20 ms over 12 reports): the per-call cost of ten upstream calls outweighed the smaller payload. A plain one-call proxy miss costs 1 to 3 ms on the same preview.
-- Final: two filtered measurements calls and two 25-hour series (four calls, about 52 KB): 3 to 13 ms over 16 fresh reports, median 5.5 ms, 15 of 16 under 10 ms (the 13 ms one was the first request, likely a cold start). Wall time 72 to 234 ms, against 160 to 475 ms before. The four pairs' differences and the 143-point history matched the old route's output.
+- Final: two filtered measurements calls and two 25-hour series (four calls, about 52 KB): 3 to 13 ms over 16 fresh reports, median 5.5 ms, 15 of 16 under 10 ms (the 13 ms one was the first request, likely a cold start). Wall time 72 to 234 ms, against 129 to 475 ms before. The four pairs' differences and the 143-point history matched the old route's output.
 
 ## SHV point-data outage
 
