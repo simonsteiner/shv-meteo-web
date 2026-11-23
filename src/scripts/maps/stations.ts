@@ -54,7 +54,7 @@ export function stationLatLng(f: MeasurementFeature): LatLngTuple | null {
   return lat === null || lng === null ? null : [lat, lng];
 }
 
-export interface StationReadings {
+export interface StationMeasurements {
   windKmh: number | null;
   gustKmh: number | null;
   dirDeg: number | null;
@@ -63,7 +63,9 @@ export interface StationReadings {
 }
 
 /** A station's latest values, rounded to one decimal (QNH to whole hPa). */
-export function stationReadings(f: MeasurementFeature): StationReadings {
+export function stationMeasurements(
+  f: MeasurementFeature,
+): StationMeasurements {
   const p = f.properties ?? {};
   const one = (v: number | null) => (v === null ? null : round1(v));
   const qnh = toHpa(num(p.pressureStandardMslValue));
@@ -98,7 +100,7 @@ export function stationMarker(
   mode: "WIND" | "TEMPERATURE",
 ): MarkerSpec | null {
   const name = escapeHtml(f.properties?.name ?? "");
-  const r = stationReadings(f);
+  const r = stationMeasurements(f);
   if (mode === "TEMPERATURE") {
     if (r.tempC === null) return null;
     return {

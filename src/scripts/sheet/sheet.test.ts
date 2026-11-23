@@ -156,7 +156,7 @@ function station(
   };
 }
 
-test("a station sheet shows converted readings", () => {
+test("a station sheet shows converted measurements", () => {
   const html = stationSheetHtml(
     station({
       name: "Pilatus",
@@ -184,7 +184,7 @@ test("a station sheet shows converted readings", () => {
 test("a station without values or a position says so instead of inventing them", () => {
   const html = stationSheetHtml(station({ name: EVIL }, [Number.NaN, 0]), say);
   inert(html);
-  assert.ok(html.includes("[map.sheet.noReadings]"));
+  assert.ok(html.includes("[map.sheet.noMeasurements]"));
   assert.ok(html.includes("[map.sheet.liveStation]"));
   assert.ok(!html.includes("° N"));
   assert.ok(!html.includes("maps.apple.com"));

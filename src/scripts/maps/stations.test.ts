@@ -6,7 +6,7 @@ import {
   signedDegrees,
   stationLatLng,
   stationMarker,
-  stationReadings,
+  stationMeasurements,
   temperatureColor,
   windColor,
 } from "./stations.ts";
@@ -36,8 +36,8 @@ test("temperatureColor steps at 0, 8, 15 and 22 °C", () => {
   assert.equal(temperatureColor(22), "#EF4444");
 });
 
-test("readings convert Kelvin and tenths of hPa and keep km/h", () => {
-  const r = stationReadings(
+test("measurements convert Kelvin and tenths of hPa and keep km/h", () => {
+  const r = stationMeasurements(
     station({
       windSpeedValue: 18.26,
       windGustValue: 30,
@@ -53,7 +53,7 @@ test("readings convert Kelvin and tenths of hPa and keep km/h", () => {
     tempC: 5,
     qnhHpa: 1013,
   });
-  const celsius = stationReadings(station({ temperatureValue: -3.44 }));
+  const celsius = stationMeasurements(station({ temperatureValue: -3.44 }));
   assert.equal(celsius.tempC, -3.4);
   assert.equal(celsius.windKmh, null);
   assert.equal(celsius.qnhHpa, null);

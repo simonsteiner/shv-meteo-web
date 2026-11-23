@@ -7,7 +7,7 @@ import { fill, type Say } from "../i18n/text.ts";
 import {
   providerLabel,
   stationLatLng,
-  stationReadings,
+  stationMeasurements,
 } from "../maps/stations.ts";
 import type { MeasurementFeature } from "../types.ts";
 import {
@@ -24,7 +24,7 @@ export function stationSheetHtml(f: MeasurementFeature, say: Say): string {
   const name =
     (typeof p.name === "string" && p.name) || say("map.sheet.station");
   const at = stationLatLng(f);
-  const r = stationReadings(f);
+  const r = stationMeasurements(f);
   const altitude =
     typeof p.altitude === "number" && p.altitude
       ? fill(say("map.sheet.elevation"), { m: p.altitude })
@@ -48,7 +48,7 @@ export function stationSheetHtml(f: MeasurementFeature, say: Say): string {
   const body = `${
     metrics
       ? `<div class="station-metrics-grid">${metrics}</div>`
-      : `<p class="error-notice">${escapeHtml(say("map.sheet.noReadings"))}</p>`
+      : `<p class="error-notice">${escapeHtml(say("map.sheet.noMeasurements"))}</p>`
   }${at ? `<div class="sheet-actions">${navLink(at, say)}</div>` : ""}`;
   return sheetHtml({ head, body, label: name }, say);
 }

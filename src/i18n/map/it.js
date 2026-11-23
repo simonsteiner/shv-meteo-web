@@ -127,7 +127,7 @@ export const map = {
     gusts: "Raffiche: {v} km/h",
     temperature: "Temperatura",
     pressure: "Pressione (QNH)",
-    noReadings: "Questa stazione non trasmette valori al momento.",
+    noMeasurements: "Questa stazione non trasmette valori al momento.",
     webcam: "Webcam",
     liveWebcam: "Webcam in diretta",
     noImage: "Nessuna immagine disponibile",
