@@ -5,32 +5,38 @@
 // both.
 import { spawn, type ChildProcess } from "node:child_process";
 
-const children: ChildProcess[] = [
-  spawn("npx", ["wrangler", "pages", "dev", "public", "--port", "8788"], {
-    stdio: "inherit",
-  }),
+/** Each command in a process group of its own, so stopping it reaches what
+ * npx started under it (wrangler's workerd), not only npx. */
+function start(args: string[]): ChildProcess {
+  return spawn("npx", args, { stdio: "inherit", detached: true });
+}
+
+const children = [
+  start(["wrangler", "pages", "dev", "public", "--port", "8788"]),
   // --ignore-lock keeps astro dev in the foreground, where this script can
   // stop it: Astro 7 otherwise backgrounds itself when it thinks an agent
   // started it
-  spawn(
-    "npx",
-    ["astro", "dev", "--host", "--ignore-lock", ...process.argv.slice(2)],
-    {
-      stdio: "inherit",
-    },
-  ),
+  start(["astro", "dev", "--host", "--ignore-lock", ...process.argv.slice(2)]),
 ];
 
 let stopping = false;
 function stop(code: number): void {
   if (stopping) return;
   stopping = true;
-  for (const child of children) child.kill("SIGTERM");
+  for (const child of children) {
+    if (child.pid === undefined || child.exitCode !== null) continue;
+    try {
+      process.kill(-child.pid, "SIGTERM");
+    } catch (err) {
+      console.error(`[dev] Cannot stop ${child.spawnargs.join(" ")}:`, err);
+    }
+  }
   process.exit(code);
 }
 
 for (const child of children)
   child.on("exit", (code) => {
+    if (stopping) return;
     console.error(
       `[dev] ${child.spawnargs.slice(1, 3).join(" ")} exited (${code})`,
     );
