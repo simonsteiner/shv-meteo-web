@@ -1,0 +1,74 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { foehnChartConfig } from "./foehn.ts";
+import { stationChartConfig, stationSeries } from "./station.ts";
+import { chartColors, signed } from "./theme.ts";
+
+const colors = chartColors("dark");
+
+test("chartColors and signed", () => {
+  assert.notEqual(chartColors("light").text, colors.text);
+  assert.equal(signed(1.5), "+1.5");
+  assert.equal(signed(-2), "-2");
+  assert.equal(signed(0), "0");
+});
+
+test("foehnChartConfig plots the history in the pair's unit and colour", () => {
+  const history = [
+    { time: "10:00", timestamp: 1, diffHpa: -4.2, unit: "hPa" as const },
+    { time: "10:10", timestamp: 2, diffHpa: -3.9, unit: "hPa" as const },
+  ];
+  const pressure = foehnChartConfig(
+    history,
+    { isPressure: true, unit: "hPa" },
+    colors,
+    "Differenz",
+  );
+  assert.deepEqual(pressure.data.labels, ["10:00", "10:10"]);
+  assert.deepEqual(pressure.data.datasets[0].data, [-4.2, -3.9]);
+  assert.equal(pressure.data.datasets[0].borderColor, "#0089CF");
+  assert.equal(pressure.data.datasets[0].label, "Differenz (hPa)");
+  const temp = foehnChartConfig(
+    [],
+    { isPressure: false, unit: "°C" },
+    colors,
+    "D",
+  );
+  assert.equal(temp.data.datasets[0].borderColor, "#A855F7");
+});
+
+test("stationSeries joins temperature and wind on their timestamps", () => {
+  const t0 = new Date(2026, 10, 23, 9, 0).getTime();
+  const t1 = t0 + 600_000;
+  const series = stationSeries({
+    id: "meteo_swiss:PIL",
+    timeseries: [
+      {
+        parameter: "temperature",
+        measurements: [
+          { time: t1, value: 279.65 },
+          { time: t0, value: 6.04 },
+        ],
+      },
+      { parameter: "wind_speed", measurements: [{ time: t1, value: 12.34 }] },
+      { parameter: "pressure_msl", measurements: [{ time: t0, value: 1020 }] },
+    ],
+  });
+  assert.deepEqual(series, {
+    labels: ["09:00", "09:10"],
+    tempC: [6, 6.5],
+    windKmh: [null, 12.3],
+  });
+  assert.deepEqual(stationSeries(null), { labels: [], tempC: [], windKmh: [] });
+});
+
+test("stationChartConfig puts temperature left and wind right", () => {
+  const config = stationChartConfig(
+    { labels: ["09:00"], tempC: [6], windKmh: [12] },
+    colors,
+    { temp: "Temperatur (°C)", wind: "Wind (km/h)" },
+  );
+  assert.equal(config.data.datasets[0].yAxisID, "yTemp");
+  assert.equal(config.data.datasets[1].yAxisID, "yWind");
+  assert.equal(config.data.datasets[1].label, "Wind (km/h)");
+});
