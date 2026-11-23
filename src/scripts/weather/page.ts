@@ -127,14 +127,14 @@ export function mountWeather(root: HTMLElement): void {
 
     // the history belongs to the pair the report was fetched for; until a
     // switched pair's report arrives, the chart keeps the old one
-    const history = foehnPair === pair.id ? foehn.history : null;
-    if (history === null) return;
-    const key = `${pair.id}|${store.state.theme}|${lang}|${history.length}|${history[history.length - 1]?.timestamp}`;
+    const pairHistory = foehnPair === pair.id ? foehn.history : null;
+    if (pairHistory === null) return;
+    const key = `${pair.id}|${store.state.theme}|${lang}|${pairHistory.length}|${pairHistory[pairHistory.length - 1]?.timestamp}`;
     if (key === chartKey) return;
     chartKey = key;
-    chartEmpty.hidden = history.length > 0;
-    canvas.hidden = history.length === 0;
-    if (history.length === 0) {
+    chartEmpty.hidden = pairHistory.length > 0;
+    canvas.hidden = pairHistory.length === 0;
+    if (pairHistory.length === 0) {
       chart?.destroy();
       chart = null;
       return;
@@ -142,7 +142,7 @@ export function mountWeather(root: HTMLElement): void {
     chart = drawChart(
       canvas,
       foehnChartConfig(
-        history,
+        pairHistory,
         pair,
         chartColors(store.state.theme),
         say("weather.differenceLabel"),
