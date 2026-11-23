@@ -43,6 +43,14 @@ export function mountTextForecast(root: HTMLElement): void {
   let answer: unknown;
   let loadedLang: string | null = null;
   let lang: string | null = null;
+  // what the section shows; a store change that touches none of it (a
+  // theme switch) skips the parse and the innerHTML reset
+  let shown: {
+    lang: string;
+    category: TextCategory;
+    region: Region;
+    answer: unknown;
+  } | null = null;
   const status = must<HTMLElement>(root, "[data-text-status]");
   const card = must<HTMLElement>(root, "[data-text-card]");
   const issued = must<HTMLElement>(root, "[data-text-issued]");
@@ -69,6 +77,14 @@ export function mountTextForecast(root: HTMLElement): void {
       applyText(page(root), dictionary());
     }
     if (store.state.lang !== loadedLang) load();
+    if (
+      shown?.lang === store.state.lang &&
+      shown.category === category &&
+      shown.region === region &&
+      shown.answer === answer
+    )
+      return;
+    shown = { lang: store.state.lang, category, region, answer };
     for (const b of root.querySelectorAll<HTMLElement>("[data-cat]"))
       b.classList.toggle("active", b.dataset.cat === category);
     for (const b of root.querySelectorAll<HTMLElement>("[data-region]"))
