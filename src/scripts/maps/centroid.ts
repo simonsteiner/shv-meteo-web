@@ -32,13 +32,23 @@ function mean(pts: unknown): LatLngTuple | null {
   return n ? [lat / n, lng / n] : null;
 }
 
+/** A ring's vertices without its closing one: GeoJSON repeats the first
+ * vertex at the end, which would weigh it twice in the mean. */
+function ring(pts: unknown): unknown {
+  if (!Array.isArray(pts) || pts.length < 2) return pts;
+  const a = position(pts[0]);
+  const b = position(pts[pts.length - 1]);
+  return a && b && a[0] === b[0] && a[1] === b[1] ? pts.slice(0, -1) : pts;
+}
+
 function first(list: unknown): unknown {
   return Array.isArray(list) ? list[0] : undefined;
 }
 
 /** A point standing for the feature: a Point itself, the mean of a line's
- * vertices or of a polygon's outer ring, the first part of a multi-part
- * geometry; null for anything else or invalid coordinates. */
+ * vertices, of a MultiPoint's points or of a polygon's outer ring (its
+ * closing vertex counted once), the first part of a MultiLineString or
+ * MultiPolygon; null for anything else or invalid coordinates. */
 export function featureLatLng(
   feature: { geometry?: Geometry | null } | null | undefined,
 ): LatLngTuple | null {
@@ -54,10 +64,11 @@ export function featureLatLng(
     case "MultiPoint":
       return mean(c);
     case "Polygon":
+      return mean(ring(first(c)));
     case "MultiLineString":
       return mean(first(c));
     case "MultiPolygon":
-      return mean(first(first(c)));
+      return mean(ring(first(first(c))));
     default:
       return null;
   }

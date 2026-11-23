@@ -39,6 +39,31 @@ test("a polygon gives the mean of its outer ring, ignoring holes", () => {
   assert.deepEqual(featureLatLng(at("MultiPolygon", [[ring, hole]])), [47, 9]);
 });
 
+test("a closed ring counts its first vertex once", () => {
+  const ring = [
+    [8, 46],
+    [11, 46],
+    [11, 49],
+    [8, 49],
+    [8, 46],
+  ];
+  assert.deepEqual(featureLatLng(at("Polygon", [ring])), [47.5, 9.5]);
+  assert.deepEqual(featureLatLng(at("MultiPolygon", [[ring]])), [47.5, 9.5]);
+});
+
+test("a multi-point gives the mean of all its points", () => {
+  assert.deepEqual(
+    featureLatLng(
+      at("MultiPoint", [
+        [8, 46],
+        [10, 46],
+        [12, 49],
+      ]),
+    ),
+    [47, 10],
+  );
+});
+
 test("a multi-line gives the mean of its first line", () => {
   assert.deepEqual(
     featureLatLng(
