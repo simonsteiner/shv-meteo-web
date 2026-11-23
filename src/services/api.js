@@ -1,3 +1,5 @@
+import { buildDabs, isobarenUrl, OUTLOOKS_URL } from "../scripts/client.ts";
+
 // In-memory cache for static spatial datasets to prevent repeat download delays
 let cachedFlyingSites = null;
 let cachedAirspaces = null;
@@ -195,7 +197,7 @@ export class ShvApi {
   }
 
   static getIsobarenSvgUrl(lang = "de") {
-    return `/api/meteo/isobaren/${lang}`;
+    return isobarenUrl(lang);
   }
 
   static async getStationTimeseries(stationId) {
@@ -218,7 +220,7 @@ export class ShvApi {
 
   static async getOutlooks() {
     try {
-      const resp = await fetch("/api/meteo/outlooks");
+      const resp = await fetch(OUTLOOKS_URL);
       if (resp.ok) return await resp.json();
       console.error(
         "[ShvApi.getOutlooks] HTTP error:",
@@ -329,18 +331,7 @@ export class ShvApi {
   }
 
   static async getDabs() {
-    try {
-      const resp = await fetch("/api/dabs");
-      if (resp.ok) return await resp.json();
-      console.error(
-        "[ShvApi.getDabs] HTTP error:",
-        resp.status,
-        resp.statusText,
-      );
-    } catch (e) {
-      console.error("[ShvApi.getDabs] Network error:", e);
-    }
-    return null;
+    return buildDabs(new Date());
   }
 
   // --- SHV OIDC Member Authentication (Option A) ---
