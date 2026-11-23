@@ -1,39 +1,41 @@
-import 'leaflet/dist/leaflet.css';
-import { store } from './state.js';
-import { renderHeader } from './components/Header.js';
-import { renderBottomNav } from './components/BottomNav.js';
-import { renderBottomSheet } from './components/BottomSheet.js';
-import { MapView } from './views/MapView.js';
-import { WeatherView } from './views/WeatherView.js';
-import { ForecastView } from './views/ForecastView.js';
-import { SafetyView } from './views/SafetyView.js';
-import { renderProfileView } from './views/ProfileView.js';
-import { ShvApi } from './services/api.js';
+import "leaflet/dist/leaflet.css";
+import { store } from "./state.js";
+import { renderHeader } from "./components/Header.js";
+import { renderBottomNav } from "./components/BottomNav.js";
+import { renderBottomSheet } from "./components/BottomSheet.js";
+import { MapView } from "./views/MapView.js";
+import { WeatherView } from "./views/WeatherView.js";
+import { ForecastView } from "./views/ForecastView.js";
+import { SafetyView } from "./views/SafetyView.js";
+import { renderProfileView } from "./views/ProfileView.js";
+import { ShvApi } from "./services/api.js";
 
 export const storeInstance = store;
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   window.appStore = store;
 }
 
 // Global error monitoring to prevent any errors from being swallowed
-window.addEventListener('error', (event) => {
-  console.error('[Global Error]', event.error || event.message, {
+window.addEventListener("error", (event) => {
+  console.error("[Global Error]", event.error || event.message, {
     filename: event.filename,
     lineno: event.lineno,
     colno: event.colno,
   });
 });
 
-window.addEventListener('unhandledrejection', (event) => {
-  console.error('[Unhandled Promise Rejection]', event.reason);
+window.addEventListener("unhandledrejection", (event) => {
+  console.error("[Unhandled Promise Rejection]", event.reason);
 });
 
 class App {
   constructor() {
-    this.headerContainer = document.getElementById('header-container');
-    this.viewContainer = document.getElementById('view-container');
-    this.bottomSheetContainer = document.getElementById('bottom-sheet-container');
-    this.bottomNavContainer = document.getElementById('bottom-nav-container');
+    this.headerContainer = document.getElementById("header-container");
+    this.viewContainer = document.getElementById("view-container");
+    this.bottomSheetContainer = document.getElementById(
+      "bottom-sheet-container",
+    );
+    this.bottomNavContainer = document.getElementById("bottom-nav-container");
 
     this.currentViewInstance = null;
     this.activeTab = null;
@@ -55,15 +57,18 @@ class App {
         }
       })
       .catch((e) => {
-        console.error('[App.init] Failed to fetch background foehn data:', e);
+        console.error("[App.init] Failed to fetch background foehn data:", e);
       });
 
     // 3. Subscribe to state updates
     store.subscribe((state, meta) => {
       // Handle repeat clicks on active tab (e.g. clicking Live-Karte resets map)
-      if (meta && meta.type === 'TAB_REPEAT') {
-        if (meta.tab === 'map') {
-          if (this.currentViewInstance && typeof this.currentViewInstance.resetView === 'function') {
+      if (meta && meta.type === "TAB_REPEAT") {
+        if (meta.tab === "map") {
+          if (
+            this.currentViewInstance &&
+            typeof this.currentViewInstance.resetView === "function"
+          ) {
             this.currentViewInstance.resetView();
           }
         }
@@ -92,8 +97,8 @@ class App {
     this.theme = store.state.theme;
 
     // Apply document theme
-    document.documentElement.setAttribute('data-theme', this.theme);
-    document.documentElement.setAttribute('lang', this.lang);
+    document.documentElement.setAttribute("data-theme", this.theme);
+    document.documentElement.setAttribute("lang", this.lang);
 
     renderHeader(this.headerContainer);
     renderBottomNav(this.bottomNavContainer);
@@ -102,31 +107,34 @@ class App {
 
   switchView(tab) {
     try {
-      if (this.currentViewInstance && typeof this.currentViewInstance.unmount === 'function') {
+      if (
+        this.currentViewInstance &&
+        typeof this.currentViewInstance.unmount === "function"
+      ) {
         this.currentViewInstance.unmount();
       }
       this.currentViewInstance = null;
       this.activeTab = tab;
-      this.viewContainer.innerHTML = '';
+      this.viewContainer.innerHTML = "";
 
       switch (tab) {
-        case 'map':
+        case "map":
           this.currentViewInstance = new MapView(this.viewContainer);
           this.currentViewInstance.mount();
           break;
-        case 'weather':
+        case "weather":
           this.currentViewInstance = new WeatherView(this.viewContainer);
           this.currentViewInstance.mount();
           break;
-        case 'forecast':
+        case "forecast":
           this.currentViewInstance = new ForecastView(this.viewContainer);
           this.currentViewInstance.mount();
           break;
-        case 'safety':
+        case "safety":
           this.currentViewInstance = new SafetyView(this.viewContainer);
           this.currentViewInstance.mount();
           break;
-        case 'profile':
+        case "profile":
           renderProfileView(this.viewContainer);
           break;
         default:
@@ -141,7 +149,7 @@ class App {
 }
 
 // Bootstrap
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener("DOMContentLoaded", () => {
   const app = new App();
   app.init();
 });

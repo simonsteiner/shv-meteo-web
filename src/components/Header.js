@@ -1,17 +1,21 @@
-import { store } from '../state.js';
+import { store } from "../state.js";
 
 export function renderHeader(container) {
   const { lang, theme, foehn, activeTab } = store.state;
   const t = store.t;
 
   // Foehn pill badge
-  let foehnBadge = '';
+  let foehnBadge = "";
   if (foehn && foehn.primaryPair) {
     const diff = foehn.primaryPair.diffHpa;
-    const isDanger = foehn.primaryPair.alertLevel === 'DANGER';
-    const isMod = foehn.primaryPair.alertLevel === 'MODERATE';
-    const badgeClass = isDanger ? 'badge-danger' : isMod ? 'badge-warning' : 'badge-safe';
-    const label = `${diff > 0 ? '+' : ''}${diff} hPa`;
+    const isDanger = foehn.primaryPair.alertLevel === "DANGER";
+    const isMod = foehn.primaryPair.alertLevel === "MODERATE";
+    const badgeClass = isDanger
+      ? "badge-danger"
+      : isMod
+        ? "badge-warning"
+        : "badge-safe";
+    const label = `${diff > 0 ? "+" : ""}${diff} hPa`;
     foehnBadge = `
       <button id="header-foehn-pill" class="foehn-pill ${badgeClass}" title="${foehn.primaryPair.name}">
         <span class="foehn-dot"></span>
@@ -34,7 +38,7 @@ export function renderHeader(container) {
 
       <!-- Desktop Web Navigation Bar -->
       <nav class="header-nav-desktop" aria-label="Hauptnavigation">
-        <button data-tab="map" class="header-nav-link ${activeTab === 'map' ? 'active' : ''}">
+        <button data-tab="map" class="header-nav-link ${activeTab === "map" ? "active" : ""}">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
             <line x1="8" y1="2" x2="8" y2="18"></line>
@@ -42,7 +46,7 @@ export function renderHeader(container) {
           </svg>
           <span>${t.tabs.map}</span>
         </button>
-        <button data-tab="weather" class="header-nav-link ${activeTab === 'weather' ? 'active' : ''}">
+        <button data-tab="weather" class="header-nav-link ${activeTab === "weather" ? "active" : ""}">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"></path>
             <line x1="17.7" y1="7.7" x2="21" y2="7.7"></line>
@@ -50,7 +54,7 @@ export function renderHeader(container) {
           </svg>
           <span>${t.tabs.weather}</span>
         </button>
-        <button data-tab="forecast" class="header-nav-link ${activeTab === 'forecast' ? 'active' : ''}">
+        <button data-tab="forecast" class="header-nav-link ${activeTab === "forecast" ? "active" : ""}">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 2v2"></path>
             <path d="m4.93 4.93 1.41 1.41"></path>
@@ -60,14 +64,14 @@ export function renderHeader(container) {
           </svg>
           <span>${t.tabs.forecast}</span>
         </button>
-        <button data-tab="safety" class="header-nav-link ${activeTab === 'safety' ? 'active' : ''}">
+        <button data-tab="safety" class="header-nav-link ${activeTab === "safety" ? "active" : ""}">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
             <path d="m9 12 2 2 4-4"></path>
           </svg>
           <span>${t.tabs.safety}</span>
         </button>
-        <button data-tab="profile" class="header-nav-link ${activeTab === 'profile' ? 'active' : ''}">
+        <button data-tab="profile" class="header-nav-link ${activeTab === "profile" ? "active" : ""}">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect width="20" height="14" x="2" y="5" rx="2"></rect>
             <circle cx="8" cy="12" r="2"></circle>
@@ -95,7 +99,9 @@ export function renderHeader(container) {
 
         <!-- Theme Toggle -->
         <button id="btn-theme" class="icon-btn" title="Farbschema">
-          ${theme === 'light' ? `
+          ${
+            theme === "light"
+              ? `
             <!-- Sun icon -->
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="5"></circle>
@@ -108,12 +114,14 @@ export function renderHeader(container) {
               <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
               <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
             </svg>
-          ` : `
+          `
+              : `
             <!-- Moon icon -->
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
             </svg>
-          `}
+          `
+          }
         </button>
 
         <!-- Language Selector -->
@@ -125,10 +133,10 @@ export function renderHeader(container) {
             </svg>
           </button>
           <div id="lang-menu" class="lang-menu hidden">
-            <button data-lang="de" class="${lang === 'de' ? 'active' : ''}">Deutsch (DE)</button>
-            <button data-lang="fr" class="${lang === 'fr' ? 'active' : ''}">Français (FR)</button>
-            <button data-lang="it" class="${lang === 'it' ? 'active' : ''}">Italiano (IT)</button>
-            <button data-lang="en" class="${lang === 'en' ? 'active' : ''}">English (EN)</button>
+            <button data-lang="de" class="${lang === "de" ? "active" : ""}">Deutsch (DE)</button>
+            <button data-lang="fr" class="${lang === "fr" ? "active" : ""}">Français (FR)</button>
+            <button data-lang="it" class="${lang === "it" ? "active" : ""}">Italiano (IT)</button>
+            <button data-lang="en" class="${lang === "en" ? "active" : ""}">English (EN)</button>
           </div>
         </div>
       </div>
@@ -136,83 +144,83 @@ export function renderHeader(container) {
   `;
 
   // Attach event handlers
-  container.querySelectorAll('.header-nav-link').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const tab = btn.getAttribute('data-tab');
+  container.querySelectorAll(".header-nav-link").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const tab = btn.getAttribute("data-tab");
       if (tab) store.setTab(tab);
     });
   });
 
-  const brandHome = container.querySelector('#brand-home-btn');
+  const brandHome = container.querySelector("#brand-home-btn");
   if (brandHome) {
-    brandHome.addEventListener('click', () => store.setTab('map'));
+    brandHome.addEventListener("click", () => store.setTab("map"));
   }
 
-  const foehnPill = container.querySelector('#header-foehn-pill');
+  const foehnPill = container.querySelector("#header-foehn-pill");
   if (foehnPill) {
-    foehnPill.addEventListener('click', () => store.setTab('weather'));
+    foehnPill.addEventListener("click", () => store.setTab("weather"));
   }
 
-  const btnTheme = container.querySelector('#btn-theme');
+  const btnTheme = container.querySelector("#btn-theme");
   if (btnTheme) {
-    btnTheme.addEventListener('click', () => {
-      const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    btnTheme.addEventListener("click", () => {
+      const nextTheme = theme === "dark" ? "light" : "dark";
       store.setTheme(nextTheme);
     });
   }
 
-  const btnGps = container.querySelector('#btn-gps');
+  const btnGps = container.querySelector("#btn-gps");
   if (btnGps) {
-    btnGps.addEventListener('click', () => {
-      if ('geolocation' in navigator) {
-        btnGps.classList.add('spinning');
+    btnGps.addEventListener("click", () => {
+      if ("geolocation" in navigator) {
+        btnGps.classList.add("spinning");
         navigator.geolocation.getCurrentPosition(
           (pos) => {
-            btnGps.classList.remove('spinning');
+            btnGps.classList.remove("spinning");
             store.setPilotLocation({
               lat: pos.coords.latitude,
               lng: pos.coords.longitude,
             });
-            if (store.state.activeTab !== 'map') {
-              store.setTab('map');
+            if (store.state.activeTab !== "map") {
+              store.setTab("map");
             }
           },
           (err) => {
-            btnGps.classList.remove('spinning');
-            console.warn('Geolocation error:', err);
+            btnGps.classList.remove("spinning");
+            console.warn("Geolocation error:", err);
             // Default center of Switzerland (Flüeli-Ranft / Älggialp)
             store.setPilotLocation({ lat: 46.8012, lng: 8.2267 });
           },
-          { enableHighAccuracy: true, timeout: 6000 }
+          { enableHighAccuracy: true, timeout: 6000 },
         );
       }
     });
   }
 
-  const btnLang = container.querySelector('#btn-lang');
-  const langMenu = container.querySelector('#lang-menu');
+  const btnLang = container.querySelector("#btn-lang");
+  const langMenu = container.querySelector("#lang-menu");
   if (btnLang && langMenu) {
-    btnLang.addEventListener('click', (e) => {
+    btnLang.addEventListener("click", (e) => {
       e.stopPropagation();
-      langMenu.classList.toggle('hidden');
+      langMenu.classList.toggle("hidden");
     });
 
-    langMenu.addEventListener('click', (e) => {
+    langMenu.addEventListener("click", (e) => {
       e.stopPropagation();
     });
 
-    langMenu.querySelectorAll('button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const selectedLang = btn.getAttribute('data-lang');
+    langMenu.querySelectorAll("button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const selectedLang = btn.getAttribute("data-lang");
         store.setLang(selectedLang);
-        langMenu.classList.add('hidden');
+        langMenu.classList.add("hidden");
       });
     });
 
     // Close when clicking anywhere outside the language dropdown
-    document.addEventListener('click', (e) => {
+    document.addEventListener("click", (e) => {
       if (!btnLang.contains(e.target) && !langMenu.contains(e.target)) {
-        langMenu.classList.add('hidden');
+        langMenu.classList.add("hidden");
       }
     });
   }

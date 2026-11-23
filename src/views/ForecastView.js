@@ -1,6 +1,6 @@
-import L from 'leaflet';
-import { store } from '../state.js';
-import { ShvApi } from '../services/api.js';
+import L from "leaflet";
+import { store } from "../state.js";
+import { ShvApi } from "../services/api.js";
 
 // =========================================================================
 // Official Ubique / MeteoSchweiz Days Overview Color Palettes & Bounding Box
@@ -9,34 +9,34 @@ import { ShvApi } from '../services/api.js';
 
 // Color ramp for RELATIVE_SUNSHINE (0 - 100%)
 const SUNSHINE_PALETTE = [
-  { p: 0, r: 255, g: 255, b: 255, a: 0 },    // 0% is transparent
-  { p: 5, r: 255, g: 248, b: 219, a: 160 },  // #FFF8DB
+  { p: 0, r: 255, g: 255, b: 255, a: 0 }, // 0% is transparent
+  { p: 5, r: 255, g: 248, b: 219, a: 160 }, // #FFF8DB
   { p: 15, r: 255, g: 237, b: 170, a: 175 }, // #FFEDAA
   { p: 25, r: 255, g: 226, b: 112, a: 190 }, // #FFE270
-  { p: 35, r: 255, g: 208, b: 82, a: 205 },  // #FFD052
-  { p: 45, r: 255, g: 190, b: 51, a: 215 },  // #FFBE33
-  { p: 55, r: 255, g: 151, b: 26, a: 225 },  // #FF971A
-  { p: 65, r: 255, g: 111, b: 0, a: 235 },   // #FF6F00
-  { p: 75, r: 255, g: 85, b: 0, a: 240 },    // #FF5500
-  { p: 85, r: 235, g: 9, b: 0, a: 245 },     // #EB0900
-  { p: 95, r: 204, g: 0, b: 68, a: 250 },    // #CC0044
-  { p: 100, r: 180, g: 0, b: 50, a: 255 }
+  { p: 35, r: 255, g: 208, b: 82, a: 205 }, // #FFD052
+  { p: 45, r: 255, g: 190, b: 51, a: 215 }, // #FFBE33
+  { p: 55, r: 255, g: 151, b: 26, a: 225 }, // #FF971A
+  { p: 65, r: 255, g: 111, b: 0, a: 235 }, // #FF6F00
+  { p: 75, r: 255, g: 85, b: 0, a: 240 }, // #FF5500
+  { p: 85, r: 235, g: 9, b: 0, a: 245 }, // #EB0900
+  { p: 95, r: 204, g: 0, b: 68, a: 250 }, // #CC0044
+  { p: 100, r: 180, g: 0, b: 50, a: 255 },
 ];
 
 // Color ramp for PRECIPITATION_PROBABILITY (WEAK & STRONG) (0 - 100%)
 const PRECIP_PALETTE = [
-  { p: 0, r: 255, g: 255, b: 255, a: 0 },    // 0% is transparent
-  { p: 5, r: 199, g: 237, b: 210, a: 160 },  // #C7EDD2
+  { p: 0, r: 255, g: 255, b: 255, a: 0 }, // 0% is transparent
+  { p: 5, r: 199, g: 237, b: 210, a: 160 }, // #C7EDD2
   { p: 15, r: 171, g: 228, b: 188, a: 175 }, // #ABE4BC
   { p: 25, r: 142, g: 220, b: 166, a: 190 }, // #8EDCA6
   { p: 35, r: 114, g: 211, b: 143, a: 205 }, // #72D38F
-  { p: 45, r: 86, g: 202, b: 121, a: 215 },  // #56CA79
-  { p: 55, r: 61, g: 202, b: 116, a: 225 },  // #3DCA74
-  { p: 65, r: 45, g: 194, b: 115, a: 235 },  // #2DC273
-  { p: 75, r: 34, g: 179, b: 116, a: 240 },  // #22B374
-  { p: 85, r: 26, g: 163, b: 115, a: 245 },  // #1AA373
-  { p: 95, r: 18, g: 146, b: 112, a: 250 },  // #129270
-  { p: 100, r: 10, g: 120, b: 90, a: 255 }
+  { p: 45, r: 86, g: 202, b: 121, a: 215 }, // #56CA79
+  { p: 55, r: 61, g: 202, b: 116, a: 225 }, // #3DCA74
+  { p: 65, r: 45, g: 194, b: 115, a: 235 }, // #2DC273
+  { p: 75, r: 34, g: 179, b: 116, a: 240 }, // #22B374
+  { p: 85, r: 26, g: 163, b: 115, a: 245 }, // #1AA373
+  { p: 95, r: 18, g: 146, b: 112, a: 250 }, // #129270
+  { p: 100, r: 10, g: 120, b: 90, a: 255 },
 ];
 
 function buildColorLut(palette) {
@@ -75,23 +75,26 @@ function buildColorLut(palette) {
 }
 
 // Bounding box from XMP metadata: lat 45.2 - 48.5, lon 4.5 - 11.8
-const OUTLOOK_BOUNDS = [[45.2, 4.5], [48.5, 11.8]];
+const OUTLOOK_BOUNDS = [
+  [45.2, 4.5],
+  [48.5, 11.8],
+];
 
 export class ForecastView {
   constructor(container) {
     this.container = container;
-    
+
     // Top-level Navigation: 'text' | 'outlooks' | 'emagram' | 'isobaren'
-    this.activeSection = 'text';
+    this.activeSection = "text";
 
     // 1. Text Forecast State
     this.textForecastData = null;
-    this.activeTextCategory = 'weather_report'; // 'weather_report' | 'gleitschirm' | 'segelflug' | 'general'
-    this.activeRegion = '0'; // '0': Deutschschweiz & Graubünden, '1': Alpensüdseite & Engadin, '2': Westschweiz & Wallis
+    this.activeTextCategory = "weather_report"; // 'weather_report' | 'gleitschirm' | 'segelflug' | 'general'
+    this.activeRegion = "0"; // '0': Deutschschweiz & Graubünden, '1': Alpensüdseite & Engadin, '2': Westschweiz & Wallis
 
     // 2. Outlooks ("Aussichten") State
     this.outlooksData = null;
-    this.activeOutlookType = 'RELATIVE_SUNSHINE'; // 'RELATIVE_SUNSHINE' | 'PRECIPITATION_PROBABILITY_WEAK' | 'PRECIPITATION_PROBABILITY_STRONG'
+    this.activeOutlookType = "RELATIVE_SUNSHINE"; // 'RELATIVE_SUNSHINE' | 'PRECIPITATION_PROBABILITY_WEAK' | 'PRECIPITATION_PROBABILITY_STRONG'
     this.activeOutlookIndex = 0;
     this.isPlayingOutlooks = false;
     this.outlookPlayTimer = null;
@@ -110,13 +113,13 @@ export class ForecastView {
     this.isPlayingEmagram = false;
     this.emagramPlayTimer = null;
     this.emagramAnimFrame = null;
-    this.searchQuery = '';
+    this.searchQuery = "";
     this.emagramMap = null;
     this.stationMarkersLayer = null;
     this.isEmagramExpanded = false;
     this.showEmagramInfo = false;
     this.handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         if (this.showEmagramInfo) {
           this.toggleEmagramInfo(false);
         } else if (this.isEmagramExpanded) {
@@ -137,8 +140,8 @@ export class ForecastView {
     this.render();
 
     try {
-      const lang = store.state.lang || 'de';
-      
+      const lang = store.state.lang || "de";
+
       // Load Text Forecast, Outlooks, and Previtemps stations in parallel
       const [textData, outlooksData, stations] = await Promise.all([
         ShvApi.getTextForecast(lang),
@@ -152,9 +155,10 @@ export class ForecastView {
 
       // Default selected sounding station: Interlaken (matching Android screenshot)
       if (this.stations.length > 0) {
-        this.selectedStation = this.stations.find(s => s.name === 'Interlaken')
-                            || this.stations.find(s => s.name === 'Engelberg')
-                            || this.stations[0];
+        this.selectedStation =
+          this.stations.find((s) => s.name === "Interlaken") ||
+          this.stations.find((s) => s.name === "Engelberg") ||
+          this.stations[0];
       }
 
       // Prefetch genuine ICON-CH1 forecast for default station
@@ -162,15 +166,15 @@ export class ForecastView {
         await this.loadEmagramForecast(this.selectedStation);
       }
     } catch (err) {
-      console.error('[ForecastView] Error loading forecast data:', err);
-      this.error = 'Flugwetter-Daten konnten nicht vollständig geladen werden.';
+      console.error("[ForecastView] Error loading forecast data:", err);
+      this.error = "Flugwetter-Daten konnten nicht vollständig geladen werden.";
     } finally {
       this.loading = false;
       this.render();
-      if (this.activeSection === 'emagram') {
+      if (this.activeSection === "emagram") {
         this.initEmagramMap();
       }
-      window.addEventListener('keydown', this.handleKeyDown);
+      window.addEventListener("keydown", this.handleKeyDown);
     }
   }
 
@@ -190,8 +194,8 @@ export class ForecastView {
       this.outlookMap = null;
       this.outlookOverlay = null;
     }
-    window.removeEventListener('keydown', this.handleKeyDown);
-    document.body.classList.remove('emagram-expanded-open');
+    window.removeEventListener("keydown", this.handleKeyDown);
+    document.body.classList.remove("emagram-expanded-open");
   }
 
   async loadEmagramForecast(station) {
@@ -200,10 +204,14 @@ export class ForecastView {
     this.updateEmagramDetailDOM();
 
     try {
-      const data = await ShvApi.getEmagramForecast(station.name, station.lat, station.lon);
+      const data = await ShvApi.getEmagramForecast(
+        station.name,
+        station.lat,
+        station.lon,
+      );
       if (data && !data.error) {
         this.emagramForecastData = data;
-        
+
         // Pick the timestep closest to current time if possible
         if (data.validTimes && data.validTimes.length > 0) {
           const now = Date.now();
@@ -224,7 +232,11 @@ export class ForecastView {
         }
       }
     } catch (err) {
-      console.error('[ForecastView] Error fetching emagram forecast for', station.name, err);
+      console.error(
+        "[ForecastView] Error fetching emagram forecast for",
+        station.name,
+        err,
+      );
     } finally {
       this.soundingLoading = false;
       this.updateEmagramDetailDOM();
@@ -232,7 +244,7 @@ export class ForecastView {
   }
 
   render() {
-    const lang = store.state.lang || 'de';
+    const lang = store.state.lang || "de";
     const isobarenUrl = ShvApi.getIsobarenSvgUrl(lang);
 
     this.container.innerHTML = `
@@ -240,7 +252,7 @@ export class ForecastView {
         <!-- Top Navigation Segmented Bar (4 Core Sections) -->
         <div class="forecast-top-bar">
           <div class="forecast-section-switcher">
-            <button data-section="text" class="forecast-tab-btn ${this.activeSection === 'text' ? 'active' : ''}">
+            <button data-section="text" class="forecast-tab-btn ${this.activeSection === "text" ? "active" : ""}">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                 <polyline points="14 2 14 8 20 8"></polyline>
@@ -249,7 +261,7 @@ export class ForecastView {
               </svg>
               <span>Flugwetterbericht</span>
             </button>
-            <button data-section="outlooks" class="forecast-tab-btn ${this.activeSection === 'outlooks' ? 'active' : ''}">
+            <button data-section="outlooks" class="forecast-tab-btn ${this.activeSection === "outlooks" ? "active" : ""}">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="5"></circle>
                 <line x1="12" y1="1" x2="12" y2="3"></line>
@@ -263,14 +275,14 @@ export class ForecastView {
               </svg>
               <span>Aussichten</span>
             </button>
-            <button data-section="emagram" class="forecast-tab-btn ${this.activeSection === 'emagram' ? 'active' : ''}">
+            <button data-section="emagram" class="forecast-tab-btn ${this.activeSection === "emagram" ? "active" : ""}">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M3 3v18h18"></path>
                 <path d="m19 9-5 5-4-4-3 3"></path>
               </svg>
               <span>Emagramm & Previtemps</span>
             </button>
-            <button data-section="isobaren" class="forecast-tab-btn ${this.activeSection === 'isobaren' ? 'active' : ''}">
+            <button data-section="isobaren" class="forecast-tab-btn ${this.activeSection === "isobaren" ? "active" : ""}">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"></circle>
                 <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
@@ -280,35 +292,41 @@ export class ForecastView {
           </div>
         </div>
 
-        ${this.loading ? `
+        ${
+          this.loading
+            ? `
           <div class="loading-spinner" style="padding: 60px 0;">
             <div class="spinner"></div>
             <span>Wetterdaten werden geladen...</span>
           </div>
-        ` : this.error ? `
+        `
+            : this.error
+              ? `
           <div class="error-notice">${this.error}</div>
-        ` : `
+        `
+              : `
           <!-- Section 1: Official Text Forecasts -->
-          ${this.activeSection === 'text' ? this.renderTextSection(lang) : ''}
+          ${this.activeSection === "text" ? this.renderTextSection(lang) : ""}
 
           <!-- Section 2: Days Overview / Outlooks ("Aussichten") -->
-          ${this.activeSection === 'outlooks' ? this.renderOutlooksSection(lang) : ''}
+          ${this.activeSection === "outlooks" ? this.renderOutlooksSection() : ""}
 
           <!-- Section 3: Emagram & Previtemps Map -->
-          ${this.activeSection === 'emagram' ? this.renderEmagramSection(lang) : ''}
+          ${this.activeSection === "emagram" ? this.renderEmagramSection() : ""}
 
           <!-- Section 4: Synoptic Isobar Chart -->
-          ${this.activeSection === 'isobaren' ? this.renderIsobarenSection(isobarenUrl) : ''}
-        `}
+          ${this.activeSection === "isobaren" ? this.renderIsobarenSection(isobarenUrl) : ""}
+        `
+        }
       </div>
     `;
 
     this.attachEvents();
 
-    if (this.activeSection === 'outlooks' && !this.loading) {
+    if (this.activeSection === "outlooks" && !this.loading) {
       setTimeout(() => this.initOutlookMap(), 50);
     }
-    if (this.activeSection === 'emagram' && !this.loading) {
+    if (this.activeSection === "emagram" && !this.loading) {
       setTimeout(() => this.initEmagramMap(), 50);
     }
   }
@@ -320,33 +338,38 @@ export class ForecastView {
   renderTextSection(lang) {
     const allRegionLabels = {
       de: {
-        '0': 'Deutschschweiz & Graubünden',
-        '1': 'Alpensüdseite & Engadin',
-        '2': 'Westschweiz & Wallis',
+        0: "Deutschschweiz & Graubünden",
+        1: "Alpensüdseite & Engadin",
+        2: "Westschweiz & Wallis",
       },
       fr: {
-        '0': 'Suisse alémanique & Grisons',
-        '1': 'Sud des Alpes & Engadine',
-        '2': 'Suisse romande & Valais',
+        0: "Suisse alémanique & Grisons",
+        1: "Sud des Alpes & Engadine",
+        2: "Suisse romande & Valais",
       },
       it: {
-        '0': 'Svizzera tedesca & Grigioni',
-        '1': 'Sud delle Alpi & Engadina',
-        '2': 'Svizzera romanda & Vallese',
+        0: "Svizzera tedesca & Grigioni",
+        1: "Sud delle Alpi & Engadina",
+        2: "Svizzera romanda & Vallese",
       },
     };
     const regionLabels = allRegionLabels[lang] || allRegionLabels.de;
 
     const tf = this.textForecastData || {};
 
-    let contentHtml = '';
-    let categoryTitle = '';
-    let issueTimeStr = '';
+    let contentHtml = "";
+    let categoryTitle = "";
+    let issueTimeStr = "";
 
-    if (this.activeTextCategory === 'weather_report' || this.activeTextCategory === 'regional') {
-      categoryTitle = 'Wetterbericht Schweiz (MeteoSchweiz)';
-      const rawHtml = tf.forecast?.text?.[this.activeRegion] || '';
-      issueTimeStr = tf.forecast?.issueTime ? new Date(tf.forecast.issueTime).toLocaleString('de-CH') : '';
+    if (
+      this.activeTextCategory === "weather_report" ||
+      this.activeTextCategory === "regional"
+    ) {
+      categoryTitle = "Wetterbericht Schweiz (MeteoSchweiz)";
+      const rawHtml = tf.forecast?.text?.[this.activeRegion] || "";
+      issueTimeStr = tf.forecast?.issueTime
+        ? new Date(tf.forecast.issueTime).toLocaleString("de-CH")
+        : "";
       if (rawHtml) {
         contentHtml = `
           <div class="text-forecast-day-card">
@@ -354,46 +377,56 @@ export class ForecastView {
           </div>
         `;
       } else {
-        contentHtml = '<p class="text-muted">Kein Wetterbericht für diesen Sektor vorhanden.</p>';
+        contentHtml =
+          '<p class="text-muted">Kein Wetterbericht für diesen Sektor vorhanden.</p>';
       }
-    } else if (this.activeTextCategory === 'gleitschirm') {
-      categoryTitle = 'Gleitschirmprognose & Thermikbriefing';
+    } else if (this.activeTextCategory === "gleitschirm") {
+      categoryTitle = "Gleitschirmprognose & Thermikbriefing";
       const g = tf.gleitschirmForecast || tf.flugwetterForecast;
       if (g) {
-        issueTimeStr = g.issueTime ? new Date(g.issueTime).toLocaleString('de-CH') : '';
+        issueTimeStr = g.issueTime
+          ? new Date(g.issueTime).toLocaleString("de-CH")
+          : "";
         contentHtml = `
           <div class="text-forecast-day-card">
-            <div class="forecast-day-body">${this.sanitizeHtml(g.text || g.html || '<p>Keine Daten</p>')}</div>
+            <div class="forecast-day-body">${this.sanitizeHtml(g.text || g.html || "<p>Keine Daten</p>")}</div>
           </div>
         `;
       } else {
-        contentHtml = '<p class="text-muted">Gleitschirmprognose ist für heute noch nicht freigegeben.</p>';
+        contentHtml =
+          '<p class="text-muted">Gleitschirmprognose ist für heute noch nicht freigegeben.</p>';
       }
-    } else if (this.activeTextCategory === 'segelflug') {
-      categoryTitle = 'Segelflug- & Flugwetterprognose';
+    } else if (this.activeTextCategory === "segelflug") {
+      categoryTitle = "Segelflug- & Flugwetterprognose";
       const s = tf.segelflugForecast;
       if (s) {
-        issueTimeStr = s.issueTime ? new Date(s.issueTime).toLocaleString('de-CH') : '';
+        issueTimeStr = s.issueTime
+          ? new Date(s.issueTime).toLocaleString("de-CH")
+          : "";
         contentHtml = `
           <div class="text-forecast-day-card">
-            <div class="forecast-day-body">${this.sanitizeHtml(s.text || s.html || '<p>Keine Daten</p>')}</div>
+            <div class="forecast-day-body">${this.sanitizeHtml(s.text || s.html || "<p>Keine Daten</p>")}</div>
           </div>
         `;
       } else {
-        contentHtml = '<p class="text-muted">Segelflugprognose wird um 08:30 Uhr aktualisiert.</p>';
+        contentHtml =
+          '<p class="text-muted">Segelflugprognose wird um 08:30 Uhr aktualisiert.</p>';
       }
-    } else if (this.activeTextCategory === 'general') {
-      categoryTitle = 'Allgemeine Wetterlage (Synoptik)';
+    } else if (this.activeTextCategory === "general") {
+      categoryTitle = "Allgemeine Wetterlage (Synoptik)";
       const gen = tf.generalForecast;
       if (gen) {
-        issueTimeStr = gen.issueTime ? new Date(gen.issueTime).toLocaleString('de-CH') : '';
+        issueTimeStr = gen.issueTime
+          ? new Date(gen.issueTime).toLocaleString("de-CH")
+          : "";
         contentHtml = `
           <div class="text-forecast-day-card">
-            <div class="forecast-day-body">${this.sanitizeHtml(gen.text || gen.html || '<p>Keine Daten</p>')}</div>
+            <div class="forecast-day-body">${this.sanitizeHtml(gen.text || gen.html || "<p>Keine Daten</p>")}</div>
           </div>
         `;
       } else {
-        contentHtml = '<p class="text-muted">Synoptische Übersicht derzeit nicht verfügbar.</p>';
+        contentHtml =
+          '<p class="text-muted">Synoptische Übersicht derzeit nicht verfügbar.</p>';
       }
     }
 
@@ -401,16 +434,16 @@ export class ForecastView {
       <div class="forecast-content-card">
         <!-- Sub-Navigation for Forecast Types (Matching Android 4 Products) -->
         <div class="text-category-switcher-row">
-          <button data-cat="weather_report" class="category-pill ${this.activeTextCategory === 'weather_report' || this.activeTextCategory === 'regional' ? 'active' : ''}">
+          <button data-cat="weather_report" class="category-pill ${this.activeTextCategory === "weather_report" || this.activeTextCategory === "regional" ? "active" : ""}">
             🇨🇭 Wetterbericht
           </button>
-          <button data-cat="gleitschirm" class="category-pill ${this.activeTextCategory === 'gleitschirm' ? 'active' : ''}">
+          <button data-cat="gleitschirm" class="category-pill ${this.activeTextCategory === "gleitschirm" ? "active" : ""}">
             🪂 Gleitschirm
           </button>
-          <button data-cat="segelflug" class="category-pill ${this.activeTextCategory === 'segelflug' ? 'active' : ''}">
+          <button data-cat="segelflug" class="category-pill ${this.activeTextCategory === "segelflug" ? "active" : ""}">
             ✈️ Segelflug
           </button>
-          <button data-cat="general" class="category-pill ${this.activeTextCategory === 'general' ? 'active' : ''}">
+          <button data-cat="general" class="category-pill ${this.activeTextCategory === "general" ? "active" : ""}">
             🌐 Allgemeine Lage
           </button>
         </div>
@@ -419,21 +452,26 @@ export class ForecastView {
           <div>
             <span class="badge-tag">Quelle: MeteoSchweiz & SHV FSVL</span>
             <h2 class="section-heading">${categoryTitle}</h2>
-            ${issueTimeStr ? `<p class="section-sub">Ausgabe: ${issueTimeStr}</p>` : ''}
+            ${issueTimeStr ? `<p class="section-sub">Ausgabe: ${issueTimeStr}</p>` : ""}
           </div>
         </div>
 
-        ${(this.activeTextCategory === 'weather_report' || this.activeTextCategory === 'regional') ? `
+        ${
+          this.activeTextCategory === "weather_report" ||
+          this.activeTextCategory === "regional"
+            ? `
           <div class="region-pills-row">
-            <button data-region="0" class="region-pill ${this.activeRegion === '0' ? 'active' : ''}">${regionLabels['0']}</button>
-            <button data-region="1" class="region-pill ${this.activeRegion === '1' ? 'active' : ''}">${regionLabels['1']}</button>
-            <button data-region="2" class="region-pill ${this.activeRegion === '2' ? 'active' : ''}">${regionLabels['2']}</button>
+            <button data-region="0" class="region-pill ${this.activeRegion === "0" ? "active" : ""}">${regionLabels["0"]}</button>
+            <button data-region="1" class="region-pill ${this.activeRegion === "1" ? "active" : ""}">${regionLabels["1"]}</button>
+            <button data-region="2" class="region-pill ${this.activeRegion === "2" ? "active" : ""}">${regionLabels["2"]}</button>
           </div>
-        ` : ''}
+        `
+            : ""
+        }
 
         <div class="forecast-prognosis-container">
           <div class="prognosis-text-body">
-            ${contentHtml || '<p>Textprognose wird vorbereitet...</p>'}
+            ${contentHtml || "<p>Textprognose wird vorbereitet...</p>"}
           </div>
         </div>
       </div>
@@ -447,30 +485,34 @@ export class ForecastView {
   getOutlookFiles() {
     if (!this.outlooksData || !this.outlooksData.data) return [];
     // Prioritize 6h datasets for highest resolution animations
-    const matching = this.outlooksData.data.filter(d => d.type === this.activeOutlookType);
+    const matching = this.outlooksData.data.filter(
+      (d) => d.type === this.activeOutlookType,
+    );
     if (!matching.length) return [];
-    const bestSet = matching.find(d => d.files && d.files.length >= 20) || matching[0];
+    const bestSet =
+      matching.find((d) => d.files && d.files.length >= 20) || matching[0];
     return bestSet.files || [];
   }
 
   async colorizeOutlookImage(imageUrl, type) {
-    if (!imageUrl) return '';
+    if (!imageUrl) return "";
     const cacheKey = `${type}:${imageUrl}`;
     if (this.outlookColorCache.has(cacheKey)) {
       return this.outlookColorCache.get(cacheKey);
     }
 
-    const lut = type === 'RELATIVE_SUNSHINE' ? this.sunshineLut : this.precipLut;
+    const lut =
+      type === "RELATIVE_SUNSHINE" ? this.sunshineLut : this.precipLut;
 
     return new Promise((resolve) => {
       const img = new Image();
-      img.crossOrigin = 'anonymous';
+      img.crossOrigin = "anonymous";
       img.onload = () => {
         try {
-          const canvas = document.createElement('canvas');
+          const canvas = document.createElement("canvas");
           canvas.width = img.width || 276;
           canvas.height = img.height || 182;
-          const ctx = canvas.getContext('2d');
+          const ctx = canvas.getContext("2d");
           ctx.drawImage(img, 0, 0);
 
           const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -488,16 +530,16 @@ export class ForecastView {
           }
 
           ctx.putImageData(imgData, 0, 0);
-          const dataUrl = canvas.toDataURL('image/png');
+          const dataUrl = canvas.toDataURL("image/png");
           this.outlookColorCache.set(cacheKey, dataUrl);
           resolve(dataUrl);
         } catch (err) {
-          console.warn('[Aussichten] Canvas colorization fallback:', err);
+          console.warn("[Aussichten] Canvas colorization fallback:", err);
           resolve(imageUrl);
         }
       };
       img.onerror = () => {
-        console.warn('[Aussichten] Failed to load image:', imageUrl);
+        console.warn("[Aussichten] Failed to load image:", imageUrl);
         resolve(imageUrl);
       };
       img.src = imageUrl;
@@ -505,7 +547,7 @@ export class ForecastView {
   }
 
   async initOutlookMap() {
-    const mapEl = document.getElementById('outlook-map');
+    const mapEl = document.getElementById("outlook-map");
     if (!mapEl) return;
 
     if (this.outlookMap) {
@@ -525,13 +567,19 @@ export class ForecastView {
     });
 
     // Basemap: Swisstopo Pixelkarte Grau (Keyless, high-contrast relief layer matching Android)
-    L.tileLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-grau/default/current/3857/{z}/{x}/{y}.jpeg', {
-      maxZoom: 18,
-      attribution: '© swisstopo',
-    }).addTo(this.outlookMap);
+    L.tileLayer(
+      "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-grau/default/current/3857/{z}/{x}/{y}.jpeg",
+      {
+        maxZoom: 18,
+        attribution: "© swisstopo",
+      },
+    ).addTo(this.outlookMap);
 
     // Initial camera framing
-    this.outlookMap.fitBounds([[45.8, 5.9], [47.8, 10.5]]);
+    this.outlookMap.fitBounds([
+      [45.8, 5.9],
+      [47.8, 10.5],
+    ]);
 
     // Render initial weather raster overlay
     const files = this.getOutlookFiles();
@@ -542,13 +590,16 @@ export class ForecastView {
       const currentFileObj = files[this.activeOutlookIndex];
       if (currentFileObj) {
         const rawUrl = `https://static-prod.ubmeteo.io/${currentFileObj.file}`;
-        const colorizedUrl = await this.colorizeOutlookImage(rawUrl, this.activeOutlookType);
-        
+        const colorizedUrl = await this.colorizeOutlookImage(
+          rawUrl,
+          this.activeOutlookType,
+        );
+
         if (this.outlookMap) {
           this.outlookOverlay = L.imageOverlay(colorizedUrl, OUTLOOK_BOUNDS, {
             opacity: 0.85,
             interactive: false,
-            className: 'outlook-weather-overlay',
+            className: "outlook-weather-overlay",
           }).addTo(this.outlookMap);
         }
       }
@@ -559,39 +610,42 @@ export class ForecastView {
     }, 200);
   }
 
-  renderOutlooksSection(lang) {
+  renderOutlooksSection() {
     const files = this.getOutlookFiles();
     const totalFiles = files.length;
-    
+
     if (this.activeOutlookIndex >= totalFiles) {
       this.activeOutlookIndex = Math.max(0, totalFiles - 1);
     }
     const currentFileObj = files[this.activeOutlookIndex];
 
-    let intervalLabel = 'Lade Zeitspanne...';
+    let intervalLabel = "Lade Zeitspanne...";
     if (currentFileObj) {
       const dStart = new Date(currentFileObj.start);
       const dEnd = new Date(currentFileObj.end);
-      const optionsDay = { weekday: 'short', day: '2-digit', month: '2-digit' };
-      const optionsTime = { hour: '2-digit', minute: '2-digit' };
-      intervalLabel = `${dStart.toLocaleDateString('de-CH', optionsDay)} ${dStart.toLocaleTimeString('de-CH', optionsTime)} – ${dEnd.toLocaleTimeString('de-CH', optionsTime)}`;
+      const optionsDay = { weekday: "short", day: "2-digit", month: "2-digit" };
+      const optionsTime = { hour: "2-digit", minute: "2-digit" };
+      intervalLabel = `${dStart.toLocaleDateString("de-CH", optionsDay)} ${dStart.toLocaleTimeString("de-CH", optionsTime)} \u2013 ${dEnd.toLocaleTimeString("de-CH", optionsTime)}`;
     }
 
     const legendConfig = {
       RELATIVE_SUNSHINE: {
-        title: 'Relative Sonnenscheindauer (6h)',
-        gradient: 'linear-gradient(to right, #FFF8DB 0%, #FFE270 25%, #FFBE33 45%, #FF6F00 65%, #EB0900 85%, #CC0044 100%)',
-        labels: ['0%', '20%', '40%', '60%', '80%', '100%'],
+        title: "Relative Sonnenscheindauer (6h)",
+        gradient:
+          "linear-gradient(to right, #FFF8DB 0%, #FFE270 25%, #FFBE33 45%, #FF6F00 65%, #EB0900 85%, #CC0044 100%)",
+        labels: ["0%", "20%", "40%", "60%", "80%", "100%"],
       },
       PRECIPITATION_PROBABILITY_WEAK: {
-        title: 'Niederschlagswahrscheinlichkeit leicht (> 0.1 mm / 12h)',
-        gradient: 'linear-gradient(to right, #C7EDD2 0%, #8EDCA6 25%, #56CA79 45%, #2DC273 65%, #1AA373 85%, #129270 100%)',
-        labels: ['0%', '20%', '40%', '60%', '80%', '100%'],
+        title: "Niederschlagswahrscheinlichkeit leicht (> 0.1 mm / 12h)",
+        gradient:
+          "linear-gradient(to right, #C7EDD2 0%, #8EDCA6 25%, #56CA79 45%, #2DC273 65%, #1AA373 85%, #129270 100%)",
+        labels: ["0%", "20%", "40%", "60%", "80%", "100%"],
       },
       PRECIPITATION_PROBABILITY_STRONG: {
-        title: 'Niederschlagswahrscheinlichkeit stark (> 1.0 mm / 12h)',
-        gradient: 'linear-gradient(to right, #C7EDD2 0%, #8EDCA6 25%, #56CA79 45%, #2DC273 65%, #1AA373 85%, #129270 100%)',
-        labels: ['0%', '20%', '40%', '60%', '80%', '100%'],
+        title: "Niederschlagswahrscheinlichkeit stark (> 1.0 mm / 12h)",
+        gradient:
+          "linear-gradient(to right, #C7EDD2 0%, #8EDCA6 25%, #56CA79 45%, #2DC273 65%, #1AA373 85%, #129270 100%)",
+        labels: ["0%", "20%", "40%", "60%", "80%", "100%"],
       },
     }[this.activeOutlookType];
 
@@ -607,13 +661,13 @@ export class ForecastView {
 
         <!-- 3-Way Product Toggle -->
         <div class="text-category-switcher-row" style="margin-top: 14px;">
-          <button data-type="RELATIVE_SUNSHINE" class="category-pill ${this.activeOutlookType === 'RELATIVE_SUNSHINE' ? 'active' : ''}">
+          <button data-type="RELATIVE_SUNSHINE" class="category-pill ${this.activeOutlookType === "RELATIVE_SUNSHINE" ? "active" : ""}">
             ☀️ Sonnenschein
           </button>
-          <button data-type="PRECIPITATION_PROBABILITY_WEAK" class="category-pill ${this.activeOutlookType === 'PRECIPITATION_PROBABILITY_WEAK' ? 'active' : ''}">
+          <button data-type="PRECIPITATION_PROBABILITY_WEAK" class="category-pill ${this.activeOutlookType === "PRECIPITATION_PROBABILITY_WEAK" ? "active" : ""}">
             🌧️ Niederschlag leicht
           </button>
-          <button data-type="PRECIPITATION_PROBABILITY_STRONG" class="category-pill ${this.activeOutlookType === 'PRECIPITATION_PROBABILITY_STRONG' ? 'active' : ''}">
+          <button data-type="PRECIPITATION_PROBABILITY_STRONG" class="category-pill ${this.activeOutlookType === "PRECIPITATION_PROBABILITY_STRONG" ? "active" : ""}">
             ⛈️ Niederschlag stark
           </button>
         </div>
@@ -645,17 +699,21 @@ export class ForecastView {
                 <line x1="5" y1="19" x2="5" y2="5"></line>
               </svg>
             </button>
-            <button id="outlook-play-btn" class="player-btn primary ${this.isPlayingOutlooks ? 'playing' : ''}" title="Animation abspielen / pausieren">
-              ${this.isPlayingOutlooks ? `
+            <button id="outlook-play-btn" class="player-btn primary ${this.isPlayingOutlooks ? "playing" : ""}" title="Animation abspielen / pausieren">
+              ${
+                this.isPlayingOutlooks
+                  ? `
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                   <rect x="6" y="4" width="4" height="16"></rect>
                   <rect x="14" y="4" width="4" height="16"></rect>
                 </svg>
-              ` : `
+              `
+                  : `
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                   <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg>
-              `}
+              `
+              }
             </button>
             <button id="outlook-next-btn" class="player-btn" title="Nächstes Intervall">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -681,7 +739,7 @@ export class ForecastView {
             <span class="legend-title">${legendConfig.title}</span>
             <div class="legend-color-bar" style="background: ${legendConfig.gradient};"></div>
             <div class="legend-ticks">
-              ${legendConfig.labels.map(l => `<span>${l}</span>`).join('')}
+              ${legendConfig.labels.map((l) => `<span>${l}</span>`).join("")}
             </div>
           </div>
         </div>
@@ -699,32 +757,32 @@ export class ForecastView {
     if (!currentFileObj) return;
 
     // 1. Update time label
-    const timeEl = this.container.querySelector('.outlook-time-text');
+    const timeEl = this.container.querySelector(".outlook-time-text");
     if (timeEl) {
       const dStart = new Date(currentFileObj.start);
       const dEnd = new Date(currentFileObj.end);
-      const optionsDay = { weekday: 'short', day: '2-digit', month: '2-digit' };
-      const optionsTime = { hour: '2-digit', minute: '2-digit' };
-      timeEl.textContent = `${dStart.toLocaleDateString('de-CH', optionsDay)} ${dStart.toLocaleTimeString('de-CH', optionsTime)} – ${dEnd.toLocaleTimeString('de-CH', optionsTime)}`;
+      const optionsDay = { weekday: "short", day: "2-digit", month: "2-digit" };
+      const optionsTime = { hour: "2-digit", minute: "2-digit" };
+      timeEl.textContent = `${dStart.toLocaleDateString("de-CH", optionsDay)} ${dStart.toLocaleTimeString("de-CH", optionsTime)} \u2013 ${dEnd.toLocaleTimeString("de-CH", optionsTime)}`;
     }
 
     // 2. Update step indicator
-    const stepEl = this.container.querySelector('.outlook-step-indicator');
+    const stepEl = this.container.querySelector(".outlook-step-indicator");
     if (stepEl) {
       stepEl.textContent = `Intervall ${this.activeOutlookIndex + 1} von ${totalFiles}`;
     }
 
     // 3. Update slider value
-    const slider = this.container.querySelector('#outlook-slider');
+    const slider = this.container.querySelector("#outlook-slider");
     if (slider) {
       slider.value = this.activeOutlookIndex;
     }
 
     // 4. Update play button icon
-    const playBtn = this.container.querySelector('#outlook-play-btn');
+    const playBtn = this.container.querySelector("#outlook-play-btn");
     if (playBtn) {
       if (this.isPlayingOutlooks) {
-        playBtn.classList.add('playing');
+        playBtn.classList.add("playing");
         playBtn.innerHTML = `
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <rect x="6" y="4" width="4" height="16"></rect>
@@ -732,7 +790,7 @@ export class ForecastView {
           </svg>
         `;
       } else {
-        playBtn.classList.remove('playing');
+        playBtn.classList.remove("playing");
         playBtn.innerHTML = `
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <polygon points="5 3 19 12 5 21 5 3"></polygon>
@@ -743,7 +801,10 @@ export class ForecastView {
 
     // 5. Update Map Overlay
     const rawUrl = `https://static-prod.ubmeteo.io/${currentFileObj.file}`;
-    const colorizedUrl = await this.colorizeOutlookImage(rawUrl, this.activeOutlookType);
+    const colorizedUrl = await this.colorizeOutlookImage(
+      rawUrl,
+      this.activeOutlookType,
+    );
 
     if (this.outlookOverlay && this.outlookMap) {
       this.outlookOverlay.setUrl(colorizedUrl);
@@ -751,7 +812,7 @@ export class ForecastView {
       this.outlookOverlay = L.imageOverlay(colorizedUrl, OUTLOOK_BOUNDS, {
         opacity: 0.85,
         interactive: false,
-        className: 'outlook-weather-overlay',
+        className: "outlook-weather-overlay",
       }).addTo(this.outlookMap);
     }
 
@@ -759,17 +820,24 @@ export class ForecastView {
     const nextIdx1 = (this.activeOutlookIndex + 1) % totalFiles;
     const nextIdx2 = (this.activeOutlookIndex + 2) % totalFiles;
     if (files[nextIdx1]) {
-      this.colorizeOutlookImage(`https://static-prod.ubmeteo.io/${files[nextIdx1].file}`, this.activeOutlookType);
+      this.colorizeOutlookImage(
+        `https://static-prod.ubmeteo.io/${files[nextIdx1].file}`,
+        this.activeOutlookType,
+      );
     }
     if (files[nextIdx2]) {
-      this.colorizeOutlookImage(`https://static-prod.ubmeteo.io/${files[nextIdx2].file}`, this.activeOutlookType);
+      this.colorizeOutlookImage(
+        `https://static-prod.ubmeteo.io/${files[nextIdx2].file}`,
+        this.activeOutlookType,
+      );
     }
   }
 
   stepOutlook(delta) {
     const files = this.getOutlookFiles();
     const totalFiles = files.length || 1;
-    this.activeOutlookIndex = (this.activeOutlookIndex + delta + totalFiles) % totalFiles;
+    this.activeOutlookIndex =
+      (this.activeOutlookIndex + delta + totalFiles) % totalFiles;
     this.updateOutlookDOM();
   }
 
@@ -801,9 +869,18 @@ export class ForecastView {
   // 3. EMAGRAM & PREVITEMPS SECTION (Android-style Sounding Diagram & Timeline)
   // =========================================================================
 
-  renderEmagramSection(lang) {
+  renderEmagramSection() {
     const popularStations = [
-      'Interlaken', 'Engelberg', 'Payerne', 'Fiesch', 'Zermatt', 'Scuol', 'Davos', 'Chur', 'Zürich', 'Sion'
+      "Interlaken",
+      "Engelberg",
+      "Payerne",
+      "Fiesch",
+      "Zermatt",
+      "Scuol",
+      "Davos",
+      "Chur",
+      "Zürich",
+      "Sion",
     ];
 
     return `
@@ -836,15 +913,20 @@ export class ForecastView {
           <!-- Quick Select Station Pills -->
           <div class="popular-stations-pills-row">
             <span class="popular-lbl">Beliebt:</span>
-            ${popularStations.map(name => {
-              const st = this.stations.find(s => s.name === name);
-              const isActive = this.selectedStation && this.selectedStation.name === name;
-              return st ? `
-                <button data-station="${st.name}" class="popular-station-pill ${isActive ? 'active' : ''}">
+            ${popularStations
+              .map((name) => {
+                const st = this.stations.find((s) => s.name === name);
+                const isActive =
+                  this.selectedStation && this.selectedStation.name === name;
+                return st
+                  ? `
+                <button data-station="${st.name}" class="popular-station-pill ${isActive ? "active" : ""}">
                   ${st.name} (${st.elevation}m)
                 </button>
-              ` : '';
-            }).join('')}
+              `
+                  : "";
+              })
+              .join("")}
           </div>
 
           <!-- Leaflet Sounding Stations Map Container (Swisstopo Pixelkarte, Keyless) -->
@@ -885,22 +967,32 @@ export class ForecastView {
     const data = this.emagramForecastData;
     const timeSteps = data?.timeSteps || [];
     const totalSteps = timeSteps.length;
-    
+
     if (this.activeEmagramTimeIndex >= totalSteps) {
       this.activeEmagramTimeIndex = Math.max(0, totalSteps - 1);
     }
     const currentStep = timeSteps[this.activeEmagramTimeIndex];
 
     // Format header timestamp matching screenshot (e.g. "Thu, 22. Oct, 19:00")
-    let headerTimeStr = 'Lade Zeitpunkt...';
-    let dateLabel = 'Heute';
+    let headerTimeStr = "Lade Zeitpunkt...";
+    let dateLabel = "Heute";
     if (currentStep) {
       const d = new Date(currentStep.timestamp);
-      const optionsHeader = { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' };
-      headerTimeStr = d.toLocaleDateString('en-GB', optionsHeader);
-      
-      const optionsDate = { weekday: 'short', day: '2-digit', month: '2-digit' };
-      dateLabel = d.toLocaleDateString('de-CH', optionsDate);
+      const optionsHeader = {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      };
+      headerTimeStr = d.toLocaleDateString("en-GB", optionsHeader);
+
+      const optionsDate = {
+        weekday: "short",
+        day: "2-digit",
+        month: "2-digit",
+      };
+      dateLabel = d.toLocaleDateString("de-CH", optionsDate);
     }
 
     const levels = currentStep?.levels || [];
@@ -915,7 +1007,6 @@ export class ForecastView {
     const padB = 60;
 
     const plotW = 340;
-    const windW = 100;
     const plotH = svgH - padT - padB;
 
     // Pressure coordinates (600 hPa to 1000 hPa)
@@ -923,7 +1014,11 @@ export class ForecastView {
     const pMax = 1000;
     const pToY = (p) => {
       const clampedP = Math.max(pMin, Math.min(pMax, p));
-      return (padT + plotH) - (Math.log(pMax / clampedP) / Math.log(pMax / pMin)) * plotH;
+      return (
+        padT +
+        plotH -
+        (Math.log(pMax / clampedP) / Math.log(pMax / pMin)) * plotH
+      );
     };
 
     // Temperature coordinates (-15°C to +35°C with 40° skew)
@@ -932,58 +1027,68 @@ export class ForecastView {
     const skewFactor = 0.32;
     const tToX = (t, y) => {
       const baseX = padL + ((t - tMin) / (tMax - tMin)) * plotW;
-      const skewX = ((padT + plotH) - y) * skewFactor;
+      const skewX = (padT + plotH - y) * skewFactor;
       return baseX + skewX;
     };
 
     // Pressure grid levels
     const pressureTicks = [1000, 900, 800, 700, 600];
-    const isobarsSvg = pressureTicks.map(p => {
-      const y = pToY(p);
-      return `
+    const isobarsSvg = pressureTicks
+      .map((p) => {
+        const y = pToY(p);
+        return `
         <line x1="${padL}" y1="${y}" x2="${padL + plotW}" y2="${y}" stroke="var(--border-color, #E2E8F0)" stroke-width="1" stroke-dasharray="3,3" />
         <text x="${padL - 6}" y="${y + 4}" fill="#94A3B8" font-size="11" font-weight="600" text-anchor="end">${p}</text>
       `;
-    }).join('');
+      })
+      .join("");
 
     // Skewed isotherms (-10, 0, 10, 20, 30 °C)
     const tempTicks = [-10, 0, 10, 20, 30];
-    const isothermsSvg = tempTicks.map(t => {
-      const y1 = padT + plotH;
-      const x1 = tToX(t, y1);
-      const y2 = padT;
-      const x2 = tToX(t, y2);
-      return `
+    const isothermsSvg = tempTicks
+      .map((t) => {
+        const y1 = padT + plotH;
+        const x1 = tToX(t, y1);
+        const y2 = padT;
+        const x2 = tToX(t, y2);
+        return `
         <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--border-color, #E2E8F0)" stroke-width="1" opacity="0.75" />
         <text x="${x1}" y="${y1 + 18}" fill="#94A3B8" font-size="11" font-weight="600" text-anchor="middle">${t}</text>
       `;
-    }).join('');
+      })
+      .join("");
 
     // Altitude lines & labels on right column (1000m, 2000m, 3000m, 4000m)
-    const altGridLines = [1000, 2000, 3000, 4000].map(alt => {
-      // Find approximate Y coordinate from levels matching altitude
-      let targetY = padT + plotH - (alt / 5000) * plotH;
-      const closestLvl = levels.find(l => Math.abs(l.heightM - alt) < 150);
-      if (closestLvl) {
-        targetY = pToY(closestLvl.pressHpa);
-      }
-      return `
+    const altGridLines = [1000, 2000, 3000, 4000]
+      .map((alt) => {
+        // Find approximate Y coordinate from levels matching altitude
+        let targetY = padT + plotH - (alt / 5000) * plotH;
+        const closestLvl = levels.find((l) => Math.abs(l.heightM - alt) < 150);
+        if (closestLvl) {
+          targetY = pToY(closestLvl.pressHpa);
+        }
+        return `
         <line x1="${padL + plotW}" y1="${targetY}" x2="${svgW - padR}" y2="${targetY}" stroke="var(--border-color, #E2E8F0)" stroke-width="1" stroke-dasharray="3,3" />
         <text x="${padL + plotW + 6}" y="${targetY - 4}" fill="#94A3B8" font-size="11" font-weight="600">${alt} m</text>
       `;
-    }).join('');
+      })
+      .join("");
 
     // Compute sounding curves via helper method
-    const { dewPolyline, tempSegmentsSvg, windPolyline, windBarbsSvg } = this.computeSoundingCurves(levels);
-    const cursorPct = totalSteps > 1 ? (this.activeEmagramTimeIndex / (totalSteps - 1)) * 100 : 0;
+    const { dewPolyline, tempSegmentsSvg, windPolyline, windBarbsSvg } =
+      this.computeSoundingCurves(levels);
+    const cursorPct =
+      totalSteps > 1
+        ? (this.activeEmagramTimeIndex / (totalSteps - 1)) * 100
+        : 0;
 
     return `
-      ${this.isEmagramExpanded ? '<div id="emagram-backdrop" class="emagram-backdrop"></div>' : ''}
-      ${this.showEmagramInfo ? this.renderEmagramInfoModal() : ''}
-      <div class="emagram-android-frame ${this.isEmagramExpanded ? 'is-expanded' : ''}">
+      ${this.isEmagramExpanded ? '<div id="emagram-backdrop" class="emagram-backdrop"></div>' : ""}
+      ${this.showEmagramInfo ? this.renderEmagramInfoModal() : ""}
+      <div class="emagram-android-frame ${this.isEmagramExpanded ? "is-expanded" : ""}">
         <!-- Top App Navigation Bar -->
         <div class="emagram-top-nav">
-          <button id="btn-emagram-back" class="emagram-nav-btn" title="${this.isEmagramExpanded ? 'Vollbild beenden' : 'Zurück zur Karte'}">
+          <button id="btn-emagram-back" class="emagram-nav-btn" title="${this.isEmagramExpanded ? "Vollbild beenden" : "Zurück zur Karte"}">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <line x1="19" y1="12" x2="5" y2="12"></line>
               <polyline points="12 19 5 12 12 5"></polyline>
@@ -992,7 +1097,7 @@ export class ForecastView {
 
           <div class="emagram-title-center">
             <h3 id="emagram-station-title">${this.selectedStation.name}</h3>
-            <span>${this.isEmagramExpanded ? 'Emagram forecast (Vollbild)' : 'Emagram forecast'}</span>
+            <span>${this.isEmagramExpanded ? "Emagram forecast (Vollbild)" : "Emagram forecast"}</span>
           </div>
 
           <button id="btn-emagram-info" class="emagram-nav-btn" title="Emagramm-Erklärung">
@@ -1010,22 +1115,26 @@ export class ForecastView {
             <div id="emagram-header-time" class="emagram-timestamp-badge">${headerTimeStr}</div>
             <div class="emagram-model-badge">ICON-CH1 · MeteoSchweiz</div>
           </div>
-          <button id="btn-emagram-expand" class="emagram-expand-btn ${this.isEmagramExpanded ? 'active' : ''}" title="${this.isEmagramExpanded ? 'Verkleinern (Esc)' : 'Vollbild'}">
-            ${this.isEmagramExpanded ? `
+          <button id="btn-emagram-expand" class="emagram-expand-btn ${this.isEmagramExpanded ? "active" : ""}" title="${this.isEmagramExpanded ? "Verkleinern (Esc)" : "Vollbild"}">
+            ${
+              this.isEmagramExpanded
+                ? `
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                 <polyline points="4 14 10 14 10 20"></polyline>
                 <polyline points="20 10 14 10 14 4"></polyline>
                 <line x1="14" y1="10" x2="21" y2="3"></line>
                 <line x1="3" y1="21" x2="10" y2="14"></line>
               </svg>
-            ` : `
+            `
+                : `
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                 <polyline points="15 3 21 3 21 9"></polyline>
                 <polyline points="9 21 3 21 3 15"></polyline>
                 <line x1="21" y1="3" x2="14" y2="10"></line>
                 <line x1="3" y1="21" x2="10" y2="14"></line>
               </svg>
-            `}
+            `
+            }
           </button>
         </div>
 
@@ -1134,17 +1243,21 @@ export class ForecastView {
                 Prognoseschritt ${this.activeEmagramTimeIndex + 1} / ${totalSteps}
               </span>
             </div>
-            <button id="emagram-play-btn" class="player-btn primary ${this.isPlayingEmagram ? 'playing' : ''}" style="width:34px; height:34px;" title="Abspielen">
-              ${this.isPlayingEmagram ? `
+            <button id="emagram-play-btn" class="player-btn primary ${this.isPlayingEmagram ? "playing" : ""}" style="width:34px; height:34px;" title="Abspielen">
+              ${
+                this.isPlayingEmagram
+                  ? `
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <rect x="6" y="4" width="4" height="16"></rect>
                   <rect x="14" y="4" width="4" height="16"></rect>
                 </svg>
-              ` : `
+              `
+                  : `
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg>
-              `}
+              `
+              }
             </button>
             <button id="emagram-next-btn" class="emagram-stepper-btn" title="Nächste Stunde">&gt;&gt;</button>
           </div>
@@ -1154,13 +1267,13 @@ export class ForecastView {
   }
 
   renderTimelineRulerSvg(timeSteps) {
-    if (!timeSteps || !timeSteps.length) return '';
+    if (!timeSteps || !timeSteps.length) return "";
     const totalSteps = timeSteps.length;
     const tStart = timeSteps[0].timestamp;
     const tEnd = timeSteps[totalSteps - 1].timestamp;
     const totalDurationMs = Math.max(1, tEnd - tStart);
 
-    let elementsSvg = '';
+    let elementsSvg = "";
 
     // Continuous horizontal baseline
     elementsSvg += `<line x1="0" y1="34" x2="1000" y2="34" stroke="var(--border-color, #CBD5E1)" stroke-width="1.5" />`;
@@ -1172,12 +1285,12 @@ export class ForecastView {
       const hour = d.getHours();
 
       // Major tick & label every 2 hours
-      const isMajor = (hour % 2 === 0);
+      const isMajor = hour % 2 === 0;
 
       if (isMajor) {
         elementsSvg += `
           <text x="${x.toFixed(1)}" y="12" font-size="10.5" font-weight="700" fill="var(--text-muted, #64748B)" text-anchor="middle">
-            ${String(hour).padStart(2, '0')}:00
+            ${String(hour).padStart(2, "0")}:00
           </text>
           <line x1="${x.toFixed(1)}" y1="18" x2="${x.toFixed(1)}" y2="34" stroke="var(--border-color, #94A3B8)" stroke-width="1.6" />
         `;
@@ -1190,7 +1303,8 @@ export class ForecastView {
 
       // 30-min intermediate tick mark
       if (i < totalSteps - 1) {
-        const midX = ((step.timestamp + 1800000 - tStart) / totalDurationMs) * 1000;
+        const midX =
+          ((step.timestamp + 1800000 - tStart) / totalDurationMs) * 1000;
         elementsSvg += `
           <line x1="${midX.toFixed(1)}" y1="27" x2="${midX.toFixed(1)}" y2="34" stroke="var(--border-color, #E2E8F0)" stroke-width="1" />
         `;
@@ -1212,7 +1326,12 @@ export class ForecastView {
 
   computeSoundingCurves(levels) {
     if (!levels || !levels.length) {
-      return { dewPolyline: '', tempSegmentsSvg: '', windPolyline: '', windBarbsSvg: '' };
+      return {
+        dewPolyline: "",
+        tempSegmentsSvg: "",
+        windPolyline: "",
+        windBarbsSvg: "",
+      };
     }
 
     const padL = 46;
@@ -1226,7 +1345,11 @@ export class ForecastView {
     const pMax = 1000;
     const pToY = (p) => {
       const clampedP = Math.max(pMin, Math.min(pMax, p));
-      return (padT + plotH) - (Math.log(pMax / clampedP) / Math.log(pMax / pMin)) * plotH;
+      return (
+        padT +
+        plotH -
+        (Math.log(pMax / clampedP) / Math.log(pMax / pMin)) * plotH
+      );
     };
 
     const tMin = -15;
@@ -1234,14 +1357,14 @@ export class ForecastView {
     const skewFactor = 0.32;
     const tToX = (t, y) => {
       const baseX = padL + ((t - tMin) / (tMax - tMin)) * plotW;
-      const skewX = ((padT + plotH) - y) * skewFactor;
+      const skewX = (padT + plotH - y) * skewFactor;
       return baseX + skewX;
     };
 
-    let tempSegmentsSvg = '';
+    let tempSegmentsSvg = "";
     let dewPathPoints = [];
     let windPoints = [];
-    let windBarbsSvg = '';
+    let windBarbsSvg = "";
 
     for (let i = 0; i < levels.length; i++) {
       const lvl = levels[i];
@@ -1256,20 +1379,20 @@ export class ForecastView {
         const prevY = pToY(prevLvl.pressHpa);
         const prevXT = tToX(prevLvl.tempC, prevY);
 
-        let strokeColor = '#22C55E';
+        let strokeColor;
         const gamma = lvl.lapseRate;
         if (gamma >= 0.0) {
-          strokeColor = '#EAB308';
+          strokeColor = "#EAB308";
         } else if (gamma >= -0.3) {
-          strokeColor = '#84CC16';
+          strokeColor = "#84CC16";
         } else if (gamma >= -0.6) {
-          strokeColor = '#22C55E';
+          strokeColor = "#22C55E";
         } else if (gamma >= -0.8) {
-          strokeColor = '#0EA5E9';
+          strokeColor = "#0EA5E9";
         } else if (gamma >= -1.0) {
-          strokeColor = '#EF4444';
+          strokeColor = "#EF4444";
         } else {
-          strokeColor = '#A855F7';
+          strokeColor = "#A855F7";
         }
 
         tempSegmentsSvg += `
@@ -1283,7 +1406,8 @@ export class ForecastView {
         `;
       }
 
-      const windX = (padL + plotW + 20) + Math.min(1, Math.max(0, lvl.speedKmH / 45)) * 75;
+      const windX =
+        padL + plotW + 20 + Math.min(1, Math.max(0, lvl.speedKmH / 45)) * 75;
       windPoints.push(`${windX.toFixed(1)},${y.toFixed(1)}`);
 
       if (i % 3 === 0 || i === levels.length - 1) {
@@ -1291,7 +1415,7 @@ export class ForecastView {
         const barbY = y;
         const speed = lvl.speedKmH;
         const dir = lvl.dirDeg;
-        
+
         const len = 16;
         const rad = (dir - 90) * (Math.PI / 180);
 
@@ -1305,8 +1429,8 @@ export class ForecastView {
     }
 
     return {
-      dewPolyline: dewPathPoints.join(' '),
-      windPolyline: windPoints.join(' '),
+      dewPolyline: dewPathPoints.join(" "),
+      windPolyline: windPoints.join(" "),
       tempSegmentsSvg,
       windBarbsSvg,
     };
@@ -1328,7 +1452,9 @@ export class ForecastView {
       return stepA;
     }
 
-    const timestamp = Math.round(stepA.timestamp + (stepB.timestamp - stepA.timestamp) * fraction);
+    const timestamp = Math.round(
+      stepA.timestamp + (stepB.timestamp - stepA.timestamp) * fraction,
+    );
     const levelsA = stepA.levels || [];
     const levelsB = stepB.levels || [];
     const maxLvl = Math.min(levelsA.length, levelsB.length);
@@ -1338,12 +1464,25 @@ export class ForecastView {
       const la = levelsA[i];
       const lb = levelsB[i];
 
-      const pressHpa = Math.round((la.pressHpa + (lb.pressHpa - la.pressHpa) * fraction) * 10) / 10;
-      const tempC = Math.round((la.tempC + (lb.tempC - la.tempC) * fraction) * 10) / 10;
-      const dewC = Math.round((la.dewC + (lb.dewC - la.dewC) * fraction) * 10) / 10;
-      const speedKmH = Math.round((la.speedKmH + (lb.speedKmH - la.speedKmH) * fraction) * 10) / 10;
-      const heightM = Math.round(la.heightM + (lb.heightM - la.heightM) * fraction);
-      const lapseRate = Math.round((la.lapseRate + (lb.lapseRate - la.lapseRate) * fraction) * 10) / 10;
+      const pressHpa =
+        Math.round(
+          (la.pressHpa + (lb.pressHpa - la.pressHpa) * fraction) * 10,
+        ) / 10;
+      const tempC =
+        Math.round((la.tempC + (lb.tempC - la.tempC) * fraction) * 10) / 10;
+      const dewC =
+        Math.round((la.dewC + (lb.dewC - la.dewC) * fraction) * 10) / 10;
+      const speedKmH =
+        Math.round(
+          (la.speedKmH + (lb.speedKmH - la.speedKmH) * fraction) * 10,
+        ) / 10;
+      const heightM = Math.round(
+        la.heightM + (lb.heightM - la.heightM) * fraction,
+      );
+      const lapseRate =
+        Math.round(
+          (la.lapseRate + (lb.lapseRate - la.lapseRate) * fraction) * 10,
+        ) / 10;
 
       let diff = (lb.dirDeg - la.dirDeg) % 360;
       if (diff > 180) diff -= 360;
@@ -1372,59 +1511,81 @@ export class ForecastView {
     const totalSteps = timeSteps.length;
     if (!totalSteps) return;
 
-    this.activeEmagramFloatIndex = Math.max(0, Math.min(totalSteps - 1, newFloatIndex));
+    this.activeEmagramFloatIndex = Math.max(
+      0,
+      Math.min(totalSteps - 1, newFloatIndex),
+    );
     this.activeEmagramTimeIndex = Math.round(this.activeEmagramFloatIndex);
 
-    const currentStep = this.getInterpolatedSoundingStep(this.activeEmagramFloatIndex);
+    const currentStep = this.getInterpolatedSoundingStep(
+      this.activeEmagramFloatIndex,
+    );
     if (!currentStep) return;
 
     // 1. Update timestamp badge with exact hour:minute
-    const headerTimeEl = this.container.querySelector('#emagram-header-time');
+    const headerTimeEl = this.container.querySelector("#emagram-header-time");
     if (headerTimeEl) {
       const d = new Date(currentStep.timestamp);
-      const optionsHeader = { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' };
-      headerTimeEl.textContent = d.toLocaleDateString('en-GB', optionsHeader);
+      const optionsHeader = {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      };
+      headerTimeEl.textContent = d.toLocaleDateString("en-GB", optionsHeader);
     }
 
     // 2. Update date & step label
-    const dateLabelEl = this.container.querySelector('#emagram-date-label');
+    const dateLabelEl = this.container.querySelector("#emagram-date-label");
     if (dateLabelEl) {
       const d = new Date(currentStep.timestamp);
-      const optionsDate = { weekday: 'short', day: '2-digit', month: '2-digit' };
-      dateLabelEl.textContent = d.toLocaleDateString('de-CH', optionsDate);
+      const optionsDate = {
+        weekday: "short",
+        day: "2-digit",
+        month: "2-digit",
+      };
+      dateLabelEl.textContent = d.toLocaleDateString("de-CH", optionsDate);
     }
 
-    const stepLabelEl = this.container.querySelector('#emagram-step-label');
+    const stepLabelEl = this.container.querySelector("#emagram-step-label");
     if (stepLabelEl) {
       const d = new Date(currentStep.timestamp);
-      const timeStr = d.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' });
+      const timeStr = d.toLocaleTimeString("de-CH", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
       stepLabelEl.textContent = `${timeStr} (Schritt ${this.activeEmagramTimeIndex + 1}/${totalSteps})`;
     }
 
     // 3. Update slider input value & cursor indicator
-    const slider = this.container.querySelector('#emagram-time-slider');
-    if (slider && Math.abs(parseFloat(slider.value) - this.activeEmagramFloatIndex) > 0.05) {
+    const slider = this.container.querySelector("#emagram-time-slider");
+    if (
+      slider &&
+      Math.abs(parseFloat(slider.value) - this.activeEmagramFloatIndex) > 0.05
+    ) {
       slider.value = this.activeEmagramFloatIndex;
     }
 
-    const cursor = this.container.querySelector('#emagram-cursor-indicator');
+    const cursor = this.container.querySelector("#emagram-cursor-indicator");
     if (cursor) {
-      const pct = (this.activeEmagramFloatIndex / Math.max(1, totalSteps - 1)) * 100;
+      const pct =
+        (this.activeEmagramFloatIndex / Math.max(1, totalSteps - 1)) * 100;
       cursor.style.left = `${pct}%`;
     }
 
     // 4. Update SVG Curves in-place without destroying DOM (fluid 60 FPS morphing)
     const curves = this.computeSoundingCurves(currentStep.levels);
-    const dewPoly = this.container.querySelector('#emagram-dew-polyline');
-    if (dewPoly) dewPoly.setAttribute('points', curves.dewPolyline);
+    const dewPoly = this.container.querySelector("#emagram-dew-polyline");
+    if (dewPoly) dewPoly.setAttribute("points", curves.dewPolyline);
 
-    const tempLayer = this.container.querySelector('#emagram-temp-segments');
+    const tempLayer = this.container.querySelector("#emagram-temp-segments");
     if (tempLayer) tempLayer.innerHTML = curves.tempSegmentsSvg;
 
-    const windPoly = this.container.querySelector('#emagram-wind-polyline');
-    if (windPoly) windPoly.setAttribute('points', curves.windPolyline);
+    const windPoly = this.container.querySelector("#emagram-wind-polyline");
+    if (windPoly) windPoly.setAttribute("points", curves.windPolyline);
 
-    const windBarbsLayer = this.container.querySelector('#emagram-wind-barbs');
+    const windBarbsLayer = this.container.querySelector("#emagram-wind-barbs");
     if (windBarbsLayer) windBarbsLayer.innerHTML = curves.windBarbsSvg;
   }
 
@@ -1458,49 +1619,51 @@ export class ForecastView {
   }
 
   updateEmagramDetailDOM() {
-    const container = this.container.querySelector('#emagram-detail-container');
+    const container = this.container.querySelector("#emagram-detail-container");
     if (!container) return;
     container.innerHTML = this.renderEmagramAndroidCard();
     this.attachEmagramCardEvents();
   }
 
   attachEmagramCardEvents() {
-    const slider = this.container.querySelector('#emagram-time-slider');
-    const prevBtn = this.container.querySelector('#emagram-prev-btn');
-    const nextBtn = this.container.querySelector('#emagram-next-btn');
-    const playBtn = this.container.querySelector('#emagram-play-btn');
-    const backBtn = this.container.querySelector('#btn-emagram-back');
-    const expandBtn = this.container.querySelector('#btn-emagram-expand') || this.container.querySelector('.emagram-expand-btn');
-    const backdrop = this.container.querySelector('#emagram-backdrop');
-    const infoBtn = this.container.querySelector('#btn-emagram-info');
+    const slider = this.container.querySelector("#emagram-time-slider");
+    const prevBtn = this.container.querySelector("#emagram-prev-btn");
+    const nextBtn = this.container.querySelector("#emagram-next-btn");
+    const playBtn = this.container.querySelector("#emagram-play-btn");
+    const backBtn = this.container.querySelector("#btn-emagram-back");
+    const expandBtn =
+      this.container.querySelector("#btn-emagram-expand") ||
+      this.container.querySelector(".emagram-expand-btn");
+    const backdrop = this.container.querySelector("#emagram-backdrop");
+    const infoBtn = this.container.querySelector("#btn-emagram-info");
 
     if (slider) {
-      slider.addEventListener('input', (e) => {
+      slider.addEventListener("input", (e) => {
         const idx = parseFloat(e.target.value);
         this.updateEmagramTimeStepDOM(idx);
       });
     }
 
     if (prevBtn) {
-      prevBtn.addEventListener('click', () => {
+      prevBtn.addEventListener("click", () => {
         this.stepEmagramTime(-1);
       });
     }
 
     if (nextBtn) {
-      nextBtn.addEventListener('click', () => {
+      nextBtn.addEventListener("click", () => {
         this.stepEmagramTime(1);
       });
     }
 
     if (playBtn) {
-      playBtn.addEventListener('click', () => {
+      playBtn.addEventListener("click", () => {
         this.toggleEmagramPlay();
       });
     }
 
     if (backBtn) {
-      backBtn.addEventListener('click', (e) => {
+      backBtn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
         this.handleEmagramBack();
@@ -1508,7 +1671,7 @@ export class ForecastView {
     }
 
     if (expandBtn) {
-      expandBtn.addEventListener('click', (e) => {
+      expandBtn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
         this.toggleEmagramExpand();
@@ -1516,26 +1679,32 @@ export class ForecastView {
     }
 
     if (backdrop) {
-      backdrop.addEventListener('click', () => {
+      backdrop.addEventListener("click", () => {
         this.setEmagramExpanded(false);
       });
     }
 
     if (infoBtn) {
-      infoBtn.addEventListener('click', (e) => {
+      infoBtn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
         this.toggleEmagramInfo(true);
       });
     }
 
-    const closeInfoBtn = this.container.querySelector('#btn-close-emagram-info');
-    const okInfoBtn = this.container.querySelector('#btn-ok-emagram-info');
-    const infoBackdrop = this.container.querySelector('#emagram-info-backdrop');
-    if (closeInfoBtn) closeInfoBtn.addEventListener('click', () => this.toggleEmagramInfo(false));
-    if (okInfoBtn) okInfoBtn.addEventListener('click', () => this.toggleEmagramInfo(false));
+    const closeInfoBtn = this.container.querySelector(
+      "#btn-close-emagram-info",
+    );
+    const okInfoBtn = this.container.querySelector("#btn-ok-emagram-info");
+    const infoBackdrop = this.container.querySelector("#emagram-info-backdrop");
+    if (closeInfoBtn)
+      closeInfoBtn.addEventListener("click", () =>
+        this.toggleEmagramInfo(false),
+      );
+    if (okInfoBtn)
+      okInfoBtn.addEventListener("click", () => this.toggleEmagramInfo(false));
     if (infoBackdrop) {
-      infoBackdrop.addEventListener('click', (e) => {
+      infoBackdrop.addEventListener("click", (e) => {
         if (e.target === infoBackdrop) this.toggleEmagramInfo(false);
       });
     }
@@ -1554,23 +1723,24 @@ export class ForecastView {
 
     // Reset markers and popular station pills
     this.renderEmagramMarkers();
-    this.container.querySelectorAll('.popular-station-pill').forEach(btn => {
-      btn.classList.remove('active');
+    this.container.querySelectorAll(".popular-station-pill").forEach((btn) => {
+      btn.classList.remove("active");
     });
 
     // Re-render detail container to show empty/placeholder state
     this.updateEmagramDetailDOM();
 
     // Scroll smoothly back to map & station selector
-    const scrollWrapper = this.container.querySelector('.forecast-view-wrapper')
-      || this.container.closest('.forecast-view-wrapper')
-      || document.querySelector('.forecast-view-wrapper');
-    if (scrollWrapper && typeof scrollWrapper.scrollTo === 'function') {
-      scrollWrapper.scrollTo({ top: 0, behavior: 'smooth' });
+    const scrollWrapper =
+      this.container.querySelector(".forecast-view-wrapper") ||
+      this.container.closest(".forecast-view-wrapper") ||
+      document.querySelector(".forecast-view-wrapper");
+    if (scrollWrapper && typeof scrollWrapper.scrollTo === "function") {
+      scrollWrapper.scrollTo({ top: 0, behavior: "smooth" });
     }
-    const mapEl = document.getElementById('emagram-map');
+    const mapEl = document.getElementById("emagram-map");
     if (mapEl) {
-      mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      mapEl.scrollIntoView({ behavior: "smooth", block: "center" });
     }
     if (this.emagramMap) {
       setTimeout(() => this.emagramMap.invalidateSize(), 300);
@@ -1580,9 +1750,9 @@ export class ForecastView {
   setEmagramExpanded(expanded) {
     this.isEmagramExpanded = !!expanded;
     if (this.isEmagramExpanded) {
-      document.body.classList.add('emagram-expanded-open');
+      document.body.classList.add("emagram-expanded-open");
     } else {
-      document.body.classList.remove('emagram-expanded-open');
+      document.body.classList.remove("emagram-expanded-open");
     }
     this.updateEmagramDetailDOM();
   }
@@ -1592,7 +1762,8 @@ export class ForecastView {
   }
 
   toggleEmagramInfo(show) {
-    this.showEmagramInfo = typeof show === 'boolean' ? show : !this.showEmagramInfo;
+    this.showEmagramInfo =
+      typeof show === "boolean" ? show : !this.showEmagramInfo;
     this.updateEmagramDetailDOM();
   }
 
@@ -1645,7 +1816,9 @@ export class ForecastView {
 
   stepEmagramTime(delta) {
     const totalSteps = (this.emagramForecastData?.timeSteps || []).length || 1;
-    const targetIdx = (Math.round(this.activeEmagramFloatIndex) + delta + totalSteps) % totalSteps;
+    const targetIdx =
+      (Math.round(this.activeEmagramFloatIndex) + delta + totalSteps) %
+      totalSteps;
     this.animateEmagramTo(targetIdx, 300);
   }
 
@@ -1655,15 +1828,17 @@ export class ForecastView {
     } else {
       this.startEmagramPlayer();
     }
-    const playBtn = this.container.querySelector('#emagram-play-btn');
+    const playBtn = this.container.querySelector("#emagram-play-btn");
     if (playBtn) {
-      playBtn.classList.toggle('playing', this.isPlayingEmagram);
-      playBtn.innerHTML = this.isPlayingEmagram ? `
+      playBtn.classList.toggle("playing", this.isPlayingEmagram);
+      playBtn.innerHTML = this.isPlayingEmagram
+        ? `
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
           <rect x="6" y="4" width="4" height="16"></rect>
           <rect x="14" y="4" width="4" height="16"></rect>
         </svg>
-      ` : `
+      `
+        : `
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
           <polygon points="5 3 19 12 5 21 5 3"></polygon>
         </svg>
@@ -1713,7 +1888,7 @@ export class ForecastView {
   // =========================================================================
 
   initEmagramMap() {
-    const mapEl = document.getElementById('emagram-map');
+    const mapEl = document.getElementById("emagram-map");
     if (!mapEl) return;
 
     if (this.emagramMap) {
@@ -1730,10 +1905,13 @@ export class ForecastView {
     });
 
     // Basemap: Swisstopo Pixelkarte (Keyless, High Resolution) with OSM fallback
-    L.tileLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg', {
-      maxZoom: 18,
-      attribution: '© swisstopo',
-    }).addTo(this.emagramMap);
+    L.tileLayer(
+      "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg",
+      {
+        maxZoom: 18,
+        attribution: "© swisstopo",
+      },
+    ).addTo(this.emagramMap);
 
     this.stationMarkersLayer = L.layerGroup().addTo(this.emagramMap);
     this.renderEmagramMarkers();
@@ -1748,29 +1926,30 @@ export class ForecastView {
     this.stationMarkersLayer.clearLayers();
 
     const query = this.searchQuery;
-    const filtered = this.stations.filter(st => {
+    const filtered = this.stations.filter((st) => {
       if (!query) return true;
       return st.name.toLowerCase().includes(query);
     });
 
-    filtered.forEach(st => {
-      const isSelected = this.selectedStation && this.selectedStation.name === st.name;
+    filtered.forEach((st) => {
+      const isSelected =
+        this.selectedStation && this.selectedStation.name === st.name;
       const markerHtml = `
-        <div class="emagram-map-pin ${isSelected ? 'selected' : ''}">
+        <div class="emagram-map-pin ${isSelected ? "selected" : ""}">
           <span class="pin-symbol">📈</span>
           <span class="pin-label">${st.name}</span>
         </div>
       `;
 
       const icon = L.divIcon({
-        className: 'custom-emagram-div-icon',
+        className: "custom-emagram-div-icon",
         html: markerHtml,
         iconSize: [28, 28],
         iconAnchor: [14, 14],
       });
 
       const marker = L.marker([st.lat, st.lon], { icon });
-      marker.on('click', () => {
+      marker.on("click", () => {
         this.selectStation(st);
       });
 
@@ -1781,9 +1960,13 @@ export class ForecastView {
   filterEmagramMarkers() {
     this.renderEmagramMarkers();
     if (this.searchQuery && this.emagramMap) {
-      const firstMatch = this.stations.find(s => s.name.toLowerCase().includes(this.searchQuery));
+      const firstMatch = this.stations.find((s) =>
+        s.name.toLowerCase().includes(this.searchQuery),
+      );
       if (firstMatch) {
-        this.emagramMap.setView([firstMatch.lat, firstMatch.lon], 9, { animate: true });
+        this.emagramMap.setView([firstMatch.lat, firstMatch.lon], 9, {
+          animate: true,
+        });
       }
     }
   }
@@ -1798,18 +1981,18 @@ export class ForecastView {
     }
 
     // Update active state in pills
-    this.container.querySelectorAll('.popular-station-pill').forEach(btn => {
-      if (btn.getAttribute('data-station') === st.name) {
-        btn.classList.add('active');
+    this.container.querySelectorAll(".popular-station-pill").forEach((btn) => {
+      if (btn.getAttribute("data-station") === st.name) {
+        btn.classList.add("active");
       } else {
-        btn.classList.remove('active');
+        btn.classList.remove("active");
       }
     });
 
     // Scroll smoothly to detail frame
-    const detailEl = document.getElementById('emagram-detail-container');
+    const detailEl = document.getElementById("emagram-detail-container");
     if (detailEl) {
-      detailEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      detailEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   }
 
@@ -1819,11 +2002,11 @@ export class ForecastView {
 
   attachEvents() {
     // 1. Top Section Switcher Tabs
-    this.container.querySelectorAll('.forecast-tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const section = btn.getAttribute('data-section');
+    this.container.querySelectorAll(".forecast-tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const section = btn.getAttribute("data-section");
         if (section !== this.activeSection) {
-          if (this.activeSection === 'outlooks') {
+          if (this.activeSection === "outlooks") {
             this.stopOutlookPlayer();
             if (this.outlookMap) {
               this.outlookMap.remove();
@@ -1838,106 +2021,117 @@ export class ForecastView {
     });
 
     // 2. Text Category Switcher
-    this.container.querySelectorAll('.text-category-switcher-row .category-pill').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const cat = btn.getAttribute('data-cat');
-        const outlookType = btn.getAttribute('data-type');
-        if (cat) {
-          this.activeTextCategory = cat;
-          this.render();
-        } else if (outlookType) {
-          this.activeOutlookType = outlookType;
-          this.activeOutlookIndex = 0;
-          this.render();
-        }
+    this.container
+      .querySelectorAll(".text-category-switcher-row .category-pill")
+      .forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const cat = btn.getAttribute("data-cat");
+          const outlookType = btn.getAttribute("data-type");
+          if (cat) {
+            this.activeTextCategory = cat;
+            this.render();
+          } else if (outlookType) {
+            this.activeOutlookType = outlookType;
+            this.activeOutlookIndex = 0;
+            this.render();
+          }
+        });
       });
-    });
 
     // 3. Regional Sub-Pills
-    this.container.querySelectorAll('.region-pills-row .region-pill').forEach(btn => {
-      btn.addEventListener('click', () => {
-        this.activeRegion = btn.getAttribute('data-region');
-        this.render();
+    this.container
+      .querySelectorAll(".region-pills-row .region-pill")
+      .forEach((btn) => {
+        btn.addEventListener("click", () => {
+          this.activeRegion = btn.getAttribute("data-region");
+          this.render();
+        });
       });
-    });
 
     // 4. Outlooks Player Events
-    if (this.activeSection === 'outlooks') {
-      const slider = this.container.querySelector('#outlook-slider');
-      const prevBtn = this.container.querySelector('#outlook-prev-btn');
-      const nextBtn = this.container.querySelector('#outlook-next-btn');
-      const playBtn = this.container.querySelector('#outlook-play-btn');
+    if (this.activeSection === "outlooks") {
+      const slider = this.container.querySelector("#outlook-slider");
+      const prevBtn = this.container.querySelector("#outlook-prev-btn");
+      const nextBtn = this.container.querySelector("#outlook-next-btn");
+      const playBtn = this.container.querySelector("#outlook-play-btn");
 
       if (slider) {
-        slider.addEventListener('input', (e) => {
+        slider.addEventListener("input", (e) => {
           this.activeOutlookIndex = parseInt(e.target.value, 10);
           this.updateOutlookDOM();
         });
       }
 
       if (prevBtn) {
-        prevBtn.addEventListener('click', () => {
+        prevBtn.addEventListener("click", () => {
           this.stepOutlook(-1);
         });
       }
 
       if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
+        nextBtn.addEventListener("click", () => {
           this.stepOutlook(1);
         });
       }
 
       if (playBtn) {
-        playBtn.addEventListener('click', () => {
+        playBtn.addEventListener("click", () => {
           this.toggleOutlookPlay();
         });
       }
 
-      const centerBtn = this.container.querySelector('#btn-center-outlook');
+      const centerBtn = this.container.querySelector("#btn-center-outlook");
       if (centerBtn) {
-        centerBtn.addEventListener('click', () => {
+        centerBtn.addEventListener("click", () => {
           if (this.outlookMap) {
-            this.outlookMap.fitBounds([[45.8, 5.9], [47.8, 10.5]]);
+            this.outlookMap.fitBounds([
+              [45.8, 5.9],
+              [47.8, 10.5],
+            ]);
           }
         });
       }
     }
 
     // 5. Emagram Search & Quick Station Selection
-    if (this.activeSection === 'emagram') {
-      const searchInput = this.container.querySelector('#emagram-station-search');
+    if (this.activeSection === "emagram") {
+      const searchInput = this.container.querySelector(
+        "#emagram-station-search",
+      );
       if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
+        searchInput.addEventListener("input", (e) => {
           this.searchQuery = e.target.value.toLowerCase().trim();
           this.filterEmagramMarkers();
         });
       }
 
-      this.container.querySelectorAll('.popular-station-pill').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const stName = btn.getAttribute('data-station');
-          const st = this.stations.find(s => s.name === stName);
-          if (st) {
-            this.selectStation(st);
-          }
+      this.container
+        .querySelectorAll(".popular-station-pill")
+        .forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const stName = btn.getAttribute("data-station");
+            const st = this.stations.find((s) => s.name === stName);
+            if (st) {
+              this.selectStation(st);
+            }
+          });
         });
-      });
 
       this.attachEmagramCardEvents();
     }
   }
 
   sanitizeHtml(rawHtml) {
-    if (!rawHtml) return '';
+    if (!rawHtml) return "";
     let html = rawHtml;
     const bodyMatch = rawHtml.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
     if (bodyMatch) {
       html = bodyMatch[1];
     }
     // Remove all <style> blocks to prevent upstream css poisoning (such as user-select: none)
-    html = html.replace(/<style[\s\S]*?<\/style>/gi, '');
-    html = html.replace(/user-select\s*:\s*none;?/gi, '');
-    html = html.replace(/-webkit-user-select\s*:\s*none;?/gi, '');
+    html = html.replace(/<style[\s\S]*?<\/style>/gi, "");
+    html = html.replace(/user-select\s*:\s*none;?/gi, "");
+    html = html.replace(/-webkit-user-select\s*:\s*none;?/gi, "");
     return html;
   }
 }

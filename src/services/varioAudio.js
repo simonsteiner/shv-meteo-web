@@ -17,16 +17,22 @@ class VarioAudio {
       if (!this.ctx) {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         if (!AudioContext) {
-          console.warn('[VarioAudio] Web Audio API is not supported in this browser.');
+          console.warn(
+            "[VarioAudio] Web Audio API is not supported in this browser.",
+          );
           return;
         }
         this.ctx = new AudioContext();
       }
-      if (this.ctx.state === 'suspended') {
-        this.ctx.resume().catch((err) => console.warn('[VarioAudio] AudioContext resume failed:', err));
+      if (this.ctx.state === "suspended") {
+        this.ctx
+          .resume()
+          .catch((err) =>
+            console.warn("[VarioAudio] AudioContext resume failed:", err),
+          );
       }
     } catch (err) {
-      console.error('[VarioAudio] Failed to initialize AudioContext:', err);
+      console.error("[VarioAudio] Failed to initialize AudioContext:", err);
     }
   }
 
@@ -54,7 +60,7 @@ class VarioAudio {
         this.osc.stop();
         this.osc.disconnect();
       } catch (e) {
-        console.warn('[VarioAudio] Error stopping oscillator:', e);
+        console.warn("[VarioAudio] Error stopping oscillator:", e);
       }
       this.osc = null;
     }
@@ -70,7 +76,10 @@ class VarioAudio {
         this.osc.stop();
         this.osc.disconnect();
       } catch (e) {
-        console.warn('[VarioAudio] Error stopping oscillator in updateTone:', e);
+        console.warn(
+          "[VarioAudio] Error stopping oscillator in updateTone:",
+          e,
+        );
       }
       this.osc = null;
     }
@@ -93,21 +102,24 @@ class VarioAudio {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
 
-          osc.type = 'sine';
+          osc.type = "sine";
           osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
 
           // Fast attack and decay for crisp vario chirp
           gain.gain.setValueAtTime(0, this.ctx.currentTime);
           gain.gain.linearRampToValueAtTime(0.25, this.ctx.currentTime + 0.015);
-          gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + (beepDurationMs / 1000));
+          gain.gain.linearRampToValueAtTime(
+            0,
+            this.ctx.currentTime + beepDurationMs / 1000,
+          );
 
           osc.connect(gain);
           gain.connect(this.ctx.destination);
 
           osc.start();
-          osc.stop(this.ctx.currentTime + (beepDurationMs / 1000) + 0.02);
+          osc.stop(this.ctx.currentTime + beepDurationMs / 1000 + 0.02);
         } catch (e) {
-          console.warn('[VarioAudio] Error generating beep:', e);
+          console.warn("[VarioAudio] Error generating beep:", e);
         }
       };
 
@@ -121,7 +133,7 @@ class VarioAudio {
         this.osc = this.ctx.createOscillator();
         this.gain = this.ctx.createGain();
 
-        this.osc.type = 'sawtooth';
+        this.osc.type = "sawtooth";
         this.osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
 
         this.gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
@@ -131,7 +143,7 @@ class VarioAudio {
 
         this.osc.start();
       } catch (e) {
-        console.warn('[VarioAudio] Error generating sink tone:', e);
+        console.warn("[VarioAudio] Error generating sink tone:", e);
       }
     }
     // 3. Deadband: -2.0 < rate < 0.15 -> Silent

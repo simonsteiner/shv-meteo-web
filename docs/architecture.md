@@ -1,202 +1,17 @@
-# Technical Architecture – SHV FSVL App & Web Implementation
+# Architecture
 
-This document provides a comprehensive technical reference for the official **SHV FSVL** (Schweizerischer Hängegleiter-Verband / Fédération Suisse de Vol Libre) application (`ch.shv_fsvl`) and its web implementation. It is based on reverse engineering of the official native Android APK (`shv.apk`), static asset extraction, decompiled bytecode analysis (`jadx`), and network protocol verification.
-
----
-
-## 1. System Overview & Ecosystem
-
-The SHV FSVL app is the central digital tool for Swiss paragliding and hang gliding pilots. The system brings together several official government and meteorological data providers:
-
-```
-+---------------------------------------------------------------------------------------+
-|                                    SHV FSVL Client                                     |
-|                     (Native Android Kotlin Compose / Web App Vite)                    |
-+-------------------+--------------------+--------------------+-------------------------+
-         |                   |                    |                        |
-         v                   v                    v                        v
-+-----------------+ +------------------+ +------------------+ +-------------------------+
-| Keycloak SSO    | | Member WS        | | Ubique Fluid     | | Swiss Federal Geo     |
-| Identity Server | | (shv-app-ws-prod)| | Meteo Services   | | & Airspace Providers  |
-+-----------------+ +------------------+ +------------------+ +-------------------------+
-| login.shv-fsvl  | | /v1/wms/person   | | weather-ws-prod  | | Swisstopo WMTS        |
-| - OAuth2 / OIDC | | /v1/wms/company  | | webcam-prod      | | BAZL / Skyguide DABS  |
-| - PKCE Auth     | | - Pilot profile  | | shv-app-static   | | BAFU Wildschutz       |
-| - JWT Tokens    | | - Brevets        | | - GeoJSON layers | | MeteoSchweiz / SLF    |
-|                 | | - Insurances     | | - Flying sites   |                         |
-+-----------------+ +------------------+ +------------------+ +-------------------------+
-```
-
-### Key Ecosystem Entities
-1. **Verband (SHV FSVL)**: Operates the membership registry, pilot licensing (Brevets), collective liability insurance, and the official Keycloak authentication realm.
-2. **Ubique Innovation AG** (Zurich): Developer of the official mobile applications and operator of the backend cloud infrastructure (Fluid Meteo SDK).
-3. **Swisstopo (Federal Office of Topography)**: High-resolution national topographic maps (Pixelkarte) and aerial orthophotos (Swissimage) served via GeoAdmin WMTS.
-4. **BAZL / FOCA & Skyguide**: Swiss airspace structure, obstacle databases, and Daily Airspace Bulletins (DABS).
-5. **BAFU (Federal Office for the Environment)**: Swiss wildlife sanctuaries (*Wildruhezonen* and *Jagdbanngebiete*) with mandatory minimum flight altitude restrictions.
-6. **MeteoSchweiz & SLF**: Automated weather stations network delivering real-time ground and alpine observations.
+How this web app gets, processes and shows its data: which upstream sources it reads, which calls go straight from the browser and which go through the Express server, and what the server does with them. For how the official native app and its backends work (Keycloak, member web service, `UserProfile` payload), see [reference/shv-native-app.md](reference/shv-native-app.md).
 
 ---
 
-## 2. Reverse-Engineered Android Architecture
-
-Analysis of `apk_analysis/shv.apk` decompiled using `jadx` reveals the native implementation structure:
-
-### Class Hierarchy & Packages
-- `ch.shv_fsvl.feature.account.*`: User account management, login controller, profile screen, and license card renderers.
-- `ch.shv_fsvl.feature.account.models.*`: Kotlin `@Serializable` data classes:
-  - `g.c` (`UserProfile`): Detailed pilot data.
-  - `g.b` (`CompanyProfile`): School/club/enterprise entity profile.
-  - `b` (`ShvBrevet`): Pilot license ratings and card levels.
-  - `d` (`ShvInsurance`): Third-party liability insurance policy.
-  - `e` (`ShvMembership`): Club affiliations and membership categories.
-  - `a` (`ShvAddress`): Postal address and canton.
-- `ch.ubique.heidi.oidc.*`: Ubique’s proprietary OpenID Connect library:
-  - `AuthorizationActivity`: Headless activity managing Chrome Custom Tabs browser launch.
-  - `RedirectUriReceiverActivity`: Intent filter destination handling HTTPS App Link redirects.
-  - `CodeChallengeMethod.S256`: PKCE challenge computation.
-- `ch.ubique.fluidsdk.*`: Meteo time series, raster/vector map engines, weather station products, and telemetry.
-
-### Core Frameworks
-- **UI Toolkit**: Jetpack Compose with Material 3 Adaptive layout primitives.
-- **Dependency Injection**: Koin (`org.koin.core`).
-- **HTTP Engine**: Ktor Client (`io.ktor.client`) with JSON serialization plugins.
-- **Serialization**: `kotlinx.serialization` with custom polymorphic class serializers.
-- **Error Reporting**: Sentry Android SDK (`sentry.ubique.ch`).
-
----
-
-## 3. Authentication & Identity Architecture (Keycloak OIDC)
-
-The official app uses standard **OAuth 2.0 / OpenID Connect with PKCE (Proof Key for Code Exchange)**.
-
-### Endpoint Registry
-
-| Service | Target URL |
-| :--- | :--- |
-| **OIDC Discovery** | `https://login.shv-fsvl.ch/realms/SHV/.well-known/openid-configuration` |
-| **Auth Endpoint** | `https://login.shv-fsvl.ch/realms/SHV/protocol/openid-connect/auth` |
-| **Token Endpoint** | `https://login.shv-fsvl.ch/realms/SHV/protocol/openid-connect/token` |
-| **Client ID** | `app-android` (Android public client, no secret) / `app-ios` (iOS) |
-| **Redirect URI** | `https://prod.shv-app.ch/oidc/callback` |
-| **Scopes** | `openid offline_access` |
-| **Challenge Method**| `S256` (SHA-256 base64url) |
-
-### Native Authentication Sequence
-1. **PKCE Setup**: Client creates random `code_verifier` (32 bytes entropy) and derives `code_challenge = BASE64URL(SHA256(verifier))`.
-2. **Browser Launch**: Directs pilot to Keycloak auth endpoint:
-   ```
-   https://login.shv-fsvl.ch/realms/SHV/protocol/openid-connect/auth
-     ?client_id=app-android
-     &redirect_uri=https%3A%2F%2Fprod.shv-app.ch%2Foidc%2Fcallback
-     &response_type=code
-     &scope=openid offline_access
-     &code_challenge=<challenge>
-     &code_challenge_method=S256
-     &state=<state>
-     &prompt=login
-   ```
-3. **Keycloak Authentication**: Pilot submits credentials on the official Keycloak login form. Direct Access Grants (Resource Owner Password Credentials) are strictly **disabled** on this realm (`unauthorized_client`).
-4. **App Links Interception**: Keycloak redirects to `https://prod.shv-app.ch/oidc/callback?code=...&state=...`.
-   - On Android: Android OS captures this via `intent-filter` matching `host="prod.shv-app.ch"` and launches `RedirectUriReceiverActivity`.
-   - On Desktop: Browser renders the static callback page (`"Anmeldung erfolgreich – SHV"`) retaining the code and state parameters in the address bar.
-5. **Token Exchange**: POST to `https://login.shv-fsvl.ch/realms/SHV/protocol/openid-connect/token`:
-   ```http
-   POST /realms/SHV/protocol/openid-connect/token HTTP/1.1
-   Host: login.shv-fsvl.ch
-   Content-Type: application/x-www-form-urlencoded
-
-   grant_type=authorization_code
-   &client_id=app-android
-   &code=<code>
-   &redirect_uri=https%3A%2F%2Fprod.shv-app.ch%2Foidc%2Fcallback
-   &code_verifier=<verifier>
-   ```
-   Returns `{ access_token, refresh_token, id_token, expires_in }`.
-6. **Token Role Validation (`TokenRoleValidator` / `qj7.java`)**:
-   - Parses the JWT payload `realm_access.roles`.
-   - Pilot is validated as an active member if `roles` contains at least one of:
-     - `'m'`: Active member (*Mitglied*)
-     - `'c'`: Club administrator (*Club*)
-     - `'s'`: Flight school / instructor (*Schule*)
-     - `'a'`: Federation administrator (*Admin*)
-
----
-
-## 4. Backend Member Web Services (`shv-app-ws-prod`)
-
-Once authenticated, the app queries the member web service:
-
-### Endpoints
-- **Individual Pilot Profile**: `GET https://shv-app-ws-prod.shv-app.ch/v1/wms/person`
-  - Header: `Authorization: Bearer <access_token>`
-  - Header: `Accept: application/json`
-- **Entity / Club Fallback**: `GET https://shv-app-ws-prod.shv-app.ch/v1/wms/company`
-  - Invoked automatically by `uu7.java` if `v1/wms/person` returns HTTP 403 Forbidden.
-
-### `UserProfile` Payload Structure
-
-```json
-{
-  "extId": 58412,
-  "shvNumber": 58412,
-  "firstName": "Hans",
-  "lastName": "Muster",
-  "genderId": "M",
-  "salutationId": "HERR",
-  "birthDate": "1985-06-15",
-  "nationalityId": "CH",
-  "languageId": "DE",
-  "email": "pilot@domain.ch",
-  "phone": "+41 44 000 00 00",
-  "mobile": "+41 79 000 00 00",
-  "address": {
-    "adresszusatz": null,
-    "strasse": "Flugplatzstrasse 12",
-    "postfach": null,
-    "plz": "3800",
-    "ort": "Interlaken",
-    "kanton": "BE",
-    "land": "CH"
-  },
-  "memberships": [
-    {
-      "organisationName": "SHV FSVL Verband",
-      "eintrittsdatum": "2010-04-01",
-      "austrittsdatum": null,
-      "mitgliedkategorie": {
-        "id": 1,
-        "name": "Aktivmitglied Pilot"
-      }
-    }
-  ],
-  "insurance": {
-    "name": "SHV Kollektiv-Haftpflicht",
-    "beschreibung": "CHF 10'000'000.-",
-    "startDatum": "2026-01-01",
-    "endDatum": "2026-12-31",
-    "zielgruppeTyp": { "id": 1, "name": "Pilot" }
-  },
-  "brevets": [
-    {
-      "category": "Gleitschirm",
-      "cardLevels": [
-        { "cardLevel": "PILOT", "title": "Brevet Gleitschirm" }
-      ]
-    }
-  ]
-}
-```
-
----
-
-## 5. Spatial & Weather Data Pipeline
+## 1. Spatial & Weather Data Pipeline
 
 The app integrates live telemetry and static GIS layers across Switzerland:
 
-```
+```text
 [Spatial / Weather Sources]
   ├── GeoJSON CDN (shv-app-static-prod.ubmeteo.io)
-  │     ├── /v1/flyingsites.geojson   -> 1,341 takeoff/landing sites
+  │     ├── /v1/flyingsites.geojson   -> 1,341 take-offs, landings and other site features
   │     ├── /v1/airspaces/shv.geojson -> 353 airspace polygons
   │     └── /v1/wildschutz/shv.geojson-> 51 wildlife protection zones
   ├── Live Weather (weather-ws-prod.ubmeteo.io)
@@ -210,54 +25,57 @@ The app integrates live telemetry and static GIS layers across Switzerland:
 ```
 
 ### Flying Sites Data Model & Layer Separation
+
 The SHV flying sites spatial dataset (`public/data/flyingsites.geojson`) contains 1,341 total features representing take-offs, landings, perimeter boundaries, and auxiliary facilities:
+
 - **Interactive Map Pins**: Strictly filtered to `type === 'launch'` (358 take-offs) and `type === 'landing'` (199 landings). Perimeter boundaries (`launcharea`, `landingarea`, `landingpattern`, `access`, `parking`) are preserved in spatial indexing but excluded from generating redundant point markers, ensuring 100% of clickable pins possess valid, official `siteName` values and eliminating generic `"Unbenannter Flugplatz"` placeholders.
-- **Parent Site Resolution (`siteId`)**: Auxiliary features (parking, obstacles, landing circuits) link to their primary site via `siteId`. If any feature lacks explicit name attributes, its parent metadata (site name, altitude, rules, club) is inherited automatically from the primary `launch` or `landing` entity.
+- **Parent Site Resolution (`siteId`)**: Auxiliary features (parking, obstacles, landing circuits) link to their primary site via `siteId`. If any feature lacks explicit name attributes, its parent metadata (site name, altitude, rules, club) is inherited from the primary `launch` or `landing` entity through the `store.state.flyingSitesById` index ([src/components/BottomSheet.js](../src/components/BottomSheet.js)).
+- **Geometry**: Many features are `Polygon`, `MultiPolygon` or `LineString`, not `Point`. Marker positions use the centroid from `getFeatureLatLng()` ([src/views/MapView.js](../src/views/MapView.js)); the bottom sheet has its own `getSiteCenterLatLng()`.
 - **Fees & Payment Integration**:
-  - `fees`: Official landing and takeoff fee policies (e.g. Unterleimbach Fr. 5.– Tageskarte / Fr. 40.– Jahreskarte).
+  - `fees`: Official landing and take-off fee policies (e.g. Unterleimbach Fr. 5.- Tageskarte / Fr. 40.- Jahreskarte).
   - `feePaymentLink`: Deep link to online digital payment providers (e.g. RaiseNow / Twint).
   - `feeQrCodeUrl`: Official Swiss Twint payment QR code rendered for immediate on-site scanning.
 - **Operational Badges**: Renders flight suitability (`paraglider`, `hangglider`, `speedflyer`, `toplanding`, `hikeAndFly`, `soaring`, `crossCountry`), access mode (`accessibleByCar`, `publicTransport`), difficulty level (`easy`, `moderate`, `difficult`), and opening status (`open`, `closed` / shooting range warnings).
 
-### Alpine Pressure & Temperature Difference Transects
+### Alpine Pressure & Temperature Station Pairs
+
 The native app computes exactly four official station pairs across Switzerland (`PressureDifferenceGeoJsonTransformer.c`):
-1. **Gotthard Föhn Axis (`KLO_LUG`)** – `PRESSURE_NORTH_SOUTH` (midpoint 0.25):
+
+1. **Gotthard Föhn Axis (`KLO_LUG`)** - `PRESSURE_NORTH_SOUTH` (midpoint 0.25):
    - **North**: Zürich / Kloten (`meteo_swiss:KLO`, 426m AMSL)
    - **South**: Lugano (`meteo_swiss:LUG`, 273m AMSL)
    - **Calculation**: $\Delta p = p_{\text{Lugano}} - p_{\text{Kloten}}$ (reduced to sea level QNH).
      - $\Delta p \ge +4.0\text{ hPa}$: Moderate South Föhn (*Mässiger Südföhn*)
-     - $\Delta p \ge +8.0\text{ hPa}$: Severe South Föhn (*Starker Südföhn – Lebensgefahr*)
+     - $\Delta p \ge +8.0\text{ hPa}$: Severe South Föhn (*Starker Südföhn - Lebensgefahr*)
      - $\Delta p \le -4.0\text{ hPa}$: Moderate North Föhn (*Mässiger Nordföhn / Tessin*)
      - $\Delta p \le -8.0\text{ hPa}$: Severe North Föhn (*Starker Nordföhn*)
-2. **East-West Pressure Gradient (`GVE_GUT`)** – `PRESSURE_EAST_WEST` (midpoint 0.5):
+2. **East-West Pressure Gradient (`GVE_GUT`)** - `PRESSURE_EAST_WEST` (midpoint 0.5):
    - **West**: Geneva / Cointrin (`meteo_swiss:GVE`, 411m AMSL)
-   - **East**: Güttingen / Gütsch (`meteo_swiss:GUT`, 440m AMSL)
+   - **East**: Güttingen (`meteo_swiss:GUT`, 440m AMSL)
    - **Calculation**: $\Delta p = p_{\text{Geneva}} - p_{\text{Güttingen}}$ (Bise / Westwind gradient indicator).
-3. **Alpine Crest Temperature Transect (`PIL_MTR`)** – `TEMPERATURE_NORTH_SOUTH` (midpoint 0.4):
+3. **Alpine Crest Temperature Pair (`PIL_MTR`)** - `TEMPERATURE_NORTH_SOUTH` (midpoint 0.4):
    - **North**: Pilatus (`meteo_swiss:PIL`, 2105m AMSL)
    - **South**: Matro (`meteo_swiss:MTR`, 2171m AMSL)
    - **Calculation**: $\Delta T = T_{\text{Pilatus}} - T_{\text{Matro}}$ in °C (thermal inversion / alpine ridge stability).
-4. **Jura Transect (`DEM_GRE`)** – `PRESSURE_NORTH_SOUTH` (midpoint 0.5):
+4. **Jura Pressure Pair (`DEM_GRE`)** - `PRESSURE_NORTH_SOUTH` (midpoint 0.5):
    - **North**: Delémont (`meteo_swiss:DEM`, 439m AMSL)
    - **South**: Grenchen (`meteo_swiss:GRE`, 428m AMSL)
    - **Calculation**: $\Delta p = p_{\text{Grenchen}} - p_{\text{Delémont}}$ in hPa (cross-Jura pressure gradient).
 
 ### Telemetry Units & Data Normalization Standards
+
 Ubique Fluid Meteo Services (`weather-ws-prod.ubmeteo.io`) delivers real-time weather observations with specific unit standards verified against the Android APK decompression (`apk_analysis/unpacked/assets/map/layers/measurement_wind/style.json`):
+
 - **Wind Speed (`windSpeedValue`) & Gusts (`windGustValue`)**: Values are natively in **km/h** (not m/s). Do **not** multiply by 3.6. Multiplying causes massive over-reporting (e.g. Uetliberg 40.3 km/h showing as 145 km/h).
 - **Temperatures (`temperatureValue`, `temperature2mValue`, `dewPoint2mValue`)**: If raw value $> 200$, it is expressed in Kelvin and must be converted via $T(^\circ\text{C}) = T(\text{K}) - 273.15$. Values $\le 200$ are natively in Celsius.
 - **Atmospheric Pressure (`pressureMslValue`, `pressureStandardMslValue`)**: Scaled in raw tenths or Pa in some sensors. If raw value $> 5000$, divide by 10 to obtain standard hectopascals (hPa / QNH).
 
-### Flying Sites GeoJSON & Fee Rules
-The official flying sites GeoJSON (`shv-app-static.ubmeteo.io/v1/shv_app/geodata/flyingsites.geojson`) contains primary site points and auxiliary geometry (areas, landing patterns):
-- **Feature Filtering**: Primary point markers must match `type === 'launch'` (358 launch sites) or `type === 'landing'` (199 landing sites). Auxiliary polygon features (`launcharea`, `landingarea`, `landingpattern`) frequently lack `siteName` and must not produce duplicate `"Unbenannter Flugplatz"` pins. An index `flyingSitesById` maps any auxiliary entity back to its parent metadata.
-- **Start- und Landegebühr (Fees & Digital Payments)**: Landing sites such as *Unterleimbach* or *Balderen* specify mandatory pilot site fees:
-  - `fees`: Detailed textual fee regulations and local club tariffs.
-  - `feePaymentLink`: Official RaiseNow / club web payment link.
-  - `feeQrCodeUrl`: Dynamic Twint QR-Code for mobile payment integration rendered directly within the site bottom sheet.
+The server passes `/api/measurements` through unchanged; these conversions happen in the browser ([src/components/BottomSheet.js](../src/components/BottomSheet.js), [src/views/WeatherView.js](../src/views/WeatherView.js), and the temperature mode in [src/views/MapView.js](../src/views/MapView.js)) and again in the Föhn route ([server/index.js](../server/index.js)). There is no shared helper.
 
 ### Live Map Meteo Modes (`LiveMapMeteoType`)
+
 The official application organizes real-time meteo into 5 distinct modes (`LiveMapMeteoType`):
+
 - `WIND`: Displays station wind vectors with direction arrows, speed, and gust tags colored by wind intensity.
 - `TEMPERATURE`: Displays thermal gradient overlay with temperature badges (°C) mapped to cold-to-hot chromatic palettes.
 - `PRESSURE_DIFFERENCE`: Renders the 4 official transect vectors across Switzerland with dynamic $\Delta p$ / $\Delta T$ mid-point badges.
@@ -265,18 +83,27 @@ The official application organizes real-time meteo into 5 distinct modes (`LiveM
 - `NONE`: Meteo overlay deactivated.
 
 ### Member Data Model & LocalizedString Serialization
+
 The SHV WMS API (`v1/wms/person`) and Kotlin models use specialized naming conventions and localized object structures:
+
 - **Pilot Names**: `vorname` holds the pilot's first name, while `name` holds the pilot's last name. The web layer (`ProfileView.js`) combines both (`vorname + ' ' + name`) to prevent missing first names.
+
 - **`LocalizedString` Model (`q64`)**: Multilingual strings are delivered as serialized objects:
+
   ```json
   { "de": "Aktivmitglied", "fr": "Membre actif", "it": "Membro attivo", "en": "Active member" }
   ```
+
   Ktor/kotlinx serialized properties map to `{ a: de, b: fr, c: it, d: en }`.
+
 - **Nested Objects**: Membership categories (`mitgliedkategorie.name`), insurance descriptions (`insurance.beschreibung`, `insurance.name`), and brevet categories are resolved dynamically using `resolveLocalizedString(val, lang)` to eliminate `[object Object]` stringification bugs across all views.
+
 - **Card Levels**: Brevets (`ShvBrevet` `b`) store ratings in `cardLevels` (`ShvCardLevel` `c`: `level`, `date`, `remarks`).
 
 ### Text Forecasts, Soaring Prognoses & Synoptic Weather Charts
+
 The application integrates official MeteoSchweiz and SHV daily text prognoses directly from Verband infrastructure (`v1/text/forecast/{lang}.json`):
+
 - **Regional Forecast (`forecast`)**: 3 regional text forecasts with multi-day outlooks (Heute, Morgen, Übermorgen & Trend):
   - Key `'0'`: **Deutschschweiz, Nord- und Mittelbünden** (Suisse alémanique / Svizzera tedesca)
   - Key `'1'`: **Alpensüdseite und das Engadin** (Sud des Alpes / Sud delle Alpi)
@@ -288,14 +115,18 @@ The application integrates official MeteoSchweiz and SHV daily text prognoses di
 - **Timeseries Telemetry**: `https://weather-ws-prod.ubmeteo.io/v1/measurements/timeseries/{stationId}?parameters=...` (24-hour recorded historical telemetry).
 
 ### Meteo-Aussichten (Outlooks / Days Overview)
+
 Reversed from `ShvAggregatedForecastType` and `https://static-prod.ubmeteo.io/v1/animation/switzerland/days_overview.json`:
+
 - **`RELATIVE_SUNSHINE`**: 6-hour interval raster forecast animations (`.webp`) displaying relative sunshine duration across Switzerland (0% - 100%).
 - **`PRECIPITATION_PROBABILITY_WEAK`**: 12-hour interval raster animations mapping light precipitation probability (>0.1 mm / 12h).
 - **`PRECIPITATION_PROBABILITY_STRONG`**: 12-hour interval raster animations mapping heavy precipitation probability (>1.0 mm / 12h).
 - **In-place DOM Animation Engine**: Step and play updates modify image source, time interval label, step indicators, and range slider directly in-place without triggering full view re-renders, preventing scroll resets. Next frames are pre-cached in memory for seamless playback.
 
 ### Previtemps Sounding Stations & Genuine MeteoSwiss ICON-CH1 Emagram
+
 Reversed from `fl5.java`, `sl2.java`, `xh7.java`, `ki4.java`, and `u62.java`:
+
 - **107 Sounding Locations**: Extracted with exact geographic coordinates and elevations covering the entire Swiss Alpine space (Interlaken, Engelberg, Payerne, Fiesch, Davos, Scuol, Zermatt, Chur, Zürich, Sion, etc.).
 - **Keyless High-Resolution Map**: Leaflet sounding map powered by official Swisstopo Pixelkarte WMTS (`ch.swisstopo.pixelkarte-farbe`), eliminating external CartoDB dependencies and "API KEY REQUIRED" errors.
 - **EPSG:4326 Grid Tile Resolution (`xh7.java`)**:
@@ -322,7 +153,9 @@ Reversed from `fl5.java`, `sl2.java`, `xh7.java`, `ki4.java`, and `u62.java`:
   - **Interactive Time Selector Bar**: Horizontal timeline with hour marks, current time indicator, stepper controls (`<<` / `>>`), and play button for smooth animation across the forecast day.
 
 ### Unified Map Controls & Native Android Segmented Drawer Architecture
+
 In accordance with `Screenshot_20261022-164845.png` and decompiled bytecode (`LiveMapCategory.java`, `d.java`, `g34.java`), map controls are organized into a docked bottom drawer (`.map-bottom-drawer`) with a 3-tab segmented category selector:
+
 1. **`Weather` (`METEO`)**: Live weather overlays (`Wind & Böen`, `Temperatur`, `Föhn / Δp`, `Webcams`, `Keine`).
 2. **`Airspace` (`AIRSPACE`)**:
    - **Base map**: Swisstopo Light Base Map (`topoLight` / `ch.swisstopo.pixelkarte-grau`), Pixelkarte (`topoColor`), Luftbild (`topoSatellite`), OpenStreetMap (`topoOsm`).
@@ -336,7 +169,9 @@ In accordance with `Screenshot_20261022-164845.png` and decompiled bytecode (`Li
    - 8-direction wind compass rose filter with reset button.
 
 ### BAZL Aviation Obstacles (`Luftfahrthindernisse`)
+
 Reversed from `apk_analysis/unpacked/assets/map/layers/bazl_obstacles/style.json`, `b20.java`, `n10.java`, and `n20.java`:
+
 - **Data Source & CDN Endpoints**:
   - Complete Swiss GeoJSON dataset: `https://shv-app-static-prod.ubmeteo.io/v1/obstacles/bazl.geojson` (225,389 authentic features).
   - Production vector tile CDN: `https://shv-app-static-prod.ubmeteo.io/v1/obstacles/tiles/bazl/{z}/{x}/{y}.pbf` (levels 6, 9, 12).
@@ -359,11 +194,11 @@ Reversed from `apk_analysis/unpacked/assets/map/layers/bazl_obstacles/style.json
 
 ---
 
-## 6. Data Query Architecture: Direct Frontend vs. Backend Proxy Pipeline
+## 2. Data Query Architecture: Direct Frontend vs. Backend Proxy Pipeline
 
 To ensure 60 FPS map panning, instant layer toggles, and rock-solid reliability without triggering browser security violations (CORS) or freezing the client thread with multi-megabyte payloads, network queries are partitioned into **Direct Frontend Queries** and an **Intelligent Backend Proxy Pipeline**:
 
-```
+```text
                        +---------------------------------------+
                        |           Browser Frontend            |
                        +---------------------------------------+
@@ -395,7 +230,7 @@ To ensure 60 FPS map panning, instant layer toggles, and rock-solid reliability 
                                                       +--------------------+
 ```
 
-### 6.1 Architectural Principles for Route Placement
+### 2.1 Architectural Principles for Route Placement
 
 1. **Direct Frontend Queries** are used exclusively when the upstream endpoint:
    - Emits permissive public CORS headers (`Access-Control-Allow-Origin: *`).
@@ -406,11 +241,11 @@ To ensure 60 FPS map panning, instant layer toggles, and rock-solid reliability 
    - **Enormous Spatial Payloads**: GIS datasets (such as BAZL Obstacles with 225,000+ features and 122 MB uncompressed data) would choke browser DOM and Leaflet canvas rendering. The backend performs spatial binning and zoom Level of Detail (LOD) filtering.
    - **Multi-Step Mathematical & Meteorological Modeling**: Sounding emagram profiles require resolving nearest EPSG:4326 model grid points, querying multi-level runs, and computing vertical lapse rates, dew points via Magnus-Tetens, and wind vectors.
    - **Station Telemetry Pair Calculations**: Föhn and pressure gradient vectors require cross-referencing multiple live weather stations (`KLO_LUG`, `GVE_GUT`, etc.), reducing pressures to QNH, and calculating delta values that upstream does not provide as a consolidated endpoint.
-   - **OAuth2 / OIDC Security**: PKCE code verifier storage, Keycloak secret exchanges, and session token persistence.
+   - **OAuth2 / OIDC Security**: PKCE code verifier storage, the Keycloak token exchange (public client, no secret), and session storage.
 
 ---
 
-### 6.2 Comprehensive Data Flow Matrix
+### 2.2 Comprehensive Data Flow Matrix
 
 | Data Endpoint / Resource | Upstream Source / Origin | Query Path | Why Proxied? / Why Direct? | Backend Processing & Transformation Performed |
 | :--- | :--- | :--- | :--- | :--- |
@@ -418,55 +253,42 @@ To ensure 60 FPS map panning, instant layer toggles, and rock-solid reliability 
 | **Swisstopo Swissimage (Luftbild)** | `wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/...` | **Direct** | Official public satellite orthophoto cache; CORS enabled. | None. |
 | **Swisstopo Pixelkarte-Grau (Light Base Map)** | `wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-grau/...` | **Direct** | Official public greyscale topographic map; CORS enabled. | None. |
 | **OpenStreetMap Tiles** | `*.tile.openstreetmap.org/{z}/{x}/{y}.png` | **Direct** | Public OpenStreetMap tile servers with CORS. | None. |
-| **Flying Sites (`flyingsites.geojson`)** | `shv-app-static-prod.ubmeteo.io/v1/flyingsites.geojson` (with `/data/` fallback) | **Direct** | 1,341 features (~450 KB); small enough for browser memory; CORS enabled. | Pre-packaged locally in `public/data/`, fallback to live CDN. |
-| **Airspaces (`airspaces.geojson`)** | `shv-app-static-prod.ubmeteo.io/v1/airspaces/shv.geojson` (with `/data/` fallback) | **Direct** | 353 airspace polygons (~600 KB); fast Leaflet GeoJSON layer; CORS enabled. | Pre-packaged locally in `public/data/`, fallback to live CDN. |
-| **Wildlife Reserves (`wildschutz.geojson`)** | `shv-app-static-prod.ubmeteo.io/v1/wildschutz/shv.geojson` (with `/data/` fallback) | **Direct** | 51 reserve polygons (~250 KB); small payload; CORS enabled. | Pre-packaged locally in `public/data/`, fallback to live CDN. |
+| **Flying Sites (`flyingsites.geojson`)** | `public/data/flyingsites.geojson`, falling back to `shv-app-static-prod.ubmeteo.io/v1/flyingsites.geojson` | **Direct** | 1,341 features (~1.5 MB); small enough for browser memory; CORS enabled. | None: the local copy in `public/data/` is tried first, the live CDN only if it fails. |
+| **Airspaces (`airspaces.geojson`)** | `public/data/airspaces.geojson`, falling back to `shv-app-static-prod.ubmeteo.io/v1/airspaces/shv.geojson` | **Direct** | 353 airspace polygons (~600 KB); fast Leaflet GeoJSON layer; CORS enabled. | None: local copy first, live CDN as fallback. |
+| **Wildlife Reserves (`wildschutz.geojson`)** | `public/data/wildschutz.geojson`, falling back to `shv-app-static-prod.ubmeteo.io/v1/wildschutz/shv.geojson` | **Direct** | 51 reserve polygons (~65 KB); small payload; CORS enabled. | None: local copy first, live CDN as fallback. |
 | **Days Overview Animation Frames** | `static-prod.ubmeteo.io/v1/animation/switzerland/days_overview/...` | **Direct** | Pre-rendered WebP raster frames; CORS enabled; pre-cached by browser `Image()`. | None. |
-| **BAZL Aviation Obstacles BBox (`/api/obstacles`)** | `shv-app-static-prod.ubmeteo.io/v1/obstacles/bazl.geojson` | **Proxied** | **Critical Performance**: Upstream dataset is 122 MB (225,389 features). Loading into browser freezes Leaflet. | 1. 24h disk caching of 122MB dataset.<br/>2. In-memory $0.1^\circ$ spatial grid index (~45 ms build).<br/>3. Sub-millisecond ($<0.5$ ms) bounding-box queries.<br/>4. Multi-tier zoom LOD filtering (z6 lines, z8 symbols, z13 pylon dots). |
+| **BAZL Aviation Obstacles BBox (`/api/obstacles`)** | `shv-app-static-prod.ubmeteo.io/v1/obstacles/bazl.geojson` | **Proxied** | **Critical Performance**: Upstream dataset is 122 MB (225,389 features). Loading into browser freezes Leaflet. | 1. Dataset loaded into memory on first request and kept until restart; the disk copy is reused at load if under 24h old.<br/>2. In-memory $0.1^\circ$ spatial grid index (~45 ms build).<br/>3. Sub-millisecond ($<0.5$ ms) bounding-box queries.<br/>4. Zoom LOD filtering: nothing below z7; from z7 to z11 lines and point symbols need a `MARKED` marking or a height threshold that drops as zoom rises; cable pylon dots only from z13; polygons always.<br/>5. Deterministic 2000-feature cap, marked hazards first. |
 | **BAZL Vector Tiles (`/api/obstacles/tiles/...`)** | `shv-app-static-prod.ubmeteo.io/v1/obstacles/tiles/bazl/{z}/{x}/{y}.pbf` | **Proxied** | Caching, connection pooling, and resilient local fallback. | Local file caching (`server/cache/tile_*.pbf`), protobuf MIME negotiation (`application/x-protobuf`). |
-| **Live Ground Stations (`/api/measurements`)** | `weather-ws-prod.ubmeteo.io/v1/measurements` | **Proxied** | Browser CORS restrictions on `weather-ws-prod`; rate limiting protection. | 1. In-memory 60s TTL caching.<br/>2. Normalizes wind speed/gust to km/h.<br/>3. Converts temperatures Kelvin -> °C.<br/>4. Formats station properties for Leaflet marker clustering. |
-| **Alpine Webcams (`/api/webcams`)** | `webcam-prod.ubmeteo.io/v1/webcams` | **Proxied** | Browser CORS restrictions on `webcam-prod`; heavy JSON payload. | 1. In-memory 120s TTL caching.<br/>2. Resolves Panomax/Roundshot thumbnail and HD URLs.<br/>3. Filters out broken or inactive webcams outside Switzerland. |
-| **Föhn Transects (`/api/foehn`)** | `weather-ws-prod.ubmeteo.io/v1/measurements` | **Proxied** | **Custom Meteorological Synthesis**: Upstream provides raw station data, but no pre-calculated transects. | 1. Extracts station pairs (`KLO_LUG`, `GVE_GUT`, `PIL_MTR`, `DEM_GRE`).<br/>2. Calculates sea-level reduced pressure differences ($\Delta p$).<br/>3. Calculates alpine temperature differences ($\Delta T$).<br/>4. Categorizes danger thresholds (Moderate/Severe Föhn).<br/>5. Synthesizes GeoJSON midpoint linestrings for map overlay. |
-| **Text Forecasts (`/api/meteo/text-forecast/:lang`)** | `shv-app-ws-prod.shv-app.ch/v1/text/forecast/{lang}.json` | **Proxied** | Browser CORS restrictions on `shv-app-ws-prod`. | 1. Multi-tier forecast aggregation (Regional, Paragliding, Soaring, Synoptic).<br/>2. 15-minute memory caching.<br/>3. Stale-while-revalidate fallback resilience. |
-| **Synoptic Surface Isobars (`/api/meteo/isobaren/:lang`)** | `shv-app-ws-prod.shv-app.ch/v1/text/isobaren/{lang}.svg` | **Proxied** | Browser CORS restrictions on `shv-app-ws-prod`. | 1. SVG payload sanitization and MIME header negotiation.<br/>2. 1-hour memory caching. |
-| **Station Telemetry Timeseries (`/api/measurements/timeseries/:id`)** | `weather-ws-prod.ubmeteo.io/v1/measurements/timeseries/{id}` | **Proxied** | Browser CORS restrictions; complex query parameter formatting. | 1. Injects required telemetry parameters (`wind_speed,wind_gust_peak,wind_direction,temperature,pressure_standard_msl`).<br/>2. Normalizes timestamps and units.<br/>3. 5-minute memory caching. |
-| **Days Overview Metadata (`/api/meteo/outlooks`)** | `static-prod.ubmeteo.io/v1/animation/switzerland/days_overview.json` | **Proxied** | Prevents intermittent upstream 503/timeout red boxes on client. | 1. Extended 30-minute cache TTL with stale-while-revalidate.<br/>2. Guarantees 100% uptime for animation sequence definitions. |
-| **Previtemps Station Catalog (`/api/meteo/previtemps/stations`)** | Decompiled APK station database (`fl5.java`, `sl2.java`) | **Proxied (Internal)** | Static embedded catalog of 107 Swiss sounding stations. | Formats station identifiers, elevations, and geographic coordinates into clean JSON API response. |
-| **MeteoSwiss ICON-CH1 Sounding (`/api/emagram/sounding`, `/api/meteo/previtemps/forecast`)** | `static-prod.ubmeteo.io/v1/products/grid/10/{x}/{y}.json` & `weather-ws-prod.ubmeteo.io/v1/point-data/meteo_swiss:icon_ch1/...` | **Proxied** | **Heavy Multi-Step Science Pipeline**: Multiple upstream API calls, grid math, and thermodynamic profiling. | 1. Reversed zoom-10 grid math ($x, y$).<br/>2. Resolves nearest ICON-CH1 model point.<br/>3. Fetches 34 hourly timesteps of multi-level atmospheric variables.<br/>4. Magnus-Tetens dew point calculation ($T_d$).<br/>5. Wind vector math ($u, v \rightarrow$ speed & dir).<br/>6. Layer-by-layer lapse rate calculation ($\Gamma = -dT/dz \times 100$ °C/100m) for stability color bands. |
-| **Skybriefing DABS (`/api/dabs`)** | Official Skybriefing portal metadata | **Proxied (Internal)** | Dynamic daily bulletin metadata and Swiss legal consultation notices. | Generates current date-stamped URLs for daily bulletin PDF and Skybriefing portal with pilot legal advisory text. |
-| **Authentication Flow (`/api/auth/*`)** | `login.shv-fsvl.ch` (Keycloak OIDC) & `shv-app-ws-prod.shv-app.ch/v1/wms/person` | **Proxied** | **OAuth2 Security & Credentials**: PKCE state verification, token exchange, and authenticated member queries. | 1. Cryptographic PKCE code verifier and challenge generation (`S256`).<br/>2. Exchanges authorization code for JWT bearer tokens.<br/>3. Queries authenticated person registry (`/v1/wms/person`).<br/>4. Extracts pilot Brevets, IPPI card ratings, passenger permits, and insurance policies into secure local sessions. |
+| **Live Ground Stations (`/api/measurements`)** | `weather-ws-prod.ubmeteo.io/v1/measurements/current` | **Proxied** | Browser CORS restrictions on `weather-ws-prod`; rate limiting protection. | 1. Default bounding box covering Switzerland and the bordering Alps (lat 43.5 to 49.5, lon 4 to 16), overridable by query.<br/>2. In-memory 60s cache, last good response served on upstream error.<br/>3. Response passed through unchanged; unit conversion happens in the browser (see Telemetry Units). |
+| **Alpine Webcams (`/api/webcams`)** | `webcam-prod.ubmeteo.io/v1/webcams/overview` | **Proxied** | Browser CORS restrictions on `webcam-prod`; heavy JSON payload. | 1. Fixed Swiss bounding box (west 5.9, south 45.8, east 10.5, north 47.8).<br/>2. In-memory 120s cache, last good response served on upstream error.<br/>3. Response passed through unchanged; the browser picks thumbnail and image URLs. |
+| **Föhn Station Pairs (`/api/foehn`)** | The server's own `/api/measurements` cache; `weather-ws-prod.ubmeteo.io/v1/measurements/timeseries` for the history | **Proxied** | **Custom Meteorological Synthesis**: Upstream provides raw station data, but no pre-calculated station pairs. | 1. Extracts station pairs (`KLO_LUG`, `GVE_GUT`, `PIL_MTR`, `DEM_GRE`).<br/>2. Calculates pressure differences ($\Delta p$) from the delivered MSL pressure, with no further reduction.<br/>3. Calculates alpine temperature differences ($\Delta T$).<br/>4. Categorizes danger thresholds (Moderate/Severe Föhn).<br/>5. Synthesizes GeoJSON midpoint linestrings for map overlay.<br/>6. `?pair=<id>` (default `KLO_LUG`) adds a 24h history of that pair from the station timeseries (3 min cache), falling back to deltas sampled in memory.<br/>7. Answers 500 with the error message on failure. |
+| **Text Forecasts (`/api/meteo/text-forecast/:lang`)** | `shv-app-ws-prod.shv-app.ch/v1/text/forecast/{lang}.json` | **Proxied** | Browser CORS restrictions on `shv-app-ws-prod`. | 1. Languages `de`, `fr`, `it`; anything else falls back to `de`.<br/>2. 15-minute memory cache per language, last good response served on upstream error.<br/>3. Response passed through unchanged. |
+| **Synoptic Surface Isobars (`/api/meteo/isobaren/:lang`)** | `shv-app-ws-prod.shv-app.ch/v1/text/isobaren/{lang}.svg` | **Proxied** | Browser CORS restrictions on `shv-app-ws-prod`. | 1. Languages `de`, `fr`, `it`; anything else falls back to `de`.<br/>2. 15-minute memory cache per language, last good SVG served on upstream error.<br/>3. SVG passed through unsanitized with `Content-Type: image/svg+xml`. |
+| **Station Telemetry Timeseries (`/api/measurements/timeseries/:id`)** | `weather-ws-prod.ubmeteo.io/v1/measurements/timeseries/{id}` | **Proxied** | Browser CORS restrictions; complex query parameter formatting. | 1. Default parameters `wind_speed,wind_direction,wind_gust,temperature,pressure_msl,relative_humidity`, overridable with `?parameters=`.<br/>2. 3-minute memory cache per station.<br/>3. Response passed through unchanged. |
+| **Days Overview Metadata (`/api/meteo/outlooks`)** | `static-prod.ubmeteo.io/v1/animation/switzerland/days_overview.json` | **Proxied** | Prevents intermittent upstream 503/timeout red boxes on client. | 1. 30-minute memory cache.<br/>2. Last good response served on upstream error. |
+| **Previtemps Station Catalog (`/api/meteo/previtemps/stations`)** | Decompiled APK station database (`fl5.java`, `sl2.java`) | **Internal** | Static catalog of 107 Swiss sounding stations. | Returns `server/data/previtemps_stations.json` as is (identical copies exist in `public/data/` and `src/data/`; the server tries `server/data/` first). |
+| **MeteoSwiss ICON-CH1 Sounding (`/api/meteo/previtemps/forecast/:stationName`, `/api/meteo/previtemps/forecast`)** | `static-prod.ubmeteo.io/v1/products/grid/10/{x}/{y}.json` & `weather-ws-prod.ubmeteo.io/v1/point-data/meteo_swiss:icon_ch1/...` | **Proxied** | **Heavy Multi-Step Science Pipeline**: Multiple upstream API calls, grid math, and thermodynamic profiling. | 1. Reversed zoom-10 grid math ($x, y$).<br/>2. Resolves nearest ICON-CH1 model point.<br/>3. Fetches 34 hourly timesteps of multi-level atmospheric variables.<br/>4. Magnus-Tetens dew point calculation ($T_d$).<br/>5. Wind vector math ($u, v \rightarrow$ speed & dir).<br/>6. Layer-by-layer lapse rate calculation ($\Gamma = -dT/dz \times 100$ °C/100m) for stability color bands.<br/>All in JavaScript in [server/emagram_provider.js](../server/emagram_provider.js); falls back to ICON-CH2 when no ICON-CH1 point is found. |
+| **Python parcel analysis (`/api/emagram/calculate`, `/api/meteo/previtemps/sounding`, `/api/meteo/previtemps/sounding/:stationName`)** | None (local computation) | **Internal** | LCL, CCL, trigger temperature, CAPE and thermal climb estimates. | Spawns `python3 server/emagram_calc.py` per request. `ShvApi` has client methods for these routes, but no view calls them. |
+| **Skybriefing DABS (`/api/dabs`)** | None | **Internal** | Today's date and fixed links to the Skybriefing DABS page and PDF, plus advisory text. | Nothing is fetched; the route returns static JSON stamped with the current date. |
+| **Authentication Flow (`/api/auth/*`)** | `login.shv-fsvl.ch` (Keycloak OIDC) & `shv-app-ws-prod.shv-app.ch/v1/wms/person` | **Proxied** | **OAuth2 Security & Credentials**: PKCE state verification, token exchange, and authenticated member queries. | 1. Cryptographic PKCE code verifier and challenge generation (`S256`).<br/>2. Exchanges authorization code for JWT bearer tokens.<br/>3. Queries the member web service (`/v1/wms/person`, falling back to `/v1/wms/company` on HTTP 403).<br/>4. Keeps tokens and profile in an in-memory session ([server/auth.js](../server/auth.js)); the browser receives the session id, claims and profile (never a token) and keeps the session id and profile in `localStorage`. |
 
 ---
 
-## 7. Web Architecture & Implementation
+## 3. Web Architecture & Implementation
 
-The web version reproduces the native mobile application inside modern web browsers with zero third-party framework overhead:
+The web version reproduces the native mobile application in the browser as a vanilla JavaScript single-page app, with no UI framework:
 
-```
-ai-shv-app/
-├── server/
-│   ├── index.js          # Express backend API (Port 3001)
-│   ├── auth.js           # PKCE generation, Keycloak exchange, session store
-│   ├── emagram_calc.py   # Python thermodynamic equations engine (DALR, MALR, LCL, CAPE)
-│   └── start-dev.js      # Unified daemon runner (API + Vite hot-reload)
-├── src/
-│   ├── main.js           # App entrypoint, global error trap, tab switching
-│   ├── state.js          # Reactive AppState store, localStorage persistence
-│   ├── services/
-│   │   ├── api.js        # Data client (ShvApi: GIS, meteo, auth)
-│   │   └── varioAudio.js # Acoustic variometer simulator (Web Audio API VCO)
-│   ├── views/
-│   │   ├── MapView.js    # Interactive Leaflet map, Swisstopo WMTS, compass dial
-│   │   ├── WeatherView.js# Live station grid, Gotthard Föhn delta chart
-│   │   ├── ForecastView.js# Flugwetter forecast & member blocker
-│   │   ├── SafetyView.js # 5-Punkte-Check, SOS Rega 1414, DABS, logbook
-│   │   └── ProfileView.js# Digital license card, Brevets, OIDC login bridge
-│   └── styles/
-│       └── main.css      # Responsive CSS, dark mode, Swiss aviation theme
-```
+- **Frontend** (`src/`, bundled by Vite from `index.html`): [src/main.js](../src/main.js) mounts the header, bottom nav, bottom sheet and the active view, and installs global `error` and `unhandledrejection` loggers. Views switch by tab state in [src/state.js](../src/state.js) (`store.setTab`), not by URL. `store` also persists language, theme, session id, profile and logbook to `localStorage` (`shv_*` keys).
+- **Views** ([src/views/](../src/views/)): `MapView` (Leaflet map, layers, obstacles), `WeatherView` (Föhn, stations, webcams), `ForecastView` (text forecasts, outlooks, soundings, isobar charts), `SafetyView` (DABS, checklist, logbook, variometer), `ProfileView` (SHV login and digital licence).
+- **Data client**: [src/services/api.js](../src/services/api.js) (`ShvApi`) is the only module that calls `fetch`; it caches the GIS datasets in memory.
+- **Translations**: [src/i18n/](../src/i18n/) holds `de`, `fr`, `it` and `en`, read through `store.t`. Many view strings are still hardcoded German.
+- **Server** ([server/index.js](../server/index.js), Express): the `/api/*` routes in the matrix above, plus serving `dist/` when it exists. Port `3001` by default (`PORT` env var). [server/auth.js](../server/auth.js) holds PKCE state and sessions in memory; [server/obstacles_provider.js](../server/obstacles_provider.js) and [server/emagram_provider.js](../server/emagram_provider.js) do the obstacle indexing and the sounding pipeline; [server/emagram_calc.py](../server/emagram_calc.py) backs the unused Python routes.
+- **Dev launcher**: [server/start-dev.js](../server/start-dev.js) runs the API on `3001` and Vite on `3000`; Vite proxies `/api` to the API ([vite.config.js](../vite.config.js)).
 
 ### Option A Authentication Bridge (Web Copy-Paste Flow)
+
 Because modern browser security policies (Same-Origin Policy) prevent localhost from listening to the registered mobile redirect domain (`prod.shv-app.ch`), the web app implements **Option A**:
+
 1. `/api/auth/start`: Express server generates cryptographic PKCE verifier, SHA-256 challenge, and unique state.
 2. The user is directed to the official SHV Keycloak web login in a new tab.
 3. Upon login, Keycloak redirects to `https://prod.shv-app.ch/oidc/callback?code=...&state=...`, displaying the official confirmation page.
@@ -475,10 +297,11 @@ Because modern browser security policies (Same-Origin Policy) prevent localhost 
 
 ---
 
-## 8. Zero Fake Data Policy
+## 4. Zero Fake Data Policy
 
 The application strictly adheres to the **Zero Fake Data Policy**:
+
 - **No Mock Profiles**: Never generate dummy names, placeholder pilot ratings, or fabricated insurance amounts.
-- **Member Areas**: If unauthenticated, sections requiring membership cleanly display the official *"Nur für Mitglieder"* notice with links to official login.
+- **Member Areas**: Only the profile (digital licence) needs a login; signed out, `ProfileView` shows a member login card that starts the copy-paste login flow above. Forecasts and soundings are not gated.
 - **Genuine Telemetry Only**: Historical charts and measurements reflect only real recorded station observations; mathematical mock sine waves or simulated weather values are prohibited.
 - **Credential Protection**: Passwords are never accepted or stored by the web application; all authentication occurs directly on official Keycloak infrastructure.

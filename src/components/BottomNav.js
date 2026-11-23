@@ -1,4 +1,4 @@
-import { store } from '../state.js';
+import { store } from "../state.js";
 
 export function renderBottomNav(container) {
   const { activeTab } = store.state;
@@ -6,7 +6,7 @@ export function renderBottomNav(container) {
 
   const tabs = [
     {
-      id: 'map',
+      id: "map",
       label: t.tabs.map,
       icon: `
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -17,7 +17,7 @@ export function renderBottomNav(container) {
       `,
     },
     {
-      id: 'weather',
+      id: "weather",
       label: t.tabs.weather,
       icon: `
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -28,7 +28,7 @@ export function renderBottomNav(container) {
       `,
     },
     {
-      id: 'forecast',
+      id: "forecast",
       label: t.tabs.forecast,
       icon: `
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -41,7 +41,7 @@ export function renderBottomNav(container) {
       `,
     },
     {
-      id: 'safety',
+      id: "safety",
       label: t.tabs.safety,
       icon: `
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -51,7 +51,7 @@ export function renderBottomNav(container) {
       `,
     },
     {
-      id: 'profile',
+      id: "profile",
       label: t.tabs.profile,
       icon: `
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -66,19 +66,23 @@ export function renderBottomNav(container) {
 
   container.innerHTML = `
     <nav class="bottom-nav">
-      ${tabs.map(tab => `
-        <button class="nav-item ${activeTab === tab.id ? 'active' : ''}" data-tab="${tab.id}">
+      ${tabs
+        .map(
+          (tab) => `
+        <button class="nav-item ${activeTab === tab.id ? "active" : ""}" data-tab="${tab.id}">
           <span class="nav-icon">${tab.icon}</span>
           <span class="nav-label">${tab.label}</span>
         </button>
-      `).join('')}
+      `,
+        )
+        .join("")}
     </nav>
   `;
 
-  container.querySelectorAll('.nav-item').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+  container.querySelectorAll(".nav-item").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
       e.preventDefault();
-      const tabId = btn.getAttribute('data-tab');
+      const tabId = btn.getAttribute("data-tab");
       if (tabId) {
         store.setTab(tabId);
       }

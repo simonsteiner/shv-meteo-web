@@ -1,0 +1,73 @@
+# Ref: https://github.com/evilmartians/lefthook
+# Installed by `npm install` (the `prepare` script); by hand: npm exec -- lefthook install
+
+min_version: 2.0.5 # `args:` on script jobs
+
+remotes:
+  # The shared token-budget and dash scripts. A tag, never a commit SHA. Bump
+  # `ref` to update; the next commit fetches it.
+  - git_url: https://github.com/simonsteiner/skills
+    ref: hooks.v1.0.0
+    configs:
+      - lefthook/hooks.yml
+
+pre-commit:
+  # Fixers first, then the checks, so the checks read the files as committed
+  # and never a file a fixer is halfway through rewriting.
+  piped: true
+  jobs:
+    - name: fix
+      group:
+        parallel: true
+        jobs:
+          # The only fixer of code, JSON, CSS and YAML. Deliberately not
+          # Markdown: rumdl fixes that, and two fixers fight. Ignores live in
+          # .prettierignore.
+          - name: prettier
+            glob: "*.{js,mjs,cjs,jsx,ts,mts,cts,tsx,astro,json,css,html,yml,yaml}"
+            run: npm exec -- prettier --write --ignore-unknown {staged_files}
+            stage_fixed: true
+          # The only fixer of *.md. Config and excludes in .rumdl.toml; rumdl
+          # still lints an excluded path passed to it, which only matters for a
+          # tracked file under one (all of them are git-ignored today).
+          - name: rumdl
+            glob: "*.md"
+            run: npm exec -- rumdl check --fix {staged_files}
+            stage_fixed: true
+    - name: check
+      group:
+        parallel: true
+        jobs:
+          # Every staged file an agent writes stays under 5,000 tokens (bytes /
+          # 4), so an agent can read it whole. Lockfiles, build output, binaries
+          # and generated files are skipped; mark more with linguist-generated
+          # in .gitattributes. On failure it prints how to split the file. The
+          # script comes from the remote above; the budget is set here.
+          - name: file-tokens
+            script: check-file-tokens.py
+            runner: python3
+            args: --max-tokens 5000 {staged_files}
+            # Temporary: hand-written legacy files already over budget. The
+            # Astro migration (docs/plan) rewrites each one into smaller
+            # modules; the PR that does drops it here. Never add a file to
+            # this list.
+            exclude:
+              - src/styles/main.css
+              - src/views/ForecastView.js
+              - src/views/MapView.js
+              - src/views/WeatherView.js
+              - src/views/ProfileView.js
+              - src/components/BottomSheet.js
+              - server/index.js
+              - docs/architecture.md
+          # No em or en dashes in the staged files: they read as machine-written.
+          # Same built-in skips as file-tokens (not its legacy exclude list); a
+          # file that must hold them goes in its own `exclude:`.
+          - name: dashes
+            script: check-dashes.py
+            runner: python3
+            args: "{staged_files}"
+          # Reads only; same command and config as `npm run lint`.
+          - name: oxlint
+            glob: "*.{js,mjs,cjs,jsx,ts,mts,cts,tsx,astro}"
+            run: npm exec -- oxlint --deny-warnings {staged_files}

@@ -8,7 +8,10 @@
     "dev": "node server/start-dev.js",
     "dev:vite": "vite --host 0.0.0.0 --port 3000",
     "build": "vite build",
-    "preview": "vite preview --host 0.0.0.0 --port 3000"
+    "preview": "vite preview --host 0.0.0.0 --port 3000",
+    "prepare": "lefthook install || true",
+    "lint": "oxlint --deny-warnings . && prettier --check .",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "chart.js": "^4.4.7",
@@ -17,5 +20,11 @@
     "leaflet": "^1.9.4",
     "lucide": "^0.469.0",
     "vite": "^6.0.7"
+  },
+  "devDependencies": {
+    "lefthook": "^2.2.2",
+    "oxlint": "^1.94.0",
+    "prettier": "^3.10.1",
+    "rumdl": "^0.3.5"
   }
 }
