@@ -80,21 +80,21 @@ Click any image to view in full resolution (2880×1800):
 
 ## Quick Start
 
-Needs Node.js 20 or newer.
+Needs Node.js 24 and Python 3 (for the git hooks).
 
 ```bash
 npm install
-npm run dev   # Vite on http://localhost:3000, API on port 3001
+npm run dev   # Astro on http://localhost:4321, API on port 3001
 ```
 
-Or with Docker: `docker compose up --build -d`, then open <http://localhost:3000>.
+The site is built with Astro and deployed to Cloudflare Pages at <https://shv-meteo.pages.dev>.
 
 ---
 
 ## Documentation
 
 * [docs/setup.md](docs/setup.md): local setup, scripts, screenshots tool, troubleshooting.
-* [docs/deployment.md](docs/deployment.md): the Docker image and running it.
+* [docs/deployment.md](docs/deployment.md): deploying to Cloudflare Pages.
 * [docs/architecture.md](docs/architecture.md): data sources, which calls are proxied and why, how the code is organised.
 * [docs/reference/shv-native-app.md](docs/reference/shv-native-app.md): reverse-engineered notes on the official SHV FSVL app and its backends.
 * [GLOSSARY.md](GLOSSARY.md): domain terms (German and English).

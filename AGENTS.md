@@ -1,18 +1,19 @@
 # Swiss Free Flight
 
-A web app for Swiss paraglider and hang glider pilots that shows flying sites, airspace hazards, live weather and soaring forecasts from the public data behind the official SHV FSVL app. It is a vanilla JavaScript single-page app bundled by Vite (`src/`) plus an Express API (`server/`). The browser loads static GIS data from `public/data/` and calls everything else through `/api/*` on the Express server, which proxies, caches and processes the upstream services (Ubique weather and webcams, SHV, MeteoSwiss ICON, BAZL obstacles, SHV Keycloak).
+A web app for Swiss paraglider and hang glider pilots that shows flying sites, airspace hazards, live weather and soaring forecasts from the public data behind the official SHV FSVL app. It is a static Astro site (`src/pages/`, one page per tab) wrapping the legacy vanilla JavaScript views (`src/views/`), plus an Express API (`server/`) that runs only in local development until Pages Functions replace it. The browser loads static GIS data from `public/data/` and calls everything else through `/api/*`, which proxies, caches and processes the upstream services (Ubique weather and webcams, SHV, MeteoSwiss ICON, BAZL obstacles, SHV Keycloak).
 
-Domain terms are in `GLOSSARY.md`. A move to Astro on Cloudflare Pages is planned (`docs/plan/2026-11-23-astro-cloudflare/`); until it lands, this file describes the current code.
+Domain terms are in `GLOSSARY.md`. The move to Astro on Cloudflare Pages is in progress (`docs/plan/2026-11-23-astro-cloudflare/`); this file describes the code as it is now.
 
 ## Commands
 
 ```bash
-npm install  # install dependencies
-npm run dev  # API on 3001 and Vite on 3000 (proxies /api), open http://localhost:3000
+npm install  # install dependencies (Node 24)
+npm run dev  # API on 3001 and astro dev on 4321 (proxies /api), open http://localhost:4321/map/
 npm run server  # Express API only, port 3001
-npm run dev:vite  # Vite only, port 3000
-npm run build  # bundle the frontend into dist/
-npm run preview  # serve dist/ on 3000, needs the API on 3001
+npm run build  # astro build into dist/
+npm run preview  # wrangler pages dev dist on 8788, as Pages serves it (no /api until PR9)
+npm run typecheck  # astro check, also the pre-push hook
+npm test  # node --test over src/scripts/**/*.test.ts
 npm run lint  # oxlint and prettier --check, as in the pre-commit hook
 npm run format  # prettier --write
 node scripts/generate_screenshots.js  # capture all views, see docs/setup.md first
@@ -48,19 +49,20 @@ node scripts/generate_screenshots.js  # capture all views, see docs/setup.md fir
 ## Gotchas
 
 - **The code was written by LLMs without human review.** Treat comments and doc claims as hints and check them against the code.
-- **There are no tests, type checker or CI.** Check a change with `npm run lint`, `npm run build` and by using it in the browser on `npm run dev`.
-- **Views switch by tab state, not by URL.** `store.setTab` swaps the view in `src/main.js`; there are no routes or deep links.
+- **Only new code is tested and type-checked.** `astro check` covers `.ts` and `.astro` files; the legacy `.js` is not checked (`checkJs` is off) and has no tests, and there is no CI yet. Check a change with `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` and by using it in the browser on `npm run dev`.
+- **Every tab is its own page.** `src/pages/<tab>/index.astro` sets `<body data-view>` through `src/layouts/Base.astro`, and `src/main.js` mounts that view; `store.setTab` navigates. A selection handed to the map travels in its URL (`src/scripts/handoff.ts`), and settings that must outlive a page load persist through `src/scripts/settings.ts`.
+- **Browser code stays at ES2020.** `astro.config.mjs` keeps the old build target (Safari 14, Chrome 87, Firefox 78) on purpose; syntax is lowered but builtins are not polyfilled, so don't use newer ones (`Object.hasOwn`, `Array.prototype.at`, `structuredClone`) in browser code.
 - **Sessions and pending logins live in memory** in `server/auth.js`, so a server restart drops them. The UI doesn't notice: it keeps showing the profile cached in `localStorage` (`shv_profile`) and only asks the server when that cache is empty.
 - **`previtemps_stations.json` exists three times** (`server/data/`, `public/data/`, `src/data/`); the server reads `server/data/` and `src/data/` is unused. Keep the copies identical.
 - **The Python script is effectively unused.** `server/emagram_calc.py` backs only `/api/emagram/calculate` and `/api/meteo/previtemps/sounding*`, which no view calls; the emagram the UI shows comes from `server/emagram_provider.js`. `ShvApi.getEmagramSounding` calls a route that does not exist.
 - **`public/data/*.geojson` are snapshots of the upstream CDN datasets.** `ShvApi` loads them first and falls back to the CDN URLs in `src/services/api.js`.
-- **The first `/api/obstacles` call is slow.** It downloads and indexes the full BAZL dataset (about 122 MB) and keeps it in memory until the process restarts; see `docs/deployment.md` for the disk cache.
+- **The first `/api/obstacles` call is slow.** It downloads and indexes the full BAZL dataset (about 122 MB) and keeps it in memory until the process restarts; see `docs/setup.md` for the disk cache.
 
 ## Docs
 
 - `README.md`: what the app does, screenshots, quickstart.
 - `docs/setup.md`: local setup, screenshots tool, Chrome DevTools MCP, troubleshooting.
-- `docs/deployment.md`: the Docker image, health check, state and secrets.
+- `docs/deployment.md`: Cloudflare Pages, deploying by hand, rollback, state and secrets.
 - `docs/architecture.md`: data sources, which calls are proxied and why, every `/api` route, how the code is organised. Read before adding or changing an endpoint.
 - `docs/reference/shv-native-app.md`: reverse-engineered notes on the official app, Keycloak and the member web service. Read before touching auth or member data.
 - `GLOSSARY.md`: domain terms in English and German.
