@@ -45,3 +45,34 @@ test("unwraps other elements to their text, escaped", () => {
 test("an empty input gives an empty string", () => {
   assert.equal(clean(""), "");
 });
+
+test("drops a comment, even one holding a script", () => {
+  assert.equal(clean("<p>a<!--<script>alert(1)</script>-->b</p>"), "<p>ab</p>");
+});
+
+test("keeps an allowed element inside an unwrapped one", () => {
+  assert.equal(clean("<span><b>x</b></span>"), "<b>x</b>");
+});
+
+test("drops style and script in the body with their content", () => {
+  assert.equal(
+    clean(
+      "<p>a</p><style>p{color:red}</style><script>alert(1)</script><p>b</p>",
+    ),
+    "<p>a</p><p>b</p>",
+  );
+});
+
+test("drops a script inside an svg", () => {
+  assert.equal(
+    clean("<p>a</p><svg><script>alert(1)</script><text>t</text></svg>"),
+    "<p>a</p>t",
+  );
+});
+
+test("an entity round trips escaped once", () => {
+  assert.equal(
+    clean("<p>&amp;amp; &lt;b&gt;</p>"),
+    "<p>&amp;amp; &lt;b&gt;</p>",
+  );
+});
