@@ -16,7 +16,7 @@ npm run typecheck  # astro check, also the pre-push hook
 npm test  # node --test over src/scripts/**/*.test.ts
 npm run lint  # oxlint and prettier --check, as in the pre-commit hook
 npm run format  # prettier --write
-node scripts/generate_screenshots.js  # capture all views, see docs/setup.md first
+npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a running dev server; see docs/setup.md
 ```
 
 ## Conventions

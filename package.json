@@ -13,7 +13,8 @@
     "test": "node --experimental-strip-types --test 'src/scripts/**/*.test.ts'",
     "lint": "oxlint --deny-warnings . && prettier --check .",
     "format": "prettier --write .",
-    "prepare": "lefthook install || true"
+    "prepare": "lefthook install || true",
+    "shot": "node --experimental-strip-types scripts/shot.ts"
   },
   "dependencies": {
     "astro": "^7.4.13",

@@ -53,12 +53,13 @@ Caches live in memory, except BAZL obstacle data, which [server/obstacles_provid
 
 ## Screenshots
 
-[scripts/generate_screenshots.js](../scripts/generate_screenshots.js) captures every view into `screenshots/`. It does not launch a browser; it attaches to one you already run:
+[scripts/shot.ts](../scripts/shot.ts) takes a PNG of one page against a running `npm run dev` or `npm run preview`:
 
-1. Install `puppeteer-core`, which the script imports but `package.json` does not list: `npm install --no-save puppeteer-core`.
-2. Start Chrome with remote debugging on `127.0.0.1:9222` (`--remote-debugging-port=9222`).
-3. Start the app (`npm run dev`) and open <http://localhost:4321/map/> in that Chrome.
-4. Run `node scripts/generate_screenshots.js`.
+```bash
+npm run shot -- http://localhost:4321/map/ /tmp/map.png [--size 1280x800] [--wait 3000]
+```
+
+It launches a headless Chromium (`$CHROME`, else Playwright's newest under `~/.cache/ms-playwright`, else `chromium` on `PATH`), waits for the load event plus `--wait` ms so the map tiles arrive, and prints the page's exceptions and console errors. The refactor PRs attach before/after shots taken with it. The gallery in `screenshots/` predates it and is regenerated once the views are ported.
 
 ## Chrome DevTools MCP
 
