@@ -20,11 +20,16 @@ on:
 
 permissions:
   contents: read
-  # gh run list, to check ci passed before a scheduled or manual deploy
-  actions: read
+
+env:
+  # The commit ci tested, not whatever main points at by now.
+  COMMIT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
 
 jobs:
-  deploy:
+  # Decides whether to deploy, outside the deploy concurrency group: a run
+  # that is not going to deploy (ci not passed on main's head yet) fails
+  # here, before it could cancel a deploy that is running.
+  gate:
     # Only the head of main is deployed. For a workflow_run, github.sha is
     # main's head when this run starts: when ci passed on an older commit
     # (merges back to back, or ci finishing out of order), this run is
@@ -39,19 +44,10 @@ jobs:
       (github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.event == 'push' &&
        github.event.workflow_run.head_sha == github.sha)
-    # One deploy at a time, and a newer one cancels a running one, which
-    # ships everything the older would. A run cancelled mid-upload creates
-    # no deployment, so the site stays on the last finished one.
-    concurrency:
-      group: deploy
-      cancel-in-progress: true
     runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: https://shv-meteo.pages.dev
-    env:
-      # The commit ci tested, not whatever main points at by now.
-      COMMIT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+    permissions:
+      # gh run list, to check ci passed before a scheduled or manual deploy
+      actions: read
     steps:
       - name: Require a passing ci
         if: github.event_name != 'workflow_run'
@@ -64,6 +60,23 @@ jobs:
             echo "::error::ci has not passed on $COMMIT_SHA, so it is not deployed"
             exit 1
           fi
+
+  deploy:
+    needs: gate
+    # One deploy at a time, and a newer one cancels a running one, which
+    # ships everything the older would. Only runs past the gate get here,
+    # so a cancelling run always deploys. A run cancelled mid-upload creates
+    # no deployment, so the site stays on the last finished one.
+    concurrency:
+      group: deploy
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    environment:
+      name: production
+      url: https://shv-meteo.pages.dev
+    steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ env.COMMIT_SHA }}
