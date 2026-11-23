@@ -33,7 +33,7 @@ In the Cloudflare dashboard: Workers & Pages, `shv-meteo`, Deployments, then Rol
 ## What Pages serves
 
 - `dist/` as static files: one page per tab (`/map/`, `/weather/`, `/forecast/`, `/safety/`; `/profile/` redirects to `/map/`), `public/` copied as is (assets and the GeoJSON snapshots under `/data/`).
-- [public/_redirects](../public/_redirects): `/` to `/map/`.
+- [public/_redirects](../public/_redirects): `/` to `/map/` (302), and `/profile/` and `/profile` to `/map/` (301).
 - `functions/api/**`: the Pages Functions, at their file paths under `/api/`.
 
 ## State and secrets
