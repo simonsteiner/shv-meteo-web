@@ -1,10 +1,17 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { COLUMN, pointAnswer } from "./point.fixture.ts";
+import { BROKEN, COLUMN, pointAnswer } from "./point.fixture.ts";
 import { pointProblem, soundingFromForecast } from "./sounding.ts";
 
 test("a complete column has no problem", () => {
   assert.equal(pointProblem(pointAnswer()), null);
+});
+
+test("a column whose pressure barely falls with height is a problem", () => {
+  assert.match(
+    pointProblem(pointAnswer(BROKEN)) ?? "",
+    /^pressure falls 0\.1 hPa from the ground to the top at step 0$/,
+  );
 });
 
 test("a missing series or no time steps is a problem", () => {

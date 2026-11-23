@@ -13,6 +13,10 @@ export const COLUMN: Record<string, number[]> = {
   wind_v: [0, 0, 0, 0],
 };
 
+/** The same column as upstream sent it on 2026-11-23: every level, ground
+ * to 22 km, at about one pressure. */
+export const BROKEN = { ...COLUMN, pressure: [78690, 78700, 78680, 78699] };
+
 /** `column` over two time steps, an hour apart; the height is constant. */
 export function pointAnswer(column = COLUMN): PointAnswer {
   const series = (name: string, values: number[]) => ({

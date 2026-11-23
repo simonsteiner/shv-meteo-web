@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Context, PrevitempsGrid } from "../types.ts";
 import { soundingRoute } from "./fetch.ts";
-import { COLUMN, pointAnswer } from "./point.fixture.ts";
+import { BROKEN, COLUMN, pointAnswer } from "./point.fixture.ts";
 import { soundingFromForecast } from "./sounding.ts";
 
 const grid: PrevitempsGrid = {
@@ -124,4 +124,18 @@ test("a failed point fetch is the route's 503", async () => {
   assert.deepEqual(await res.json(), {
     error: "Sondierung vorübergehend nicht erreichbar",
   });
+});
+
+test("a column that is no atmosphere is the route's 503", async () => {
+  const calls: string[] = [];
+  const res = await quietly(() =>
+    soundingRoute(
+      ctx("Disentis%2FMust%C3%A9r"),
+      grid,
+      fakeFetch(calls, "", BROKEN),
+    ),
+  );
+  assert.equal(res.status, 503);
+  // every listed run tried before giving up
+  assert.equal(calls.length, 4);
 });

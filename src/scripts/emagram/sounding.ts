@@ -5,6 +5,7 @@
 // to 21 ms CPU per sounding, over the Free plan's 10 ms
 // (docs/architecture/data-queries.md). Pure.
 import type { GridPoint, Sounding } from "../types.ts";
+import { round1 } from "../units.ts";
 import {
   parsePointData,
   pointValidTimes,
@@ -38,14 +39,28 @@ function matrices(point: PointAnswer): Record<SoundingParameter, number[][]> {
   ) as Record<SoundingParameter, number[][]>;
 }
 
-/** Why `point` makes no sounding (a series missing, no time steps), or
- * null when it is usable. */
+/** Pressure must fall at least this much (hPa) from the ground to the
+ * model top (22 km): a real column spans 700 hPa or more. On 2026-11-23
+ * upstream sent ICON columns whose 80 levels all held about one pressure
+ * (786.7 to 787.0 hPa at Interlaken, 526 to 562 at Scuol). */
+const MIN_COLUMN_SPAN_HPA = 300;
+
+/** Why `point` makes no sounding (a series missing, no time steps, or a
+ * column whose pressure barely falls with height), or null when it is
+ * usable. Levels are stored top first, so the ground is the last. */
 export function pointProblem(point: PointAnswer): string | null {
   const m = matrices(point);
   for (const p of SOUNDING_PARAMETERS)
     if (!m[p].some((row) => row.length > 0)) return `no ${p}`;
   const steps = pointValidTimes(point.parameters?.temperature).length;
   if (steps === 0) return "no time steps";
+  const top = m.pressure[0];
+  const ground = m.pressure[m.pressure.length - 1];
+  for (let t = 0; t < steps; t++) {
+    const span = (ground[t] - top[t]) / 100;
+    if (!(span >= MIN_COLUMN_SPAN_HPA))
+      return `pressure falls ${round1(span)} hPa from the ground to the top at step ${t}`;
+  }
   return null;
 }
 

@@ -4,8 +4,9 @@
 // (sounding.ts). Two upstream calls, 8 s each: the model's runs list, then
 // the point's six series in one answer (`?parameters=`, about 160 KB).
 // Upstream lists its runs newest first and soon drops the older one; a run
-// with a series missing (still being ingested, `pointProblem`) is passed
-// over for the one before, as the official app uses only complete runs. An unknown name is a 404; no usable
+// with a series missing (still being ingested) or a column that is no
+// atmosphere (`pointProblem`) is passed over for the one before, as the
+// official app uses only complete runs. An unknown name is a 404; no usable
 // run is the route's 503, logged with the station (a station whose grid
 // point moved shows the 503 until `npm run grid` runs again).
 import type { Context, GridPoint, PrevitempsGrid } from "../types.ts";
