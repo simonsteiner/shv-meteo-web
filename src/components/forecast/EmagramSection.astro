@@ -49,7 +49,12 @@ import EmagramInfo from "./EmagramInfo.astro";
     <div class="map-hint-text">
       💡 <span data-t="forecast.mapHint"></span>
     </div>
-    <p class="text-muted" data-stations-status hidden></p>
+    <p
+      class="text-muted"
+      data-stations-status
+      data-t="forecast.stationsUnavailable"
+      hidden
+    ></p>
   </div>
 
   <div class="emagram-detail-box emagram-detail-plain" data-emagram-detail>

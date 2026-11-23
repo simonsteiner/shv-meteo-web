@@ -163,10 +163,7 @@ export function mountEmagram(root: HTMLElement): void {
       stations = list;
       const status = must<HTMLElement>(root, "[data-stations-status]");
       status.hidden = list.length > 0;
-      if (list.length === 0) {
-        status.textContent = say("forecast.stationsUnavailable");
-        return;
-      }
+      if (list.length === 0) return;
       const initial =
         readStation(location.search, list) ??
         DEFAULTS.map((n) => list.find((s) => s.name === n)).find(Boolean) ??
