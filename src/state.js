@@ -1,39 +1,38 @@
 import { getTranslation } from "./i18n/index.js";
 
+import {
+  loadChecklist,
+  loadSettings,
+  saveChecklist,
+  saveSetting,
+} from "./scripts/settings.ts";
+
+const TABS = ["map", "weather", "forecast", "safety", "profile"];
+
 class AppState {
   constructor() {
     this.listeners = new Set();
 
-    // Load persisted settings
-    const savedLang = localStorage.getItem("shv_lang") || "de";
-    const savedTheme = localStorage.getItem("shv_theme") || "dark";
-    const savedLogs = this.loadSavedLogs();
+    // Each tab is its own page (src/pages/<tab>/), so the settings that must
+    // outlive a page load come from storage (src/scripts/settings.ts).
+    const saved = loadSettings(localStorage);
     const savedSession = localStorage.getItem("shv_session_id") || null;
     const savedProfile = this.loadSavedProfile();
+    const view = document.body.dataset.view;
 
     this.state = {
-      activeTab: "map", // 'map' | 'weather' | 'forecast' | 'safety' | 'profile'
-      lang: savedLang,
-      theme: savedTheme,
+      activeTab: TABS.includes(view) ? view : "map", // set by the page (Base.astro)
+      lang: saved.lang,
+      theme: saved.theme,
       sid: savedSession,
 
       // Map configuration
-      baseMap: "topoLight", // 'topoLight' | 'topoColor' | 'topoSatellite' | 'topoOsm'
-      mapCategory: "METEO", // 'METEO' | 'AIRSPACE' | 'FLYING_AREAS'
-      meteoMode: "WIND", // 'WIND' | 'TEMPERATURE' | 'PRESSURE_DIFFERENCE' | 'WEBCAM' | 'NONE'
-      layers: {
-        launches: false,
-        landings: false,
-        landingPatterns: false,
-        airspace: false,
-        wildschutz: false,
-        obstacles: false,
-        stations: true,
-        webcams: false,
-        foehnAxis: false,
-      },
+      baseMap: saved.baseMap, // 'topoLight' | 'topoColor' | 'topoSatellite' | 'topoOsm'
+      mapCategory: saved.mapCategory, // 'METEO' | 'AIRSPACE' | 'FLYING_AREAS'
+      meteoMode: saved.meteoMode, // 'WIND' | 'TEMPERATURE' | 'PRESSURE_DIFFERENCE' | 'WEBCAM' | 'NONE'
+      layers: saved.layers,
       searchQuery: "",
-      windFilter: [], // e.g. ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
+      windFilter: saved.windFilter, // e.g. ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
       selectedSite: null,
       selectedStation: null,
       selectedWebcam: null,
@@ -49,35 +48,24 @@ class AppState {
       // Pilot profile
       profile: savedProfile,
 
-      // Safety & Checklist
+      // Safety & Checklist: per browser tab (sessionStorage)
       checklist: {
         p1: false,
         p2: false,
         p3: false,
         p4: false,
         p5: false,
+        ...loadChecklist(sessionStorage),
       },
 
       // Flight Logbook
-      flights: savedLogs,
+      flights: saved.flights,
 
-      // Audio Vario
-      varioRate: 1.2, // m/s
+      // Audio Vario: starts muted on every page, since audio may only start
+      // on a click
+      varioRate: saved.varioRate, // m/s
       varioMuted: true,
     };
-  }
-
-  loadSavedLogs() {
-    try {
-      const data = localStorage.getItem("shv_flights");
-      if (data) return JSON.parse(data);
-    } catch (e) {
-      console.error(
-        "[AppState.loadSavedLogs] Failed to parse saved flights from localStorage:",
-        e,
-      );
-    }
-    return [];
   }
 
   loadSavedProfile() {
@@ -147,45 +135,25 @@ class AppState {
     }
   }
 
-  notifyTabRepeat(tab) {
-    const listenersCopy = Array.from(this.listeners);
-    for (const listener of listenersCopy) {
-      try {
-        listener(this.state, { type: "TAB_REPEAT", tab });
-      } catch (err) {
-        console.error("[AppState.notifyTabRepeat] Listener threw error:", err);
-      }
-    }
-  }
-
   get t() {
     return getTranslation(this.state.lang);
   }
 
+  // Every tab is a page: switching tabs navigates. Clicking the active Map
+  // tab resets the map: the search and the selections go with the reload,
+  // the persisted wind filter is cleared first.
   setTab(tab) {
-    if (this.state.activeTab === tab) {
-      if (tab === "map") {
-        this.resetMapState();
-      }
-      this.notifyTabRepeat(tab);
-      return;
+    if (this.state.activeTab === tab && tab !== "map") return;
+    if (tab === "map" && this.state.activeTab === "map") {
+      this.state.windFilter = [];
+      saveSetting(localStorage, "windFilter", []);
     }
-    this.state.activeTab = tab;
-    this.notify();
-  }
-
-  resetMapState() {
-    this.state.searchQuery = "";
-    this.state.windFilter = [];
-    this.state.selectedSite = null;
-    this.state.selectedStation = null;
-    this.state.selectedWebcam = null;
-    this.state.selectedObstacle = null;
-    this.notify();
+    location.assign(`/${tab}/`);
   }
 
   setMapCategory(category) {
     this.state.mapCategory = category;
+    saveSetting(localStorage, "mapCategory", category);
     if (category === "METEO") {
       this.state.layers.stations = true;
       this.state.layers.launches = false;
@@ -217,36 +185,40 @@ class AppState {
       this.state.layers.webcams = false;
       this.state.layers.foehnAxis = false;
     }
+    saveSetting(localStorage, "layers", this.state.layers);
     this.notify();
   }
 
   setLang(lang) {
     this.state.lang = lang;
-    localStorage.setItem("shv_lang", lang);
+    saveSetting(localStorage, "lang", lang);
     this.notify();
   }
 
   setTheme(theme) {
     this.state.theme = theme;
-    localStorage.setItem("shv_theme", theme);
+    saveSetting(localStorage, "theme", theme);
     document.documentElement.setAttribute("data-theme", theme);
     this.notify();
   }
 
   setBaseMap(baseMap) {
     this.state.baseMap = baseMap;
+    saveSetting(localStorage, "baseMap", baseMap);
     this.notify();
   }
 
   toggleLayer(layerKey) {
     if (Object.prototype.hasOwnProperty.call(this.state.layers, layerKey)) {
       this.state.layers[layerKey] = !this.state.layers[layerKey];
+      saveSetting(localStorage, "layers", this.state.layers);
       this.notify();
     }
   }
 
   setMeteoMode(mode) {
     this.state.meteoMode = mode;
+    saveSetting(localStorage, "meteoMode", mode);
     if (mode === "WIND" || mode === "TEMPERATURE") {
       this.state.layers.stations = true;
       this.state.layers.webcams = false;
@@ -264,6 +236,7 @@ class AppState {
       this.state.layers.webcams = false;
       this.state.layers.foehnAxis = false;
     }
+    saveSetting(localStorage, "layers", this.state.layers);
     this.notify();
   }
 
@@ -279,11 +252,13 @@ class AppState {
     } else {
       this.state.windFilter.push(dir);
     }
+    saveSetting(localStorage, "windFilter", this.state.windFilter);
     this.notify();
   }
 
   clearWindFilter() {
     this.state.windFilter = [];
+    saveSetting(localStorage, "windFilter", []);
     this.notify();
   }
 
@@ -320,6 +295,7 @@ class AppState {
 
   setChecklistPoint(key, value) {
     this.state.checklist[key] = value;
+    saveChecklist(sessionStorage, this.state.checklist);
     this.notify();
   }
 
@@ -327,6 +303,7 @@ class AppState {
     Object.keys(this.state.checklist).forEach((k) => {
       this.state.checklist[k] = true;
     });
+    saveChecklist(sessionStorage, this.state.checklist);
     this.notify();
   }
 
@@ -334,12 +311,13 @@ class AppState {
     Object.keys(this.state.checklist).forEach((k) => {
       this.state.checklist[k] = false;
     });
+    saveChecklist(sessionStorage, this.state.checklist);
     this.notify();
   }
 
   addFlight(flight) {
     this.state.flights.unshift(flight);
-    localStorage.setItem("shv_flights", JSON.stringify(this.state.flights));
+    saveSetting(localStorage, "flights", this.state.flights);
     this.notify();
   }
 
@@ -391,6 +369,7 @@ class AppState {
 
   setVarioRate(rate) {
     this.state.varioRate = Math.round(rate * 10) / 10;
+    saveSetting(localStorage, "varioRate", this.state.varioRate);
     this.notify();
   }
 

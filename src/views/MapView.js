@@ -1,6 +1,7 @@
 import L from "leaflet";
 import { store } from "../state.js";
 import { ShvApi } from "../services/api.js";
+import { readHandoff, withoutHandoff } from "../scripts/handoff.ts";
 
 const WIND_BUCKETS = [
   { max: 3, color: "#FFFFFF" },
@@ -96,9 +97,16 @@ export class MapView {
   }
 
   mount() {
+    // A selection another page handed over in the URL (src/scripts/handoff.ts),
+    // taken out of it at once so a reload doesn't select again.
+    this.handoff = readHandoff(location.search);
+    if (this.handoff)
+      history.replaceState(null, "", withoutHandoff(location.href));
+
     this.renderLayout();
     this.initMap();
     this.loadData();
+    if (this.handoff && "locate" in this.handoff) this.locatePilot();
 
     // Subscribe to state changes (theme, wind filter, search, layer toggles)
     this.unsubscribe = store.subscribe((state) => {
@@ -766,18 +774,20 @@ export class MapView {
     }, 200);
   }
 
-  resetView() {
-    if (this.map) {
-      this.map.setView([46.8182, 8.2275], 9);
-      this.map.invalidateSize();
-    }
-    const layersDrawer = this.container.querySelector("#map-layers-drawer");
-    const windDrawer = this.container.querySelector("#map-wind-drawer");
-    if (layersDrawer) layersDrawer.classList.add("hidden");
-    if (windDrawer) windDrawer.classList.add("hidden");
-
-    const searchInput = this.container.querySelector("#map-search-input");
-    if (searchInput) searchInput.value = "";
+  // The header's GPS button off the map hands over `?locate`: the position
+  // is asked for here (permission is already granted). On failure the map
+  // stays at its default view, with no pilot marker.
+  locatePilot() {
+    if (!("geolocation" in navigator)) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) =>
+        store.setPilotLocation({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        }),
+      (err) => console.warn("[MapView.locatePilot] Geolocation error:", err),
+      { enableHighAccuracy: true, timeout: 6000 },
+    );
   }
 
   async loadData() {
@@ -814,6 +824,14 @@ export class MapView {
       this.rawMeasurements = await ShvApi.getMeasurements();
       store.state.measurements = this.rawMeasurements;
       this.renderStations();
+      if (this.handoff && "station" in this.handoff) {
+        const id = this.handoff.station;
+        const st = (this.rawMeasurements?.features || []).find(
+          (f) => f.id === id,
+        );
+        if (st) store.selectStation(st);
+        else console.error(`[MapView] Handed-over station not found: ${id}`);
+      }
     } catch (err) {
       console.error("[MapView] Error loading measurements:", err);
     }
@@ -832,6 +850,14 @@ export class MapView {
       this.rawWebcams = await ShvApi.getWebcams();
       store.state.webcams = this.rawWebcams;
       this.renderWebcams();
+      if (this.handoff && "webcam" in this.handoff) {
+        const id = this.handoff.webcam;
+        const wc = (this.rawWebcams?.webcams || []).find(
+          (w) => w.identifier === id,
+        );
+        if (wc) store.selectWebcam(wc);
+        else console.error(`[MapView] Handed-over webcam not found: ${id}`);
+      }
     } catch (err) {
       console.error("[MapView] Error loading webcams:", err);
     }

@@ -10,6 +10,8 @@
   },
   "ignorePatterns": [
     "dist/",
+    ".astro/",
+    ".wrangler/",
     "node_modules/",
     "server/cache/",
     "apk_analysis/",

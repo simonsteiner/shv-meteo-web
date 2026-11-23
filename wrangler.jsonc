@@ -1,0 +1,8 @@
+// Cloudflare Pages project for the site, https://shv-meteo.pages.dev.
+// `npm run build` writes dist/; .github/workflows/deploy.yml deploys it on
+// every merge to main. No bindings and no secrets.
+{
+  "name": "shv-meteo",
+  "compatibility_date": "2026-11-19",
+  "pages_build_output_dir": "dist",
+}

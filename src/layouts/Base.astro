@@ -1,3 +1,17 @@
+---
+// The page frame every tab shares: the head from the former index.html and
+// the four mount points the legacy views render into (src/main.js). The
+// page's script loads main.js, which mounts the view <body data-view> names.
+import "leaflet/dist/leaflet.css";
+import "../styles/main.css";
+
+interface Props {
+  /** The tab this page shows: map, weather, forecast, safety or profile. */
+  view: string;
+}
+const { view } = Astro.props;
+---
+
 <!doctype html>
 <html lang="de" data-theme="dark">
   <head>
@@ -14,16 +28,24 @@
       name="description"
       content="Swiss Free Flight - Live flying areas, airspaces, weather, Föhn, soundings and webcams for paragliding and hang gliding in Switzerland. Data sources: SHV FSVL, MeteoSwiss, Swisstopo, BAZL."
     />
-    <!-- Main Style -->
-    <link rel="stylesheet" href="/src/styles/main.css" />
+    {/* The saved theme before the first paint, so a light theme doesn't
+       flash dark on every page load (src/scripts/settings.ts). */}
+    <script is:inline>
+      try {
+        if (localStorage.getItem("shv_theme") === "light")
+          document.documentElement.setAttribute("data-theme", "light");
+      } catch (err) {
+        console.error("[Base] Cannot read the saved theme:", err);
+      }
+    </script>
   </head>
-  <body>
+  <body data-view={view}>
     <div id="app">
       <div id="header-container"></div>
       <main id="view-container"></main>
       <div id="bottom-sheet-container" class="hidden"></div>
       <div id="bottom-nav-container"></div>
     </div>
-    <script type="module" src="/src/main.js"></script>
+    <slot />
   </body>
 </html>

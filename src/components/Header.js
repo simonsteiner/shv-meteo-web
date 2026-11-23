@@ -1,4 +1,5 @@
 import { store } from "../state.js";
+import { handoffUrl } from "../scripts/handoff.ts";
 
 export function renderHeader(container) {
   const { lang, theme, foehn, activeTab } = store.state;
@@ -172,6 +173,11 @@ export function renderHeader(container) {
   const btnGps = container.querySelector("#btn-gps");
   if (btnGps) {
     btnGps.addEventListener("click", () => {
+      // Off the map, the map asks for the position itself (src/scripts/handoff.ts)
+      if (store.state.activeTab !== "map") {
+        location.assign(handoffUrl({ locate: true }));
+        return;
+      }
       if ("geolocation" in navigator) {
         btnGps.classList.add("spinning");
         navigator.geolocation.getCurrentPosition(
@@ -181,9 +187,6 @@ export function renderHeader(container) {
               lat: pos.coords.latitude,
               lng: pos.coords.longitude,
             });
-            if (store.state.activeTab !== "map") {
-              store.setTab("map");
-            }
           },
           (err) => {
             btnGps.classList.remove("spinning");

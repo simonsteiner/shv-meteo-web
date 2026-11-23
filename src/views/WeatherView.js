@@ -1,6 +1,7 @@
 import { Chart, registerables } from "chart.js";
 import { store } from "../state.js";
 import { ShvApi } from "../services/api.js";
+import { handoffUrl } from "../scripts/handoff.ts";
 
 Chart.register(...registerables);
 
@@ -728,10 +729,7 @@ export class WeatherView {
         const wc = (this.webcamsData?.webcams || []).find(
           (w) => w.identifier === id,
         );
-        if (wc) {
-          store.selectWebcam(wc);
-          store.setTab("map");
-        }
+        if (wc) location.assign(handoffUrl({ webcam: wc.identifier }));
       });
     });
 
@@ -759,11 +757,7 @@ export class WeatherView {
     const btnViewMap = this.container.querySelector("#btn-view-on-map");
     if (btnViewMap && this.modalStation) {
       btnViewMap.addEventListener("click", () => {
-        const st = this.modalStation;
-        this.modalStation = null;
-        this.modalTimeseries = null;
-        store.selectStation(st);
-        store.setTab("map");
+        location.assign(handoffUrl({ station: this.modalStation.id }));
       });
     }
   }
