@@ -118,7 +118,9 @@ export function mountWeather(root: HTMLElement): void {
       cell("name").textContent = String(st?.name ?? "");
       cell("reading").textContent = stationReading(pair, st);
       cell("altitude").textContent =
-        typeof st?.altitude === "number" ? `${st.altitude} m` : "";
+        typeof st?.altitude === "number" && st.altitude > 0
+          ? `${st.altitude} m`
+          : "";
     }
     q("[data-pair-arrow]").textContent = `Δ = ${delta} ${pair.unit}`;
     q("[data-pair-chart-title]").textContent = say(chartTitleKey(pair.id));

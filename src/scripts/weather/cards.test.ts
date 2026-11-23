@@ -47,6 +47,28 @@ test("stationCardHtml labels station pressure QFE, never QNH", () => {
   assert.ok(qnh.includes(">1021<"));
 });
 
+test("the cards hide an altitude of 0", () => {
+  const st = stationCardHtml(
+    {
+      id: "slf:X",
+      geometry: { type: "Point", coordinates: [8, 47] },
+      properties: { altitude: 0, providerKey: "slf" },
+    },
+    text,
+  );
+  assert.ok(!st.includes("0m"));
+  const cam = (altitudeM: number) =>
+    webcamCardHtml({
+      identifier: "cam:1",
+      name: "Cam",
+      latitude: 46,
+      longitude: 8,
+      altitudeM,
+    });
+  assert.ok(!cam(0).includes("0m"));
+  assert.ok(cam(1450).includes("1450m"));
+});
+
 test("webcamCardHtml escapes text and refuses non-http image URLs", () => {
   const html = webcamCardHtml({
     identifier: "cam:1",

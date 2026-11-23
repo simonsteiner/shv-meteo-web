@@ -76,8 +76,11 @@ export function stationCardHtml(
 
 export function webcamCardHtml(w: Webcam): string {
   const { src, fallback } = webcamImages(w);
+  // upstream sends 0 for an unknown altitude
   const altitude =
-    typeof w.altitudeM === "number" ? `${Math.round(w.altitudeM)}m` : "";
+    typeof w.altitudeM === "number" && w.altitudeM > 0
+      ? `${Math.round(w.altitudeM)}m`
+      : "";
   const place =
     (typeof w.location === "string" && w.location) ||
     (typeof w.providerDisplayName === "string" && w.providerDisplayName) ||
