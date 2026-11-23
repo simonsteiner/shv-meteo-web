@@ -64,7 +64,7 @@ Ubique Fluid Meteo Services (`weather-ws-prod.ubmeteo.io`) delivers real-time we
 - **Temperatures (`temperatureValue`, `temperature2mValue`, `dewPoint2mValue`)**: If raw value $> 200$, it is expressed in Kelvin and must be converted via $T(^\circ\text{C}) = T(\text{K}) - 273.15$. Values $\le 200$ are natively in Celsius.
 - **Atmospheric Pressure (`pressureMslValue`, `pressureStandardMslValue`)**: Scaled in raw tenths or Pa in some sensors. If raw value $> 5000$, divide by 10 to obtain standard hectopascals (hPa / QNH).
 
-The `/api/measurements` Function passes the body through unparsed; these conversions happen in the browser ([src/components/BottomSheet.js](../../src/components/BottomSheet.js), [src/views/WeatherView.js](../../src/views/WeatherView.js), and the temperature mode in [src/views/MapView.js](../../src/views/MapView.js)). There is no shared helper yet; PR10 adds `src/scripts/units.ts`.
+The `/api/measurements` Function passes the body through unparsed; these conversions happen in the browser ([src/components/BottomSheet.js](../../src/components/BottomSheet.js), [src/views/WeatherView.js](../../src/views/WeatherView.js), and the temperature mode in [src/views/MapView.js](../../src/views/MapView.js)). New code uses [src/scripts/units.ts](../../src/scripts/units.ts); the views keep their own copies until their refactor.
 
 ## Live Map Meteo Modes (`LiveMapMeteoType`)
 

@@ -24,7 +24,7 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 
 - **`ShvApi` is the only caller of `fetch` in the browser.** Add new endpoints to `src/services/api.js`; views and components never fetch directly.
 - **Proxy only what has to be proxied.** The browser calls an upstream directly only when it allows CORS and the payload is light; anything with CORS limits (or a 403 to an `Origin` header), heavy data or multi-station math gets a Pages Function in `functions/api/`. The reasoning and the current split are in `docs/architecture/data-queries.md`.
-- **Upstream weather units are quirky.** Wind and gusts already arrive in km/h (never multiply by 3.6), a temperature above 200 is Kelvin, a pressure above 5000 is in tenths of hPa. The conversion is duplicated in `src/components/BottomSheet.js`, `src/views/WeatherView.js`, and `src/views/MapView.js` (temperature only); change all three together.
+- **Upstream weather units are quirky.** Wind and gusts already arrive in km/h (never multiply by 3.6), a temperature above 200 is Kelvin, a pressure above 5000 is in tenths of hPa. New code converts through `src/scripts/units.ts` (`toCelsius`, `toHpa`); the legacy copies in `src/components/BottomSheet.js`, `src/views/WeatherView.js` and `src/views/MapView.js` (temperature only) go with their view's refactor, so until then change them together.
 - **A Function is a one-line adapter.** Add a route to `ROUTES` in `src/scripts/upstream/routes.ts` (fixed upstream URL, TTL, timeout, German error body) and its checks to `params.ts`, then call `proxy(name, ctx)` from `functions/api/`. `respond.ts` streams the body unparsed, sets `Cache-Control`, keeps each 200 in the edge cache as the fallback for an upstream error, and answers anything else with a 503 that is never cached. Functions keep no memory between requests.
 
 ### UI and state
@@ -51,7 +51,7 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 - **Every tab is its own page.** `src/pages/<tab>/index.astro` sets `<body data-view>` through `src/layouts/Base.astro`, and `src/main.js` mounts that view; `store.setTab` navigates. A selection handed to the map travels in its URL (`src/scripts/handoff.ts`), and settings that must outlive a page load persist through `src/scripts/settings.ts`.
 - **Browser code stays at ES2020.** `astro.config.mjs` keeps the old build target (Safari 14, Chrome 87, Firefox 78) on purpose; syntax is lowered but builtins are not polyfilled, so don't use newer ones (`Object.hasOwn`, `Array.prototype.at`, `structuredClone`) in browser code.
 - **`previtemps_stations.json` exists twice** (`public/data/`, `src/data/`); `src/data/` is unused. Keep the copies identical.
-- **Not every `/api` route is ported yet.** Foehn (PR10), the sounding stations and forecast (PR11) and obstacles (PR12) answer 404 until their PR lands, in dev as in production; member login is gone. `ShvApi.getEmagramSounding` and the parcel-analysis methods call routes that no longer exist.
+- **Not every `/api` route is ported yet.** The sounding stations and forecast (PR11) and obstacles (PR12) answer 404 until their PR lands, in dev as in production; member login is gone. `ShvApi.getEmagramSounding` and the parcel-analysis methods call routes that no longer exist.
 - **`public/data/*.geojson` are snapshots of the upstream CDN datasets.** `ShvApi` loads them first and falls back to the CDN URLs in `src/services/api.js`.
 
 ## Docs
