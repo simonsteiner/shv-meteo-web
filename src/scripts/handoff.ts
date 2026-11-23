@@ -25,14 +25,8 @@ export function handoffUrl(h: Handoff): string {
  * null. An id that isn't `<provider>:<id>`, and any other parameter, is
  * ignored. */
 export function readHandoff(search: string): Handoff | null {
-  let params: URLSearchParams;
-  try {
-    params = new URLSearchParams(search);
-  } catch (err) {
-    console.error("[handoff.readHandoff] Unreadable query:", err);
-    return null;
-  }
-  for (const [key, value] of params) {
+  // URLSearchParams never throws: a bad escape decodes to U+FFFD
+  for (const [key, value] of new URLSearchParams(search)) {
     if (key === "locate" && value === "") return { locate: true };
     if (key === "station" && ID.test(value)) return { station: value };
     if (key === "webcam" && ID.test(value)) return { webcam: value };

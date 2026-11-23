@@ -775,7 +775,8 @@ export class MapView {
   }
 
   // The header's GPS button off the map hands over `?locate`: the position
-  // is asked for here (permission is already granted). On failure the map
+  // is asked for here, on page load, so a first visit prompts for permission
+  // on this page rather than on the click. On failure the map
   // stays at its default view, with no pilot marker.
   locatePilot() {
     if (!("geolocation" in navigator)) return;

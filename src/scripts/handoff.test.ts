@@ -39,6 +39,7 @@ test("unknown or malformed parameters are ignored", () => {
   assert.equal(readHandoff("?station=meteo_swiss%3A..%2Fx%2Fy"), null);
   assert.equal(readHandoff("?webcam=a%20b%3Ac"), null);
   assert.equal(readHandoff("?locate=1"), null);
+  // a bad escape is decoded leniently, so only the missing colon rejects it
   assert.equal(readHandoff("?station=%E0%A4%A"), null);
   assert.equal(readHandoff(`?station=a:${"x".repeat(101)}`), null);
 });

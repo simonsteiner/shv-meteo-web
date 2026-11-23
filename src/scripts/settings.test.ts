@@ -131,10 +131,8 @@ test("a throwing storage falls back and saving logs", () => {
 });
 
 test("the checklist goes to its own storage", () => {
-  const local = fakeStorage();
   const session = fakeStorage();
   saveChecklist(session.storage, { p1: true, p2: false });
-  assert.equal(local.map.size, 0);
   assert.deepEqual(loadChecklist(session.storage), { p1: true, p2: false });
   assert.deepEqual(loadChecklist(fakeStorage().storage), {});
   const odd = fakeStorage({ shv_checklist: '{"p1":true,"p2":"x"}' }).storage;
@@ -165,6 +163,43 @@ test("a blocked storage becomes one that keeps nothing", () => {
       Object.defineProperty(globalThis, "localStorage", descriptor);
     else delete (globalThis as { localStorage?: unknown }).localStorage;
   }
+});
+
+test("a storage the browser turned off (null) keeps nothing", () => {
+  const descriptor = Object.getOwnPropertyDescriptor(
+    globalThis,
+    "localStorage",
+  );
+  Object.defineProperty(globalThis, "localStorage", {
+    configurable: true,
+    get: () => null,
+  });
+  try {
+    let storage: KeyValueStorage | undefined;
+    const errors = quiet(() => (storage = browserStorage("localStorage")));
+    assert.equal(errors.length, 1);
+    storage?.setItem("shv_lang", "fr");
+    assert.equal(storage?.getItem("shv_lang"), null);
+  } finally {
+    if (descriptor)
+      Object.defineProperty(globalThis, "localStorage", descriptor);
+    else delete (globalThis as { localStorage?: unknown }).localStorage;
+  }
+});
+
+test("purgeLegacyAuth goes on past a key it can't remove", () => {
+  const { storage, map } = fakeStorage({
+    shv_session_id: "abc",
+    shv_profile: '{"firstName":"A"}',
+  });
+  const removeItem = storage.removeItem.bind(storage);
+  storage.removeItem = (key: string) => {
+    if (key === "shv_session_id") throw new Error("blocked");
+    removeItem(key);
+  };
+  const errors = quiet(() => purgeLegacyAuth(storage));
+  assert.equal(errors.length, 1);
+  assert.deepEqual([...map.keys()], ["shv_session_id"]);
 });
 
 test("purgeLegacyAuth leaves only the other keys", () => {

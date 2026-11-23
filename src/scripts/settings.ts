@@ -67,19 +67,23 @@ export type KeyValueStorage = Pick<
 
 /** The browser's localStorage or sessionStorage, or a storage that keeps
  * nothing where the browser blocks it: reading `window.localStorage` itself
- * throws then, before any try around getItem could catch it. */
+ * throws then, before any try around getItem could catch it, or (Firefox
+ * with dom.storage.enabled off) is null. */
 export function browserStorage(
   name: "localStorage" | "sessionStorage",
 ): KeyValueStorage {
+  const none = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
   try {
-    return globalThis[name];
+    const storage: KeyValueStorage | null = globalThis[name];
+    if (storage) return storage;
+    console.error(`[settings] ${name} is off; settings won't persist`);
   } catch (err) {
     console.error(
       `[settings] ${name} is blocked; settings won't persist:`,
       err,
     );
-    return { getItem: () => null, setItem: () => {}, removeItem: () => {} };
   }
+  return none;
 }
 
 export function defaultSettings(): Settings {

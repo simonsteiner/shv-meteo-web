@@ -22,8 +22,8 @@ import "../styles/forecast-outlooks.css";
 import "../styles/forecast-emagram.css";
 
 interface Props {
-  /** The tab this page shows: map, weather, forecast or safety. */
-  view: string;
+  /** The tab this page shows; state.js TABS lists the same four. */
+  view: "map" | "weather" | "forecast" | "safety";
 }
 const { view } = Astro.props;
 ---
