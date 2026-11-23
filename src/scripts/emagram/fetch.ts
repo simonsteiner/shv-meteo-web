@@ -1,51 +1,74 @@
-// /api/meteo/previtemps/forecast/<name>: a catalogue station's ICON
-// sounding over every time step of the newest run. Seven upstream calls,
-// 8 s each: the model's runs list, then six point-data series (about
-// 180 KB). Upstream lists its runs newest first and soon drops the older
-// one; a run with a series missing (still being ingested) is passed over
-// for the one before, as the official app does. An unknown name is a 404;
-// no usable run is the route's 503, logged with the station (a station
-// whose grid point moved shows the 503 until `npm run grid` runs again).
-import type { Context, GridPoint, PrevitempsGrid, Sounding } from "../types.ts";
+// /api/meteo/previtemps/forecast/<name>: a catalogue station's ICON point
+// data for the newest usable run, passed on as upstream sent it inside a
+// small envelope (`SoundingForecast`); the browser turns it into levels
+// (sounding.ts). Two upstream calls, 8 s each: the model's runs list, then
+// the point's six series in one answer (`?parameters=`, about 160 KB).
+// Upstream lists its runs newest first and soon drops the older one; a run
+// with a series missing (still being ingested, `pointProblem`) is passed
+// over for the one before, as the official app uses only complete runs. An unknown name is a 404; no usable
+// run is the route's 503, logged with the station (a station whose grid
+// point moved shows the 503 until `npm run grid` runs again).
+import type { Context, GridPoint, PrevitempsGrid } from "../types.ts";
 import { fetchUpstream } from "../upstream/fetch.ts";
 import { serve } from "../upstream/respond.ts";
 import { gridPoint } from "./grid.ts";
+import { SOUNDING_PARAMETERS } from "./levels.ts";
 import {
-  parsePointData,
-  pointValidTimes,
-  soundingLevels,
-  SOUNDING_PARAMETERS,
-  valuesAt,
-  type SoundingParameter,
-} from "./levels.ts";
+  pointProblem,
+  type PointAnswer,
+  type SoundingForecast,
+} from "./sounding.ts";
 
 const POINT_DATA = "https://weather-ws-prod.ubmeteo.io/v1/point-data";
 const TIMEOUT_MS = 8_000;
 
-async function json(url: string, fetchFn: typeof fetch): Promise<unknown> {
-  const res = await fetchUpstream(url, TIMEOUT_MS, fetchFn);
-  if (!res.ok) throw new Error(`${url} answered ${res.status}`);
-  return res.json();
+/** The point's six series of `run` in one answer. */
+export function soundingUrl(point: GridPoint, run: number): string {
+  return `${POINT_DATA}/${point.modelKey}/${run}/${point.pointIndex}?parameters=${SOUNDING_PARAMETERS.join(",")}`;
 }
 
-/** The station's sounding from the newest run that has all of it, as the
- * Express route returned it. */
-export async function fetchSounding(
+/** `run`'s point data for the station, as upstream's text; rejects when
+ * upstream fails or the data makes no sounding. */
+async function pointOfRun(
+  point: GridPoint,
+  run: number,
+  fetchFn: typeof fetch,
+): Promise<string> {
+  const url = soundingUrl(point, run);
+  const res = await fetchUpstream(url, TIMEOUT_MS, fetchFn);
+  if (!res.ok) throw new Error(`${url} answered ${res.status}`);
+  const text = await res.text();
+  // a run still being ingested, or a broken one: upstream failures, so
+  // neither replaces the last good copy
+  const problem = pointProblem(JSON.parse(text) as PointAnswer);
+  if (problem) throw new Error(`run ${run} of ${point.name}: ${problem}`);
+  return text;
+}
+
+/** The station's forecast from the newest run that makes a sounding, as
+ * the route's JSON text. */
+export async function fetchForecast(
   point: GridPoint,
   fetchFn: typeof fetch = fetch,
-): Promise<Sounding> {
-  const runs = (await json(
-    `${POINT_DATA}/${point.modelKey}/runs`,
-    fetchFn,
-  )) as {
-    runs?: number[];
-  };
+): Promise<string> {
+  const url = `${POINT_DATA}/${point.modelKey}/runs`;
+  const res = await fetchUpstream(url, TIMEOUT_MS, fetchFn);
+  if (!res.ok) throw new Error(`${url} answered ${res.status}`);
+  const { runs } = (await res.json()) as { runs?: number[] };
   // newest first, whatever order upstream lists them in
-  const list = [...(runs.runs ?? [])].sort((a, b) => b - a);
+  const list = [...(runs ?? [])].sort((a, b) => b - a);
   if (list.length === 0) throw new Error(`no runs for ${point.modelKey}`);
   for (const [i, run] of list.entries()) {
     try {
-      return await soundingOfRun(point, run, fetchFn);
+      const text = await pointOfRun(point, run, fetchFn);
+      const { name, model, elevation, latitude, longitude } = point;
+      const envelope: Omit<SoundingForecast, "point"> = {
+        station: { name, model, elevation, latitude, longitude },
+        run,
+      };
+      // upstream's text goes in as it is: parsing and rewriting it costs
+      // the CPU this route has to save
+      return `${JSON.stringify(envelope).slice(0, -1)},"point":${text}}`;
     } catch (err) {
       if (i === list.length - 1) throw err;
       console.error(
@@ -55,42 +78,6 @@ export async function fetchSounding(
     }
   }
   throw new Error(`no runs for ${point.modelKey}`);
-}
-
-async function soundingOfRun(
-  point: GridPoint,
-  run: number,
-  fetchFn: typeof fetch,
-): Promise<Sounding> {
-  const base = `${POINT_DATA}/${point.modelKey}/${run}`;
-  const raws = await Promise.all(
-    SOUNDING_PARAMETERS.map((p) =>
-      json(`${base}/${p}/${point.pointIndex}`, fetchFn),
-    ),
-  );
-  const matrices = Object.fromEntries(
-    SOUNDING_PARAMETERS.map((p, i) => [p, parsePointData(raws[i])]),
-  ) as Record<SoundingParameter, number[][]>;
-  const validTimes = pointValidTimes(raws[0]);
-  const timeSteps = validTimes.map((timestamp, t) => ({
-    timestamp,
-    timeIso: new Date(timestamp).toISOString(),
-    levels: soundingLevels(valuesAt(matrices, t)),
-  }));
-  // a run still being ingested answers without data: an upstream failure,
-  // so it never replaces the last good copy
-  if (!timeSteps.some((step) => step.levels.length > 0))
-    throw new Error(`no levels for ${point.name} in run ${run}`);
-  return {
-    stationName: point.name,
-    model: point.model,
-    run,
-    elevation: Math.round(point.elevation),
-    latitude: point.latitude,
-    longitude: point.longitude,
-    validTimes,
-    timeSteps,
-  };
 }
 
 function unknownStation(): Response {
@@ -113,7 +100,9 @@ export function soundingRoute(
       // check() below has made sure the name is in the catalogue
       const point = gridPoint(name, grid) as GridPoint;
       try {
-        return Response.json(await fetchSounding(point, fetchFn));
+        return new Response(await fetchForecast(point, fetchFn), {
+          headers: { "Content-Type": "application/json" },
+        });
       } catch (err) {
         console.error(`[sounding] ${point.name} failed:`, err);
         throw err;

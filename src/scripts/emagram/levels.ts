@@ -92,7 +92,6 @@ export function soundingLevels(
     const pressHpa = pressPa / 100;
     if (pressHpa < 550) break;
     levels.push({
-      levelIndex: l,
       heightM: Math.round(heightM),
       pressHpa: round1(pressHpa),
       tempC: round1(tempK - 273.15),

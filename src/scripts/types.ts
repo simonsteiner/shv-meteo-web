@@ -92,7 +92,6 @@ export type PrevitempsGrid = Record<string, GridPoint>;
 
 /** One model level of a sounding, ground first. */
 export interface SoundingLevel {
-  levelIndex: number;
   heightM: number;
   pressHpa: number;
   tempC: number;
@@ -114,7 +113,7 @@ export interface Sounding {
   latitude: number;
   longitude: number;
   validTimes: number[];
-  timeSteps: { timestamp: number; timeIso: string; levels: SoundingLevel[] }[];
+  timeSteps: { timestamp: number; levels: SoundingLevel[] }[];
 }
 
 /** A BAZL aviation obstacle as the map draws it: a GeoJSON feature with

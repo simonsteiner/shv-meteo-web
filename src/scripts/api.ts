@@ -15,6 +15,10 @@ import type {
   Webcam,
 } from "./types.ts";
 import type { FoehnReport } from "./foehn/report.ts";
+import {
+  soundingFromForecast,
+  type SoundingForecast,
+} from "./emagram/sounding.ts";
 import { loadObstacles, type ShardIndex } from "./obstacles/cells.ts";
 
 /** The multi-day outlook frames' index; upstream answers with CORS `*`. */
@@ -278,12 +282,20 @@ export const ShvApi = {
   },
 
   /** A catalogue station's forecast sounding; the Function finds its grid
-   * point by name, so no coordinates are sent. */
-  getEmagramForecast(stationName: string): Promise<Sounding | null> {
-    return getJson(
+   * point by name, so no coordinates are sent, and passes on the point data,
+   * which is turned into levels here. */
+  async getEmagramForecast(stationName: string): Promise<Sounding | null> {
+    const forecast = await getJson<SoundingForecast>(
       `/api/meteo/previtemps/forecast/${encodeURIComponent(stationName)}`,
       "getEmagramForecast",
     );
+    if (!forecast) return null;
+    try {
+      return soundingFromForecast(forecast);
+    } catch (e) {
+      console.error("[ShvApi.getEmagramForecast] Unreadable point data:", e);
+      return null;
+    }
   },
 
   async getDabs(): Promise<Dabs> {
