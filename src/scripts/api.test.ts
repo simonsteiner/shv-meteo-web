@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { buildDabs, isobarenUrl, OUTLOOKS_URL, ShvApi } from "./api.ts";
+import { pointAnswer } from "./emagram/point.fixture.ts";
 
 test("getFoehn() twice makes one fetch, getFoehn('GVE_GUT') a second", async () => {
   const calls: string[] = [];
@@ -74,6 +75,31 @@ test("a failed Foehn call is not kept: the next getFoehn asks again", async () =
     "/api/foehn?pair=DEM_GRE",
     "/api/foehn?pair=DEM_GRE",
   ]);
+});
+
+test("getEmagramForecast builds the sounding, or null when it can't", async () => {
+  const station = {
+    name: "Interlaken",
+    model: "ICON-CH1",
+    elevation: 576.6,
+    latitude: 46.68,
+    longitude: 7.86,
+  };
+  let answer: Response = new Response("{}", { status: 503 });
+  const calls = await withFetch(
+    () => answer,
+    async () => {
+      assert.equal(await ShvApi.getEmagramForecast("Interlaken"), null);
+      answer = Response.json({ station, run: 1, point: pointAnswer() });
+      const sounding = await ShvApi.getEmagramForecast("Interlaken");
+      assert.equal(sounding?.stationName, "Interlaken");
+      assert.equal(sounding?.timeSteps[0].levels.length, 3);
+      // an answer in another shape (an old cached copy): no point data
+      answer = Response.json({ stationName: "Interlaken", timeSteps: [] });
+      assert.equal(await ShvApi.getEmagramForecast("Interlaken"), null);
+    },
+  );
+  assert.equal(calls[0], "/api/meteo/previtemps/forecast/Interlaken");
 });
 
 test("a snapshot falls back to the CDN once, and retries after both fail", async () => {
