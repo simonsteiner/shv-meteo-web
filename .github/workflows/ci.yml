@@ -1,6 +1,6 @@
 # The checks lefthook runs on staged files (not its token budget or dash
 # check, which need the hooks' remote scripts), over the whole tree, plus
-# the typecheck and the build. deploy.yml deploys main once this passes.
+# the tests, the typecheck and the build. deploy.yml deploys main once this passes.
 name: ci
 
 on:
