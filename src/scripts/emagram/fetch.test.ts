@@ -36,13 +36,13 @@ const series = (value: number | null, times: number) => ({
  * `{"runs":[1795435200000,1795413600000]}` (12 and 06 UTC). */
 const RUNS = [3, 2, 1];
 
-function fakeFetch(calls: string[], failing = "", empty = "") {
+function fakeFetch(calls: string[], failing = "", empty = "", runs = RUNS) {
   return (async (input: RequestInfo | URL) => {
     const url = String(input);
     calls.push(url);
     if (failing && url.includes(failing))
       return new Response("", { status: 404 });
-    if (url.endsWith("/runs")) return Response.json({ runs: RUNS });
+    if (url.endsWith("/runs")) return Response.json({ runs });
     const value: Record<string, number> = {
       temperature: 283.15,
       pressure: 95000,
@@ -98,6 +98,16 @@ test("a catalogue name with a slash returns the sounding from the latest run", a
       "https://weather-ws-prod.ubmeteo.io/v1/point-data/meteo_swiss:icon_ch1/3/wind_v/42",
     ),
   );
+});
+
+test("the newest run is taken whatever order upstream lists them in", async () => {
+  const res = await soundingRoute(
+    ctx("Disentis%2FMust%C3%A9r"),
+    grid,
+    fakeFetch([], "", "", [1, 3, 2]),
+  );
+  assert.equal(res.status, 200);
+  assert.equal((await res.json()).run, 3);
 });
 
 test("a newest run without data falls back to the one before", async () => {
