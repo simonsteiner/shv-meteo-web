@@ -1,4 +1,5 @@
 import { buildDabs, isobarenUrl, OUTLOOKS_URL } from "../scripts/client.ts";
+import { loadObstacles } from "../scripts/obstacles/cells.ts";
 
 // In-memory cache for static spatial datasets to prevent repeat download delays
 let cachedFlyingSites = null;
@@ -8,6 +9,13 @@ let cachedWildschutz = null;
 // One request per page load: the header's Foehn badge and the view on the
 // same page share a call. Keyed by pair, so the pair switcher gets its own.
 let measurementsPromise = null;
+
+// The obstacle shards (src/scripts/obstacles/cells.ts): the index once per
+// page load, and the last cells read, so panning back costs nothing.
+const OBSTACLES = "/data/obstacles";
+const OBSTACLE_CELLS_KEPT = 64;
+let obstacleIndexPromise = null;
+const obstacleCells = new Map();
 const foehnPromises = new Map();
 
 export class ShvApi {
@@ -84,24 +92,39 @@ export class ShvApi {
     options = {},
   ) {
     try {
-      const q = new URLSearchParams({
-        minLon,
-        minLat,
-        maxLon,
-        maxLat,
-        zoom: Math.round(zoom || 12),
-      });
-      const resp = await fetch(`/api/obstacles?${q.toString()}`, {
-        signal: options.signal,
-      });
-      if (resp.ok) {
-        return await resp.json();
-      }
+      if (!obstacleIndexPromise)
+        obstacleIndexPromise = ShvApi.fetchObstacleShard("index.json");
+      const index = await obstacleIndexPromise;
+      const features = await loadObstacles(
+        { minLon, minLat, maxLon, maxLat },
+        zoom,
+        index,
+        (path, signal) => ShvApi.fetchObstacleCell(path, signal),
+        options.signal,
+      );
+      return { type: "FeatureCollection", features };
     } catch (err) {
       if (err.name === "AbortError") throw err;
-      console.warn("[ShvApi.getObstacles] Fetch failed:", err);
+      console.error("[ShvApi.getObstacles] Failed to load obstacles:", err);
+      obstacleIndexPromise = null;
     }
     return { type: "FeatureCollection", features: [] };
+  }
+
+  static async fetchObstacleShard(path, signal) {
+    const resp = await fetch(`${OBSTACLES}/${path}`, { signal });
+    if (!resp.ok) throw new Error(`${path} answered ${resp.status}`);
+    return resp.json();
+  }
+
+  static async fetchObstacleCell(path, signal) {
+    const kept = obstacleCells.get(path);
+    if (kept) return kept;
+    const cell = await ShvApi.fetchObstacleShard(path, signal);
+    obstacleCells.set(path, cell);
+    if (obstacleCells.size > OBSTACLE_CELLS_KEPT)
+      obstacleCells.delete(obstacleCells.keys().next().value);
+    return cell;
   }
 
   static async getWildschutz() {
