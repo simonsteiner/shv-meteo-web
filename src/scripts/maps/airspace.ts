@@ -2,6 +2,7 @@
 // (the official app's style.json) and the popups. Every upstream value in a
 // popup is escaped.
 
+import { num, text } from "../coerce.ts";
 import { escapeHtml } from "../escape.ts";
 import type { Say } from "../i18n/text.ts";
 
@@ -96,10 +97,6 @@ export const WILDLIFE_STYLE: ZoneStyle = {
   fillOpacity: 0.12,
 };
 
-function num(v: unknown): number | null {
-  return typeof v === "number" && Number.isFinite(v) ? v : null;
-}
-
 /** An altitude with its reference as upstream names it (`m AGL`, `m QNH`,
  * `m STD`): `2320 m QNH`; just the metres when the reference is missing,
  * null when the altitude is. */
@@ -117,10 +114,6 @@ function row(label: string, value: string): string {
   return `<div><strong>${escapeHtml(label)}</strong> ${escapeHtml(value)}</div>`;
 }
 
-function textOf(v: unknown): string {
-  return typeof v === "string" ? v : "";
-}
-
 /** An airspace's popup: type, name, limits, radio and notes. */
 export function airspacePopupHtml(
   p: Record<string, unknown>,
@@ -131,10 +124,10 @@ export function airspacePopupHtml(
   const upper =
     formatAltitude(p.upperMetricAltitude, p.upperMetricReference) ??
     (upperImperial === null ? null : `${upperImperial} ft`);
-  const frequency = textOf(p.frequency);
-  const callsign = textOf(p.callsign);
-  const info = textOf(p.additionalInfo);
-  return `<div class="airspace-popup"><span class="popup-badge">${escapeHtml(textOf(p.type) || say("map.popup.airspace"))}</span><h4 class="popup-title">${escapeHtml(textOf(p.name) || say("map.popup.airspaceZone"))}</h4><div class="popup-info-grid">${row(say("map.popup.lower"), lower ?? DASH)}${row(say("map.popup.upper"), upper ?? DASH)}${
+  const frequency = text(p.frequency);
+  const callsign = text(p.callsign);
+  const info = text(p.additionalInfo);
+  return `<div class="airspace-popup"><span class="popup-badge">${escapeHtml(text(p.type) || say("map.popup.airspace"))}</span><h4 class="popup-title">${escapeHtml(text(p.name) || say("map.popup.airspaceZone"))}</h4><div class="popup-info-grid">${row(say("map.popup.lower"), lower ?? DASH)}${row(say("map.popup.upper"), upper ?? DASH)}${
     frequency ? row(say("map.popup.frequency"), `${frequency} MHz`) : ""
   }${callsign ? row(say("map.popup.callsign"), callsign) : ""}</div>${
     info ? `<p class="popup-desc">${escapeHtml(info)}</p>` : ""
@@ -151,8 +144,8 @@ export function wildlifePopupHtml(
   say: Say,
 ): string {
   const min = formatAltitude(p.upperAltitude, p.upperReference);
-  const info = textOf(p.additionalInfo);
-  return `<div class="airspace-popup wild-popup"><span class="popup-badge badge-wild">${escapeHtml(say("map.popup.wildlife"))}</span><h4 class="popup-title">${escapeHtml(textOf(p.name) || say("map.popup.wildlifeArea"))}</h4>${
+  const info = text(p.additionalInfo);
+  return `<div class="airspace-popup wild-popup"><span class="popup-badge badge-wild">${escapeHtml(say("map.popup.wildlife"))}</span><h4 class="popup-title">${escapeHtml(text(p.name) || say("map.popup.wildlifeArea"))}</h4>${
     min
       ? `<div class="popup-info-grid">${row(say("map.popup.minAltitude"), min)}</div>`
       : ""

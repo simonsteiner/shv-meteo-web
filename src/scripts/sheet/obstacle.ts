@@ -1,6 +1,7 @@
 // A BAZL aviation obstacle's sheet: type, airport, marking and lighting,
 // heights, its BAZL id, and the directions and DABS links.
 
+import { nonZeroNum, text } from "../coerce.ts";
 import { escapeHtml } from "../escape.ts";
 import { fill, type Say } from "../i18n/text.ts";
 import { featureLatLng } from "../maps/centroid.ts";
@@ -28,14 +29,6 @@ const TYPES = [
   "BRIDGE",
 ];
 
-function text(v: unknown): string {
-  return typeof v === "string" ? v : "";
-}
-
-function num(v: unknown): number | null {
-  return typeof v === "number" && Number.isFinite(v) && v !== 0 ? v : null;
-}
-
 /** An obstacle type's name, upstream's code when unknown. */
 export function obstacleTypeLabel(type: unknown, say: Say): string {
   const t = text(type);
@@ -60,8 +53,8 @@ export function obstacleSheetHtml(f: ObstacleFeature, say: Say): string {
   const marked = text(p.marking) !== "" && p.marking !== "NONE";
   const lighting = text(p.lighting);
   const lit = lighting !== "" && lighting !== "NONE";
-  const agl = num(p.maxHeightAgl);
-  const amsl = num(p.topElevationAmsl);
+  const agl = nonZeroNum(p.maxHeightAgl);
+  const amsl = nonZeroNum(p.topElevationAmsl);
   const airport = text(p.airport);
 
   const head = `<div class="sheet-badges-row"><span class="sheet-badge badge-obstacle">${escapeHtml(say("map.sheet.obstacleBadge"))}</span>${

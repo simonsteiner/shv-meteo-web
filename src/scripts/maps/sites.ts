@@ -2,6 +2,7 @@
 // the wind filter leave, the landing circuits, and the markers' HTML. Every
 // upstream value in that HTML is escaped.
 
+import { text } from "../coerce.ts";
 import { escapeHtml } from "../escape.ts";
 import type { Say } from "../i18n/text.ts";
 import type { FlyingSiteFeature } from "../types.ts";
@@ -39,10 +40,6 @@ export function launchAngle(dir: unknown): number | null {
 
 function kind(p: Props): string {
   return (p.type ?? "").toLowerCase();
-}
-
-function text(v: unknown): string {
-  return typeof v === "string" ? v : "";
 }
 
 /** Whether a site's name, rules or club hold `query` (already trimmed and

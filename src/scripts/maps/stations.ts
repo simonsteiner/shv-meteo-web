@@ -2,6 +2,7 @@
 // temperature pin, and the values a station's sheet shows. Wind and gusts
 // already arrive in km/h; temperature and pressure go through units.ts.
 
+import { num } from "../coerce.ts";
 import { escapeHtml } from "../escape.ts";
 import type { MeasurementFeature } from "../types.ts";
 import { round1, toCelsius, toHpa } from "../units.ts";
@@ -39,10 +40,6 @@ export function temperatureColor(c: number): string {
   if (c >= 8) return "#10B981";
   if (c >= 0) return "#06B6D4";
   return "#3B82F6";
-}
-
-function num(v: unknown): number | null {
-  return typeof v === "number" && Number.isFinite(v) ? v : null;
 }
 
 /** A station's position, [lat, lng], else null. */

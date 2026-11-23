@@ -2,6 +2,7 @@
 // position, what it suits, its notices, rules, hazards, access, fees and
 // club, and the directions and Rega buttons.
 
+import { text } from "../coerce.ts";
 import { escapeHtml, safeUrl } from "../escape.ts";
 import { fill, type Say } from "../i18n/text.ts";
 import { featureLatLng } from "../maps/centroid.ts";
@@ -47,10 +48,6 @@ export const SUITABILITY = [
   "accessibleByCar",
   "publicTransport",
 ] as const;
-
-function text(v: unknown): string {
-  return typeof v === "string" ? v : "";
-}
 
 function badge(cls: string, label: string): string {
   return `<span class="sheet-badge ${cls}">${escapeHtml(label)}</span>`;
