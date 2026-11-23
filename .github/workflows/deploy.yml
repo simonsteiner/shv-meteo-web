@@ -1,5 +1,6 @@
 # Builds the site and deploys it to Cloudflare Pages (project shv-meteo)
-# once ci has passed on main, or by hand from main.
+# once ci has passed on main, by hand from main, and once a day, so the BAZL
+# obstacle shards (npm run obstacles) are at most a day old.
 #
 # Secrets: CLOUDFLARE_API_TOKEN (Account: Cloudflare Pages edit) and
 # CLOUDFLARE_ACCOUNT_ID.
@@ -13,6 +14,9 @@ on:
     types: [completed]
     branches: [main]
   workflow_dispatch:
+  # A scheduled run builds main's head (the default branch) with fresh shards.
+  schedule:
+    - cron: "17 3 * * *"
 
 permissions:
   contents: read
@@ -26,6 +30,7 @@ jobs:
     # manual run builds main's head, and only main's: started on another
     # branch it would ship that branch as production.
     if: >-
+      github.event_name == 'schedule' ||
       (github.event_name == 'workflow_dispatch' &&
        github.ref == 'refs/heads/main') ||
       (github.event.workflow_run.conclusion == 'success' &&
@@ -54,6 +59,18 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      # The BAZL dataset (about 128 MB), downloaded at most once a day: the
+      # key holds the date, and a restored older copy is refetched by the
+      # script, which reuses only a copy under a day old.
+      - name: Date
+        id: date
+        run: echo "today=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache/obstacles
+          key: bazl-${{ steps.date.outputs.today }}
+          restore-keys: bazl-
+      - run: npm run obstacles
       - run: npm run build
       # The Cloudflare token is set on this step alone, so npm ci and the
       # build, which run third-party code, cannot read it from their
