@@ -16,7 +16,7 @@ Interactive flight preparation, meteorological observation, and airspace safety 
 
 * **Interactive Flying Sites Map**:
   * **Startplätze (Take-offs)**: High-visibility markers with cardinal heading badges (`SW`, `NNE`) and directional pointers showing launch orientation.
-  * **Landeplätze (Landing Sites)**: Disks with elevation, difficulty, and landing instructions.
+  * **Landeplätze (Landings)**: Disks with elevation, difficulty, and landing instructions.
   * **Landevolten (Landing Circuits)**: Dual-stroke trajectory circuits with approach arrowheads and circuit popups.
   * **Aviation Obstacles (Hindernisse)**: Power lines, cable cars, transmission cables, and antennas across Switzerland.
   * **Airspaces (Lufträume)**: Swiss CTR, TMA, and restricted airspace zones.
@@ -36,7 +36,7 @@ Interactive flight preparation, meteorological observation, and airspace safety 
 
 * **Safety & Flight Operations (Sicherheit & Flugpraxis)**:
   * **DABS (Daily Airspace Bulletin Switzerland)**: Current aviation safety warnings and temporary flight restrictions.
-  * **Pre-Flight Checklist**: 5-point takeoff safety check.
+  * **Pre-Flight Checklist**: 5-point take-off safety check.
   * **Pilot Flight Logbook (Flugbuch)**: Log flights, track total airtime, and review flight statistics.
   * **Variometer Audio Simulator**: Interactive climb/sink audio variometer simulator.
 
@@ -47,9 +47,9 @@ Interactive flight preparation, meteorological observation, and airspace safety 
 Click any image to view in full resolution (2880×1800):
 
 ### 1. Interactive Map & Flying Sites
-| Live Map Overview (Takeoffs, Landings & Volten) | Takeoff Site Detail Popup |
+| Live Map Overview (Take-offs, Landings & Landing Circuits) | Take-off Detail Popup |
 | :---: | :---: |
-| [![Live Map Overview](screenshots/01_fluggebiete_overview.png)](screenshots/01_fluggebiete_overview.png) | [![Takeoff Site Detail](screenshots/02_fluggebiete_startplatz_detail.png)](screenshots/02_fluggebiete_startplatz_detail.png) |
+| [![Live Map Overview](screenshots/01_fluggebiete_overview.png)](screenshots/01_fluggebiete_overview.png) | [![Take-off Detail](screenshots/02_fluggebiete_startplatz_detail.png)](screenshots/02_fluggebiete_startplatz_detail.png) |
 | **Landevolte (Landing Circuit) Trajectory** | **Map Layer Controls Drawer** |
 | [![Landevolte](screenshots/03_landevolte_circuit_detail.png)](screenshots/03_landevolte_circuit_detail.png) | [![Layer Controls](screenshots/04_karten_ebenen_drawer.png)](screenshots/04_karten_ebenen_drawer.png) |
 | **Swisstopo Satellite Aerial Basemap** | **Aviation Obstacles & Controlled Airspaces** |
