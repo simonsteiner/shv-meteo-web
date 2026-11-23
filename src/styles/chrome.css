@@ -77,6 +77,8 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.15s ease;
+  /* the member portal link wears it too */
+  text-decoration: none;
 }
 
 .icon-btn:hover {
@@ -239,8 +241,7 @@
 /* Scrollable views */
 .weather-view-wrapper,
 .forecast-view-wrapper,
-.safety-view-wrapper,
-.profile-view-wrapper {
+.safety-view-wrapper {
   height: 100%;
   overflow-y: auto;
   padding: 16px;

@@ -6,7 +6,6 @@ import { MapView } from "./views/MapView.js";
 import { WeatherView } from "./views/WeatherView.js";
 import { ForecastView } from "./views/ForecastView.js";
 import { SafetyView } from "./views/SafetyView.js";
-import { renderProfileView } from "./views/ProfileView.js";
 import { ShvApi } from "./services/api.js";
 
 export const storeInstance = store;
@@ -103,9 +102,6 @@ class App {
         case "safety":
           this.currentViewInstance = new SafetyView(this.viewContainer);
           this.currentViewInstance.mount();
-          break;
-        case "profile":
-          renderProfileView(this.viewContainer);
           break;
         default:
           this.currentViewInstance = new MapView(this.viewContainer);

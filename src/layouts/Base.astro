@@ -14,7 +14,6 @@ import "../styles/sheet.css";
 import "../styles/weather.css";
 import "../styles/forecast.css";
 import "../styles/safety.css";
-import "../styles/profile.css";
 import "../styles/responsive.css";
 import "../styles/meteo-extras.css";
 import "../styles/forecast-text.css";
@@ -22,7 +21,7 @@ import "../styles/forecast-outlooks.css";
 import "../styles/forecast-emagram.css";
 
 interface Props {
-  /** The tab this page shows: map, weather, forecast, safety or profile. */
+  /** The tab this page shows: map, weather, forecast or safety. */
   view: string;
 }
 const { view } = Astro.props;
