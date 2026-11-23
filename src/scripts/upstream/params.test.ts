@@ -58,6 +58,13 @@ test("a sounding name with a malformed escape is a 400", async () => {
   );
 });
 
+test("a text forecast language with a malformed escape is a 400", async () => {
+  await status400(
+    quiet(() => parseParams("textForecast", { lang: "%E0%A4%A" }, none)),
+    "Ungültige Sprache",
+  );
+});
+
 test("the text forecast language falls back to German", () => {
   for (const [lang, want] of [
     ["de", "de"],
