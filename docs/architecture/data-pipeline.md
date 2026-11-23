@@ -64,7 +64,7 @@ Ubique Fluid Meteo Services (`weather-ws-prod.ubmeteo.io`) delivers real-time we
 - **Temperatures (`temperatureValue`, `temperature2mValue`, `dewPoint2mValue`)**: If raw value $> 200$, it is expressed in Kelvin and must be converted via $T(^\circ\text{C}) = T(\text{K}) - 273.15$. Values $\le 200$ are natively in Celsius.
 - **Atmospheric Pressure (`pressureMslValue`, `pressureStandardMslValue`)**: Scaled in raw tenths or Pa in some sensors. If raw value $> 5000$, divide by 10 to obtain standard hectopascals (hPa / QNH).
 
-The `/api/measurements` Function passes the body through unparsed; these conversions happen in the browser: the map page and its sheets through [src/scripts/units.ts](../../src/scripts/units.ts) ([src/scripts/maps/stations.ts](../../src/scripts/maps/stations.ts)), [src/views/WeatherView.js](../../src/views/WeatherView.js) with its own copy until its refactor.
+The `/api/measurements` Function passes the body through unparsed; these conversions happen in the browser, through [src/scripts/units.ts](../../src/scripts/units.ts): on the weather page in [src/scripts/weather/stations.ts](../../src/scripts/weather/stations.ts), on the map page and its sheets in [src/scripts/maps/stations.ts](../../src/scripts/maps/stations.ts).
 
 ## Live Map Meteo Modes (`LiveMapMeteoType`)
 

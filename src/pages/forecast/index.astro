@@ -1,9 +1,6 @@
 ---
-import Base from "../../layouts/Base.astro";
+// /forecast/: the text forecasts, the first section.
+import ForecastPage from "../../components/forecast/ForecastPage.astro";
 ---
 
-<Base view="forecast">
-  <script>
-    import "../../main.js";
-  </script>
-</Base>
+<ForecastPage section="text" />

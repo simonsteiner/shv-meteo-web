@@ -7,7 +7,11 @@
 import { store } from "../../state.js";
 import { ShvApi } from "../api.ts";
 import { must } from "../dom.ts";
-import { applyText, say as sayIn, type Dictionary } from "../i18n/text.ts";
+import { applyText } from "../i18n/text.ts";
+import {
+  storeDictionary as dictionary,
+  storeSay as say,
+} from "../i18n/store.ts";
 import { VarioAudio } from "./audio.ts";
 import { flightCardsHtml } from "./cards.ts";
 import { allChecked, isCheckPoint } from "./checklist.ts";
@@ -21,14 +25,6 @@ import {
   type Flight,
 } from "./flights.ts";
 import { formatRate, gaugeState } from "./vario.ts";
-
-function dictionary(): Dictionary {
-  return store.t as unknown as Dictionary;
-}
-
-function say(key: string): string {
-  return sayIn(dictionary(), key);
-}
 
 export function mountSafety(root: HTMLElement): void {
   const audio = new VarioAudio();

@@ -1,6 +1,6 @@
 # Swiss Free Flight
 
-A web app for Swiss paraglider and hang glider pilots that shows flying sites, airspace hazards, live weather and soaring forecasts from the public data behind the official SHV FSVL app. It is a static Astro site (`src/pages/`, one page per tab) wrapping the legacy vanilla JavaScript views (`src/views/`), plus Cloudflare Pages Functions (`functions/api/`) for the upstream calls a browser can't make. The browser loads static GIS data from `public/data/`, a few upstreams directly, and everything else through `/api/*`, where the Functions proxy and cache the upstream services (Ubique weather and webcams, SHV, MeteoSwiss ICON).
+A web app for Swiss paraglider and hang glider pilots that shows flying sites, airspace hazards, live weather and soaring forecasts from the public data behind the official SHV FSVL app. It is a static Astro site (`src/pages/`, one page per tab, each with its components in `src/components/<tab>/` and its TypeScript in `src/scripts/`; the header and bottom nav are still legacy vanilla JavaScript), plus Cloudflare Pages Functions (`functions/api/`) for the upstream calls a browser can't make. The browser loads static GIS data from `public/data/`, a few upstreams directly, and everything else through `/api/*`, where the Functions proxy and cache the upstream services (Ubique weather and webcams, SHV, MeteoSwiss ICON).
 
 Domain terms are in `GLOSSARY.md`. The move to Astro on Cloudflare Pages is in progress (`docs/plan/2026-11-23-astro-cloudflare/`); this file describes the code as it is now.
 
@@ -26,7 +26,7 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 
 - **`ShvApi` is the only caller of `fetch` in the browser.** Add new endpoints to `src/scripts/api.ts`; views and components never fetch directly.
 - **Proxy only what has to be proxied.** The browser calls an upstream directly only when it allows CORS and the payload is light; anything with CORS limits (or a 403 to an `Origin` header), heavy data or multi-station math gets a Pages Function in `functions/api/`. The reasoning and the current split are in `docs/architecture/data-queries.md`.
-- **Upstream weather units are quirky.** Wind and gusts already arrive in km/h (never multiply by 3.6), a temperature above 200 is Kelvin, a pressure above 5000 is in tenths of hPa. New code converts through `src/scripts/units.ts` (`toCelsius`, `toHpa`); the legacy copy in `src/views/WeatherView.js` goes with its view's refactor, so until then change both together.
+- **Upstream weather units are quirky.** Wind and gusts already arrive in km/h (never multiply by 3.6), a temperature above 200 is Kelvin, a pressure above 5000 is in tenths of hPa. Convert through `src/scripts/units.ts` (`toCelsius`, `toHpa`).
 - **A Function is a one-line adapter.** Add a route to `ROUTES` in `src/scripts/upstream/routes.ts` (fixed upstream URL, TTL, timeout, German error body) and its checks to `params.ts`, then call `proxy(name, ctx)` from `functions/api/`. `respond.ts` streams the body unparsed, sets `Cache-Control`, keeps each 200 in the edge cache as the fallback for an upstream error, and answers anything else with a 503 that is never cached. Functions keep no memory between requests.
 
 ### UI and state

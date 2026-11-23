@@ -1,9 +1,22 @@
 ---
+// The weather page: the four station pairs, the live stations and the
+// webcams. Static markup; src/scripts/weather/page.ts fills and drives it.
+// main.js still renders the shared header and nav. Deep link:
+// /weather/?tab=webcams&pair=GVE_GUT (src/scripts/weather/query.ts).
 import Base from "../../layouts/Base.astro";
+import FoehnPairs from "../../components/weather/FoehnPairs.astro";
+import LiveLists from "../../components/weather/LiveLists.astro";
+import StationModal from "../../components/weather/StationModal.astro";
 ---
 
 <Base view="weather">
+  <div slot="view" class="weather-view-wrapper" data-weather>
+    <FoehnPairs />
+    <LiveLists />
+    <StationModal />
+  </div>
   <script>
     import "../../main.js";
+    import "../../scripts/weather/page.ts";
   </script>
 </Base>

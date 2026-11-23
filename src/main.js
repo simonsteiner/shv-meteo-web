@@ -1,8 +1,6 @@
 import { store } from "./state.js";
 import { renderHeader } from "./components/Header.js";
 import { renderBottomNav } from "./components/BottomNav.js";
-import { WeatherView } from "./views/WeatherView.js";
-import { ForecastView } from "./views/ForecastView.js";
 import { ShvApi } from "./scripts/api.ts";
 
 export const storeInstance = store;
@@ -78,15 +76,9 @@ class App {
   mountView(tab) {
     try {
       switch (tab) {
-        case "weather":
-          this.currentViewInstance = new WeatherView(this.viewContainer);
-          this.currentViewInstance.mount();
-          break;
-        case "forecast":
-          this.currentViewInstance = new ForecastView(this.viewContainer);
-          this.currentViewInstance.mount();
-          break;
         case "map":
+        case "forecast":
+        case "weather":
         case "safety":
           // Ported pages: their markup is built in and their own script
           // drives it, the map's bottom sheet included
