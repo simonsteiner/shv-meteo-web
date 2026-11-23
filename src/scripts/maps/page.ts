@@ -347,36 +347,50 @@ export function mountMap(root: HTMLElement): void {
     .catch((err: unknown) =>
       console.error("[maps] Cannot load the wildlife zones:", err),
     );
-  ShvApi.getMeasurements().then((data) => {
-    stations = data?.features ?? [];
-    stationsMode = null;
-    redrawStations();
-    if (handoff && "station" in handoff) {
-      const st = stations.find((f) => f.id === handoff.station);
-      if (!st)
-        console.error(
-          `[maps] Handed-over station not found: ${handoff.station}`,
-        );
-      else {
-        select("station", st);
-        moveTo(stationLatLng(st));
+  ShvApi.getMeasurements()
+    .then((data) => {
+      stations = data?.features ?? [];
+      stationsMode = null;
+      redrawStations();
+      if (handoff && "station" in handoff) {
+        const st = stations.find((f) => f.id === handoff.station);
+        if (!st)
+          console.error(
+            `[maps] Handed-over station not found: ${handoff.station}`,
+          );
+        else {
+          select("station", st);
+          moveTo(stationLatLng(st));
+        }
       }
-    }
-  });
-  ShvApi.getFoehn().then((report) => {
-    foehn = report;
-    drawFoehn(foehnLayer, foehn, store.state.lang, openWeather);
-  });
-  ShvApi.getWebcams().then((data) => {
-    webcams = data?.webcams ?? [];
-    drawWebcams(webcamsLayer, webcams, (w) => select("webcam", w));
-    if (handoff && "webcam" in handoff) {
-      const cam = webcams.find((w) => w.identifier === handoff.webcam);
-      if (cam) select("webcam", cam);
-      else
-        console.error(`[maps] Handed-over webcam not found: ${handoff.webcam}`);
-    }
-  });
+    })
+    .catch((err: unknown) =>
+      console.error("[maps] Cannot load the measurements:", err),
+    );
+  ShvApi.getFoehn()
+    .then((report) => {
+      foehn = report;
+      drawFoehn(foehnLayer, foehn, store.state.lang, openWeather);
+    })
+    .catch((err: unknown) =>
+      console.error("[maps] Cannot load the Foehn report:", err),
+    );
+  ShvApi.getWebcams()
+    .then((data) => {
+      webcams = data?.webcams ?? [];
+      drawWebcams(webcamsLayer, webcams, (w) => select("webcam", w));
+      if (handoff && "webcam" in handoff) {
+        const cam = webcams.find((w) => w.identifier === handoff.webcam);
+        if (cam) select("webcam", cam);
+        else
+          console.error(
+            `[maps] Handed-over webcam not found: ${handoff.webcam}`,
+          );
+      }
+    })
+    .catch((err: unknown) =>
+      console.error("[maps] Cannot load the webcams:", err),
+    );
   if (handoff && "locate" in handoff)
     void locatePilot().then((at) => {
       if (at) store.setPilotLocation(at);
