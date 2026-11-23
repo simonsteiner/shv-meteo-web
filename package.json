@@ -14,7 +14,8 @@
     "format": "prettier --write .",
     "shot": "node --experimental-strip-types scripts/shot.ts",
     "prepare": "lefthook install || true",
-    "grid": "node --experimental-strip-types scripts/previtemps-grid.ts"
+    "grid": "node --experimental-strip-types scripts/previtemps-grid.ts",
+    "obstacles": "node --experimental-strip-types --max-old-space-size=4096 scripts/obstacles.ts"
   },
   "dependencies": {
     "astro": "^7.4.13",

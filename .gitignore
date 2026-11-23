@@ -6,3 +6,5 @@ apk_analysis/
 .rumdl_cache/
 .astro/
 .wrangler/
+public/data/obstacles/
+.cache/
