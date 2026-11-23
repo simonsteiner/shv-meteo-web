@@ -2,7 +2,7 @@
 
 The site is static Astro output on Cloudflare Pages, project `shv-meteo`, served at <https://shv-meteo.pages.dev>. [wrangler.jsonc](../wrangler.jsonc) names the project and the output directory (`dist/`); there are no bindings and no secrets.
 
-Until the Pages Functions land (PR9 of the [migration plan](plan/2026-11-23-astro-cloudflare/prs-api.md)), a deploy serves the pages without an API: every `/api` call answers 404, so live weather, Foehn and webcams are missing there. The Express server in `server/` runs only in local development.
+The API is Pages Functions in `functions/api/`, deployed with the pages by the same `wrangler pages deploy`. Routes not ported yet (Foehn, soundings, obstacles; see the [migration plan](plan/2026-11-23-astro-cloudflare/prs-api.md)) answer 404.
 
 ## One-time setup (the repo owner)
 
@@ -33,8 +33,9 @@ In the Cloudflare dashboard: Workers & Pages, `shv-meteo`, Deployments, then Rol
 
 - `dist/` as static files: one page per tab (`/map/`, `/weather/`, `/forecast/`, `/safety/`, `/profile/`), `public/` copied as is (assets and the GeoJSON snapshots under `/data/`).
 - [public/_redirects](../public/_redirects): `/` to `/map/`.
+- `functions/api/**`: the Pages Functions, at their file paths under `/api/`.
 
 ## State and secrets
 
 - **No secrets.** The site has no API keys or client secrets.
-- **No server state.** What a visitor sets (language, theme, map layers and filters, flight log) stays in their browser's localStorage under `shv_*` keys; the pre-flight checklist stays in sessionStorage.
+- **No server state.** The Functions keep their last good upstream answers in the edge cache only. What a visitor sets (language, theme, map layers and filters, flight log) stays in their browser's localStorage under `shv_*` keys; the pre-flight checklist stays in sessionStorage.

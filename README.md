@@ -84,10 +84,10 @@ Needs Node.js 24 and Python 3 (for the git hooks).
 
 ```bash
 npm install
-npm run dev   # Astro on http://localhost:4321, API on port 3001
+npm run dev   # Astro on http://localhost:4321/map/, Pages Functions on port 8788
 ```
 
-The site is built with Astro and deployed to Cloudflare Pages at <https://shv-meteo.pages.dev>.
+The site is built with Astro and deployed to Cloudflare Pages at <https://shv-meteo.pages.dev>, with its API as Pages Functions.
 
 ---
 

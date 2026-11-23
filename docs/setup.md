@@ -4,7 +4,7 @@
 
 - **Node.js 24**: it runs the `.ts` tests and scripts directly, stripping their types.
 - **npm** (the repo has a `package-lock.json`).
-- **Python 3**, for the git hooks' scripts (lefthook's token budget and dash check). Until the Pages Functions replace Express, the Python parcel-analysis routes (`/api/emagram/calculate`, `/api/meteo/previtemps/sounding*`) also spawn `python3 server/emagram_calc.py`, and no view calls them.
+- **Python 3**, for the git hooks' scripts (lefthook's token budget and dash check). Nothing in the app runs Python.
 
 ## Install and run
 
@@ -13,14 +13,14 @@ npm install
 npm run dev
 ```
 
-`npm run dev` runs [server/start-dev.js](../server/start-dev.js), which starts two processes:
+`npm run dev` runs [scripts/dev.ts](../scripts/dev.ts), which starts two processes:
 
-- the Express API ([server/index.js](../server/index.js)) on port `3001`
-- `astro dev` on port `4321`, which proxies `/api/*` to `http://127.0.0.1:3001` ([astro.config.mjs](../astro.config.mjs))
+- `wrangler pages dev public` on port `8788`, which compiles the Pages Functions in `functions/` without a build
+- `astro dev` on port `4321`, which proxies `/api/*` to `http://127.0.0.1:8788` ([astro.config.mjs](../astro.config.mjs))
+
+A route not ported to a Function yet answers 404, in dev as in production. Ctrl-C stops both.
 
 Open <http://localhost:4321>; `/` redirects to `/map/` once built (`public/_redirects`), so in dev open <http://localhost:4321/map/>.
-
-To run the API alone: `npm run server` (port 3001).
 
 ## Pages and navigation
 
@@ -41,15 +41,11 @@ npm run build    # astro build into dist/
 npm run preview  # wrangler pages dev dist: the built site as Pages serves it, on port 8788
 ```
 
-`npm run preview` serves only what Pages will serve: until the Pages Functions land, `/api` answers 404 there.
+`npm run preview` serves exactly what Pages will serve: the built pages, `_redirects` and the Functions.
 
 ## Configuration
 
-There is no `.env` file and nothing loads one. The Express server reads one environment variable:
-
-- `PORT`: the Express port, default `3001`.
-
-Caches live in memory, except BAZL obstacle data, which [server/obstacles_provider.js](../server/obstacles_provider.js) writes to `server/cache/` (gitignored; created on first start).
+There is no `.env` file and nothing loads one: the Functions have no bindings and no secrets. Each Function keeps its last good answer in the edge cache (`caches.default`); locally `wrangler` keeps that cache under `.wrangler/`.
 
 ## Screenshots
 
@@ -67,5 +63,5 @@ It launches a headless Chromium (`$CHROME`, else Playwright's newest under `~/.c
 
 ## Troubleshooting
 
-- **First obstacle request is slow**: the server downloads and indexes the full BAZL dataset (about 122 MB) on first use and keeps it in memory until the server restarts, reusing `server/cache/bazl_obstacles.geojson` when it is under 24 hours old.
-- **`/api` returns 500 and the Astro terminal logs a proxy error**: the API is not running on `3001`; start it with `npm run server` or use `npm run dev`.
+- **`/api` returns 500 and the Astro terminal logs a proxy error**: `wrangler pages dev` is not running on `8788`; use `npm run dev`.
+- **An `/api` call answers 503**: the upstream failed or timed out and the edge cache had no copy yet; the Functions log the cause in the `wrangler` output.
