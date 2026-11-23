@@ -121,16 +121,26 @@ function edgeCache(): Cache | undefined {
 
 /** A whole route: checks the parameters, then answers through `respond`
  * from what `fetcher` makes of them. What each Function in functions/api/
- * calls, through `proxy` for a route with one upstream. */
+ * calls, through `proxy` for a route with one upstream. `check` may answer
+ * instead (a 404 for a name the route doesn't know) before any upstream
+ * call or cache lookup. */
 export async function serve(
   name: RouteName,
   ctx: Context,
   fetcher: (params: Record<string, string>) => Promise<Response>,
-  cache: Cache | undefined = edgeCache(),
+  {
+    cache = edgeCache(),
+    check,
+  }: {
+    cache?: Cache;
+    check?: (params: Record<string, string>) => Response | null;
+  } = {},
 ): Promise<Response> {
   const search = new URL(ctx.request.url).searchParams;
   const params = parseParams(name, ctx.params, search);
   if (params instanceof Response) return params;
+  const refused = check?.(params);
+  if (refused) return refused;
   // the copy is keyed by the route and its checked parameters, so
   // `meteo_swiss%3AKLO` and `meteo_swiss:KLO`, or `en` and `de`, share one
   const query = new URLSearchParams(Object.entries(params).sort());
@@ -156,6 +166,6 @@ export function proxy(
     name,
     ctx,
     (params) => fetchUpstream(url(params), route.timeoutMs),
-    cache,
+    { cache },
   );
 }

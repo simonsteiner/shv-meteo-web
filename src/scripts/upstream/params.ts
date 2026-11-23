@@ -51,6 +51,12 @@ export function parseParams(
     const lang = (decoded(path.lang) ?? "").toLowerCase();
     params.lang = TEXT_LANGS.includes(lang) ? lang : "de";
   }
+  if (route === "sounding") {
+    // names may hold `/` (Disentis/Mustér); matched case-insensitively, so
+    // the lower-cased name keys the cached copy. A malformed escape matches
+    // no station.
+    params.name = (decoded(path.name) ?? "").trim().toLowerCase();
+  }
   if (route === "foehn") {
     // an unknown or missing pair gets the Gotthard pair, as before
     params.pair = pairConfig(params.pair).id;

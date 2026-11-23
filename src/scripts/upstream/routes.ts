@@ -32,7 +32,12 @@ const TIMESERIES_PARAMETERS =
   "wind_speed,wind_direction,wind_gust,temperature,pressure_msl,relative_humidity";
 
 export type RouteName =
-  "measurements" | "timeseries" | "webcams" | "textForecast" | "foehn";
+  | "measurements"
+  | "timeseries"
+  | "webcams"
+  | "textForecast"
+  | "foehn"
+  | "sounding";
 
 export const ROUTES: Record<RouteName, Route> = {
   measurements: {
@@ -78,5 +83,12 @@ export const ROUTES: Record<RouteName, Route> = {
     timeoutMs: 8_000,
     errorBody: { error: "Föhndaten vorübergehend nicht erreichbar" },
     query: ["pair"],
+  },
+  // seven calls (emagram/fetch.ts), 8 s each; keyed by station
+  sounding: {
+    ttl: 1200,
+    timeoutMs: 8_000,
+    errorBody: { error: "Sondierung vorübergehend nicht erreichbar" },
+    query: [],
   },
 };
