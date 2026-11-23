@@ -5,6 +5,11 @@ let cachedFlyingSites = null;
 let cachedAirspaces = null;
 let cachedWildschutz = null;
 
+// One request per page load: the header's Foehn badge and the view on the
+// same page share a call. Keyed by pair, so the pair switcher gets its own.
+let measurementsPromise = null;
+const foehnPromises = new Map();
+
 export class ShvApi {
   static async getFlyingSites() {
     if (cachedFlyingSites) return cachedFlyingSites;
@@ -133,7 +138,12 @@ export class ShvApi {
     }
   }
 
-  static async getMeasurements() {
+  static getMeasurements() {
+    if (!measurementsPromise) measurementsPromise = ShvApi.fetchMeasurements();
+    return measurementsPromise;
+  }
+
+  static async fetchMeasurements() {
     try {
       const resp = await fetch("/api/measurements");
       if (resp.ok) return await resp.json();
@@ -163,12 +173,17 @@ export class ShvApi {
     return null;
   }
 
-  static async getFoehn(pairId = null) {
+  /** @param {string | null} [pairId] a pair id; none is KLO_LUG */
+  static getFoehn(pairId = null) {
+    const pair = pairId || "KLO_LUG";
+    if (!foehnPromises.has(pair))
+      foehnPromises.set(pair, ShvApi.fetchFoehn(pair));
+    return foehnPromises.get(pair);
+  }
+
+  static async fetchFoehn(pair) {
     try {
-      const url = pairId
-        ? `/api/foehn?pair=${encodeURIComponent(pairId)}`
-        : "/api/foehn";
-      const resp = await fetch(url);
+      const resp = await fetch(`/api/foehn?pair=${encodeURIComponent(pair)}`);
       if (resp.ok) return await resp.json();
       console.error(
         "[ShvApi.getFoehn] HTTP error:",
