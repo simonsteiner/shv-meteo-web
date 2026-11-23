@@ -62,6 +62,9 @@ function select(kind: SelectionKind | null, value: unknown = null): void {
 export function mountMap(root: HTMLElement): void {
   const handoff: Handoff | null = readHandoff(location.search);
   const zoom = readZoom(location.search);
+  // ?z sets the zoom of a ?locate handoff only, and only once, so the
+  // header's GPS button later centres the pilot at PILOT_ZOOM
+  let locateZoom = handoff && "locate" in handoff ? zoom : null;
   if (handoff || zoom !== null)
     history.replaceState(history.state, "", withoutHandoff(location.href));
 
@@ -201,7 +204,8 @@ export function mountMap(root: HTMLElement): void {
         [24, 24],
       ),
     }).addTo(map);
-    map.setView(at, zoom ?? PILOT_ZOOM);
+    map.setView(at, locateZoom ?? PILOT_ZOOM);
+    locateZoom = null;
   }
 
   function render(): void {
