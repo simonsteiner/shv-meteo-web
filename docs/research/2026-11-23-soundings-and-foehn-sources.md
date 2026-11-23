@@ -4,7 +4,7 @@ Date: 2026-11-23. Live checks ran between 12:58 and 13:03 UTC with `curl` (User-
 
 ## Summary
 
-- `/api/foehn` spent 8 to 29 ms CPU (Free limit 10 ms), mostly parsing 0.82 MB of Swiss measurements and two 14-day series. Asking upstream only for what the report reads (`parameters=` and a box per parameter, `start=` 25 hours back on the series) cuts the payload to about 52 KB and the CPU to a median of 5.5 ms (3 to 13 ms), with identical output; no upstream change needed.
+- `/api/foehn` spent 8 to 29 ms CPU (Free limit 10 ms), mostly parsing 0.98 MB: the Swiss measurements (0.82 MB) and two 14-day series. Asking upstream only for what the report reads (`parameters=` and a box per parameter, `start=` 25 hours back on the series) cuts the payload to about 52 KB and the CPU to a median of 5.5 ms (3 to 13 ms), with identical output; no upstream change needed.
 - Upstream's sounding point data was still down at 12:58 UTC: `/runs` lists runs, every uncached point answers 404. Our Function's 503 is correct; there is no other SHV-side source.
 - The official app 1.1.0 makes the same anonymous calls, so it fails too; a member login would change nothing.
 - MeteoSwiss Open Government Data has ICON-CH1/CH2 (CC BY 4.0, 09Z run published 10:23 UTC), but only as whole-domain GRIB2 (about 184 MB per variable and lead time), kept 24 hours. Own soundings from it need a build pipeline outside Pages.
