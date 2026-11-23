@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { PAIRS } from "../foehn/pairs.ts";
 import {
   alertTextClass,
   bannerClass,
@@ -52,6 +53,8 @@ test("stationReading shows the pair's unit", () => {
 test("chartTitleKey and pairDescription", () => {
   assert.equal(chartTitleKey("GVE_GUT"), "weather.chart_GVE_GUT");
   assert.equal(chartTitleKey("XYZ"), "weather.chartDefault");
+  for (const p of PAIRS)
+    assert.equal(chartTitleKey(p.id), `weather.chart_${p.id}`);
   const pair = { descriptionDe: "Kein Föhn", descriptionEn: "No foehn" };
   assert.equal(pairDescription(pair, "de"), "Kein Föhn");
   assert.equal(pairDescription(pair, "fr"), "No foehn");

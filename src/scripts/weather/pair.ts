@@ -1,14 +1,15 @@
 // How the weather page shows a station pair: the difference with its sign,
 // the colour for its alert level, and the words for each side.
 
+import { signed } from "../charts/theme.ts";
+import { PAIRS } from "../foehn/pairs.ts";
 import type { StationPair, PairStation } from "../foehn/report.ts";
 
 export type Banner = "banner-danger" | "banner-warning" | "banner-safe";
 
 /** A difference with a plus sign when positive; a dash when missing. */
 export function formatDelta(delta: number | null): string {
-  if (delta === null) return "\u2013";
-  return `${delta > 0 ? "+" : ""}${delta}`;
+  return delta === null ? "\u2013" : signed(delta);
 }
 
 export function bannerClass(level: StationPair["alertLevel"]): Banner {
@@ -58,7 +59,7 @@ export function stationReading(
 /** The dictionary key of a pair's chart title; an unknown pair gets the
  * generic one. */
 export function chartTitleKey(id: string): string {
-  return ["KLO_LUG", "GVE_GUT", "PIL_MTR", "DEM_GRE"].includes(id)
+  return PAIRS.some((p) => p.id === id)
     ? `weather.chart_${id}`
     : "weather.chartDefault";
 }
