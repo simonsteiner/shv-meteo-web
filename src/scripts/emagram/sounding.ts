@@ -1,6 +1,7 @@
 // A forecast sounding from upstream's point data, in two halves. The
-// Function only checks a run (`pointProblem`) and passes its answer on
-// unparsed; the browser turns it into levels (`soundingFromForecast`). On
+// Function only checks a run (`pointProblem`) and passes its text on
+// without re-serialising it; the browser turns it into levels
+// (`soundingFromForecast`). On
 // Pages, doing the level maths and writing its JSON in the Function took 3
 // to 21 ms CPU per sounding, over the Free plan's 10 ms
 // (docs/architecture/data-queries.md). Pure.
@@ -45,9 +46,10 @@ function matrices(point: PointAnswer): Record<SoundingParameter, number[][]> {
  * (786.7 to 787.0 hPa at Interlaken, 526 to 562 at Scuol). */
 const MIN_COLUMN_SPAN_HPA = 300;
 
-/** Why `point` makes no sounding (a series missing, no time steps, or a
- * column whose pressure barely falls with height), or null when it is
- * usable. Levels are stored top first, so the ground is the last. */
+/** Why `point` makes no sounding (a series missing, no time steps, a
+ * column whose pressure barely falls with height, or no time step with one
+ * complete level), or null when it is usable. Levels are stored top first,
+ * so the ground is the last. */
 export function pointProblem(point: PointAnswer): string | null {
   const m = matrices(point);
   for (const p of SOUNDING_PARAMETERS)
@@ -61,7 +63,12 @@ export function pointProblem(point: PointAnswer): string | null {
     if (!(span >= MIN_COLUMN_SPAN_HPA))
       return `pressure falls ${round1(span)} hPa from the ground to the top at step ${t}`;
   }
-  return null;
+  // a series still being written holds only nulls: no level is complete
+  // (soundingLevels leaves such levels out), so there is nothing to draw;
+  // a usable run stops at step 0
+  for (let t = 0; t < steps; t++)
+    if (soundingLevels(valuesAt(m, t)).length > 0) return null;
+  return "no complete level";
 }
 
 /** The sounding the forecast view draws, as the Function used to answer

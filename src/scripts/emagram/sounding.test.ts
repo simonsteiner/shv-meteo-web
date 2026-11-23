@@ -26,6 +26,16 @@ test("a missing series or no time steps is a problem", () => {
   assert.equal(pointProblem(point), "no time steps");
 });
 
+test("a column without one complete level is a problem", () => {
+  // humidity still being written: every value null, so no level has a dew
+  // point and the sounding would have nothing to draw
+  const noHumidity = {
+    ...COLUMN,
+    specific_humidity: [null, null, null, null],
+  } as unknown as Record<string, number[]>;
+  assert.equal(pointProblem(pointAnswer(noHumidity)), "no complete level");
+});
+
 test("the browser's sounding keeps the levels up to 550 hPa, ground first", () => {
   const sounding = soundingFromForecast({
     station: {
