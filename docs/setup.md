@@ -59,6 +59,5 @@ Caches live in memory, except BAZL obstacle data, which [server/obstacles_provid
 
 ## Troubleshooting
 
-- **Logged out after restarting the server**: sessions and pending logins live in memory in [server/auth.js](../server/auth.js), so a restart drops them. Log in again.
-- **First obstacle request is slow**: the server downloads and indexes the full BAZL dataset (about 122 MB) on first use, then serves it from `server/cache/` for 24 hours.
-- **`/api` returns 404 or connection refused in the browser**: the API is not running on `3001`; start it with `npm run server` or use `npm run dev`.
+- **First obstacle request is slow**: the server downloads and indexes the full BAZL dataset (about 122 MB) on first use and keeps it in memory until the server restarts ([deployment.md](deployment.md#state-and-secrets) has the cache details).
+- **`/api` returns 500 and the Vite terminal logs `http proxy error`**: the API is not running on `3001`; start it with `npm run server` or use `npm run dev`.
