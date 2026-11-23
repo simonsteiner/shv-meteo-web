@@ -43,6 +43,13 @@ Recovered, re-checked 2026-11-23T17:30Z:
 - The Function took `runs[runs.length - 1]`, the older run, so it still answered 503; its test listed runs oldest first. Fixed to take the newest run, falling back to the one before when a series is missing, as the official app uses only complete runs.
 - On the `sounding-run` preview: 16 stations 200, ICON-CH1 12Z, 34 time steps, 80 levels, about 325 KB each. CPU per fresh sounding (from `wrangler pages deployment tail`, 9 requests caught): 6, 7, 8, 10, 15, 17, 19, 23, 25 ms, median 15 ms.
 
+Re-checked 2026-11-23T17:50Z, the data itself:
+
+- `/v1/point-data/<model>/<run>/<point>?parameters=temperature,pressure,specific_humidity,height_half_level,wind_u,wind_v` answers all six series in one body (about 160 KB, the same per-parameter shape as the single-series URL); an unknown parameter is a 400. The Function now makes this one call instead of six.
+- ICON-CH1 12Z, Interlaken (point 776549), time step 0: the 80 pressure levels run from 786.7 to 787.0 hPa and the temperatures from 273.0 to 273.6 K, top level and ground alike; `height_half_level` runs from 22,000 m to 576 m. Scuol (583845): 526 to 562 hPa over a ground at 1,404 m. ICON-CH2 at Interlaken: 744 to 774 hPa (12Z), 742 to 772 hPa (06Z). A real column spans about 900 hPa (ground to 40 hPa at 22 km).
+- `dwd:icon_d2` (15Z, 12Z) and `dwd:icon_eu` (12Z, 09Z): 404 "... not available" for Interlaken's points.
+- All 107 catalogue stations: the 12Z run fails the new check (pressure falls less than 300 hPa from the ground to the top), 06Z is gone, so every sounding is a 503. Not checked: whether the official app draws these columns; it reads the same service.
+
 ## Official app's sounding calls
 
 Source: SHV FSVL Android app `ch.shv_fsvl` 1.1.0 (version code 1010001), downloaded from APKPure (an unofficial mirror) with `apkeep`, decompiled with jadx 1.5.7, analysed statically only, never run. Class names are obfuscated. Re-checked today:
