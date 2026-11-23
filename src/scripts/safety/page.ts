@@ -1,6 +1,6 @@
 // The safety page's behaviour over its static markup
 // (src/components/safety/): words from the dictionaries, the checklist,
-// vario and flight log from the store (src/state.js), every handler
+// vario and logbook from the store (src/state.js), every handler
 // attached here rather than inline. Re-renders on each store change, which
 // is how the header's language switch reaches the page.
 
@@ -158,7 +158,7 @@ export function mountSafety(root: HTMLElement): void {
     });
     // the byte order mark tells spreadsheet apps the file is UTF-8
     const url = URL.createObjectURL(
-      new Blob(["﻿", csv], { type: "text/csv;charset=utf-8" }),
+      new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8" }),
     );
     const link = document.createElement("a");
     link.href = url;
