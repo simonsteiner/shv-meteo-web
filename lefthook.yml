@@ -30,8 +30,9 @@ pre-commit:
       runner: python3
       args: "{staged_files}"
   commands:
-    # The only fixer of *.md. Config and excludes in .rumdl.toml; an excluded
-    # staged file is skipped, not an error.
+    # The only fixer of *.md. Config and excludes in .rumdl.toml; rumdl still
+    # lints an excluded path passed to it, which only matters for a tracked file
+    # under one (all of them are git-ignored today).
     rumdl:
       glob: "*.md"
       run: npm exec -- rumdl check --fix {staged_files}
