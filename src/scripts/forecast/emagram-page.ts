@@ -34,6 +34,14 @@ const POPULAR = [
 const DEFAULTS = ["Interlaken", "Engelberg"];
 const STATION_ZOOM = 9;
 
+/** How a selection moves the page: `zoom` brings the map (and card) to the
+ * station, `writeUrl` puts it in `?station=`. */
+interface Selection {
+  zoom: boolean;
+  writeUrl: boolean;
+}
+const USER: Selection = { zoom: true, writeUrl: true };
+
 export function mountEmagram(root: HTMLElement): void {
   let stations: SoundingStation[] = [];
   let selected: SoundingStation | null = null;
@@ -47,7 +55,7 @@ export function mountEmagram(root: HTMLElement): void {
     root,
     say,
     () => localeFor(store.state.lang),
-    () => select(null, true),
+    () => select(null, USER),
   );
 
   function drawMarkers(): void {
@@ -63,7 +71,7 @@ export function mountEmagram(root: HTMLElement): void {
         iconAnchor: [14, 14],
       });
       L.marker([st.lat, st.lon], { icon })
-        .on("click", () => select(st, true))
+        .on("click", () => select(st, USER))
         .addTo(markers);
     }
   }
@@ -80,12 +88,15 @@ export function mountEmagram(root: HTMLElement): void {
       .join("");
   }
 
-  function select(st: SoundingStation | null, byUser: boolean): void {
+  function select(
+    st: SoundingStation | null,
+    { zoom, writeUrl }: Selection,
+  ): void {
     selected = st;
     drawMarkers();
     drawPills();
     // the default station stays out of the address; a choice goes in
-    if (byUser)
+    if (writeUrl)
       history.replaceState(
         history.state,
         "",
@@ -93,15 +104,15 @@ export function mountEmagram(root: HTMLElement): void {
       );
     if (!st) {
       card.pick();
-      if (byUser)
+      if (zoom)
         map
           ?.getContainer()
           .scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
-    if (byUser) map?.setView([st.lat, st.lon], STATION_ZOOM, { animate: true });
+    if (zoom) map?.setView([st.lat, st.lon], STATION_ZOOM, { animate: true });
     card.show(st.name, undefined);
-    if (byUser) detail.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    if (zoom) detail.scrollIntoView({ behavior: "smooth", block: "nearest" });
     ShvApi.getEmagramForecast(st.name)
       .catch((err: unknown) => {
         console.error("[forecast] Cannot load the sounding of", st.name, err);
@@ -124,7 +135,7 @@ export function mountEmagram(root: HTMLElement): void {
       "[data-station]",
     )?.dataset.station;
     const st = stations.find((s) => s.name === name);
-    if (st) select(st, true);
+    if (st) select(st, USER);
   });
   const input = must<HTMLInputElement>(root, "[data-station-search]");
   input.addEventListener("input", () => {
@@ -164,11 +175,13 @@ export function mountEmagram(root: HTMLElement): void {
       const status = must<HTMLElement>(root, "[data-stations-status]");
       status.hidden = list.length > 0;
       if (list.length === 0) return;
+      // a linked station is a choice: zoom to it, the address already has it
+      const linked = readStation(location.search, list);
       const initial =
-        readStation(location.search, list) ??
+        linked ??
         DEFAULTS.map((n) => list.find((s) => s.name === n)).find(Boolean) ??
         list[0];
-      select(initial, false);
+      select(initial, { zoom: linked !== null, writeUrl: false });
     });
 }
 
