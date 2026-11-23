@@ -1,0 +1,42 @@
+---
+// The five-point pre-flight check. Words come from src/i18n through
+// data-t (src/scripts/i18n/text.ts); src/scripts/safety/page.ts ticks the
+// boxes from the store and shows the ready badge.
+import { CHECK_POINTS } from "../../scripts/safety/checklist.ts";
+---
+
+<section id="checklist" class="safety-section checklist-card">
+  <div class="section-header-row">
+    <div>
+      <span class="badge-tag" data-t="safety.checklistBadge"></span>
+      <h2 class="section-heading" data-t="safety.checklistTitle"></h2>
+      <p class="section-sub" data-t="safety.checklistSub"></p>
+    </div>
+    <span class="check-ready-badge" data-t="safety.ready" hidden></span>
+  </div>
+
+  <div class="checklist-items">
+    {CHECK_POINTS.map((point) => (
+      <label class="check-item">
+        <input type="checkbox" data-check={point} />
+        <span class="custom-checkbox" />
+        <span class="check-text" data-t={`safety.${point}`} />
+      </label>
+    ))}
+  </div>
+
+  <div class="checklist-actions">
+    <button
+      type="button"
+      data-action="check-all"
+      class="btn-secondary"
+      data-t="safety.checkAll"
+    ></button>
+    <button
+      type="button"
+      data-action="reset-checklist"
+      class="btn-text"
+      data-t="safety.resetChecklist"
+    ></button>
+  </div>
+</section>

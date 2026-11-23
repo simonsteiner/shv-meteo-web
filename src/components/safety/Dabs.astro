@@ -1,0 +1,41 @@
+---
+// The Daily Airspace Bulletin card. The links don't change with the date,
+// so they are built in; page.ts fills today's validity in the browser,
+// since a built page outlives its day.
+import { buildDabs } from "../../scripts/api.ts";
+const { bulletinUrl, bulletinPdfUrl } = buildDabs(new Date());
+---
+
+<section id="dabs" class="safety-section">
+  <div class="section-header-row">
+    <div>
+      <span class="badge-tag" data-t="safety.dabsBadge"></span>
+      <h2 class="section-heading" data-t="safety.dabsTitle"></h2>
+      <p class="section-sub" data-t="safety.dabsSub"></p>
+    </div>
+  </div>
+
+  <div class="dabs-card-box">
+    <div class="dabs-status-row">
+      <span class="status-indicator-dot dot-active"></span>
+      <span class="dabs-date-text">
+        <span data-t="safety.dabsValidity"></span>{" "}
+        <span data-dabs-validity></span>
+      </span>
+    </div>
+    <p class="dabs-notes" data-t="safety.dabsNotes"></p>
+    <div class="dabs-links">
+      <a href={bulletinUrl} target="_blank" rel="noopener" class="btn-primary">
+        <span data-t="safety.dabsLink"></span> ↗
+      </a>
+      <a
+        href={bulletinPdfUrl}
+        target="_blank"
+        rel="noopener"
+        class="btn-secondary"
+      >
+        <span data-t="safety.dabsPdf"></span> ↗
+      </a>
+    </div>
+  </div>
+</section>

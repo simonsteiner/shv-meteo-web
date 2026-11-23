@@ -1,0 +1,64 @@
+---
+// The flight log: stats, the cards (src/scripts/safety/cards.ts), the CSV
+// export and the dialog to log a flight. The flights live in localStorage;
+// page.ts renders them.
+import FlightDialog from "./FlightDialog.astro";
+---
+
+<section id="logbook" class="safety-section logbook-card">
+  <div class="section-header-row">
+    <div>
+      <span class="badge-tag" data-t="safety.logbookBadge"></span>
+      <h2 class="section-heading" data-t="safety.logbookTitle"></h2>
+      <p class="section-sub" data-t="safety.logbookSub"></p>
+    </div>
+    <div class="logbook-top-actions">
+      <button type="button" data-action="add-flight" class="btn-primary">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        <span data-t="safety.addFlight"></span>
+      </button>
+      <button
+        type="button"
+        data-action="export-csv"
+        class="btn-secondary"
+        data-t-title="safety.exportLog"
+      >
+        CSV ↗
+      </button>
+    </div>
+  </div>
+
+  <div class="log-stats-bar">
+    <div class="log-stat-item">
+      <span class="log-stat-lbl" data-t="safety.totalFlights"></span>
+      <span class="log-stat-val" data-stat="count"></span>
+    </div>
+    <div class="log-stat-item">
+      <span class="log-stat-lbl" data-t="safety.totalAirtime"></span>
+      <span class="log-stat-val" data-stat="airtime"></span>
+    </div>
+    <div class="log-stat-item">
+      <span class="log-stat-lbl" data-t="safety.longestFlight"></span>
+      <span class="log-stat-val" data-stat="longest"></span>
+    </div>
+  </div>
+
+  <div class="empty-state-card flights-empty" data-flights-empty hidden>
+    <p class="flights-empty-title" data-t="safety.emptyTitle"></p>
+    <p class="flights-empty-hint" data-t="safety.emptyHint"></p>
+  </div>
+  <div class="flights-list" data-flights></div>
+</section>
+
+<FlightDialog />

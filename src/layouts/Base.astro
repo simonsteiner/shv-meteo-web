@@ -1,7 +1,8 @@
 ---
 // The page frame every tab shares: the head from the former index.html and
 // the four mount points the legacy views render into (src/main.js). The
-// page's script loads main.js, which mounts the view <body data-view> names.
+// page's script loads main.js, which mounts the view <body data-view> names;
+// a ported page puts its view's markup in the `view` slot instead.
 import "leaflet/dist/leaflet.css";
 // main.css cut at its section banners, in its order, so every rule keeps
 // its place in the cascade
@@ -58,7 +59,9 @@ const { view } = Astro.props;
   <body data-view={view}>
     <div id="app">
       <div id="header-container"></div>
-      <main id="view-container"></main>
+      <main id="view-container">
+        <slot name="view" />
+      </main>
       <div id="bottom-sheet-container" class="hidden"></div>
       <div id="bottom-nav-container"></div>
     </div>
