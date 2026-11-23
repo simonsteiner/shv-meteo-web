@@ -197,7 +197,7 @@ test("proxy answers a bad id with a 400 before going upstream", async () => {
   assert.equal(res.status, 400);
 });
 
-test("a 200 that isn't JSON never replaces the fallback copy", async () => {
+test("a 200 that isn't JSON is an upstream failure: a 503, nothing kept", async () => {
   const { cache, store } = fakeCache();
   const { ctx, settled } = context();
   const res = await respond(
@@ -210,6 +210,6 @@ test("a 200 that isn't JSON never replaces the fallback copy", async () => {
     cache,
   );
   await settled();
-  assert.equal(await res.text(), "<html>maintenance</html>");
+  assert.equal(res.status, 503);
   assert.equal(store.size, 0);
 });

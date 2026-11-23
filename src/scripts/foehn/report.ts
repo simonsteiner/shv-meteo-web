@@ -21,7 +21,7 @@ export interface PairStation {
   altitude: unknown;
   pressureHpa: number | null;
   temperatureC: number | null;
-  coordinates: [number, number];
+  coordinates: [number, number] | undefined;
 }
 
 export interface StationPair extends Omit<PairConfig, "startId" | "endId"> {
@@ -145,7 +145,8 @@ function pairStation(st: MeasurementFeature): PairStation {
     altitude: st.properties.altitude,
     pressureHpa: stationPressure(st),
     temperatureC: stationTemperature(st),
-    coordinates: st.geometry.coordinates,
+    // one station without a position drops only its pair's map features
+    coordinates: st.geometry?.coordinates,
   };
 }
 

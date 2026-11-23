@@ -85,6 +85,7 @@ export function pairDelta(
   v1: number | null,
   v2: number | null,
 ): number | null {
+  if (!Number.isFinite(v1) || !Number.isFinite(v2)) return null;
   if (v1 === null || v2 === null) return null;
   if (cfg.isPressure && cfg.id !== "GVE_GUT") return round1(v2 - v1);
   return round1(v1 - v2);

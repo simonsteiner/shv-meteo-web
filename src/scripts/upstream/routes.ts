@@ -21,7 +21,7 @@ export interface Route {
 export const USER_AGENT =
   "shv-meteo-web (+https://github.com/simonsteiner/shv-meteo-web)";
 
-const WEATHER = "https://weather-ws-prod.ubmeteo.io/v1";
+export const WEATHER = "https://weather-ws-prod.ubmeteo.io/v1";
 
 /** Today's default bbox around the Alps (lat 43.5 to 49.5, lon 4 to 16); no
  * caller sends another. */

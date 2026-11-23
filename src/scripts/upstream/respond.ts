@@ -75,6 +75,13 @@ export async function respond(
       await upstream.body?.cancel();
       throw new Error(`upstream answered ${upstream.status}`);
     }
+    // every route answers JSON: a 200 that isn't (a maintenance page) is an
+    // upstream failure, so the client gets the stale copy or the 503
+    const type = upstream.headers.get("Content-Type") ?? DEFAULT_TYPE;
+    if (!/\bjson\b/i.test(type)) {
+      await upstream.body?.cancel();
+      throw new Error(`upstream answered 200 with ${type}`);
+    }
   } catch (err) {
     console.error(`[respond] ${key}:`, err);
     return stale
@@ -82,11 +89,10 @@ export async function respond(
       : unavailable(route);
   }
 
+  await stale?.copy.body?.cancel();
   const contentType = upstream.headers.get("Content-Type") ?? DEFAULT_TYPE;
   let body = upstream.body;
-  // every route answers JSON: a 200 that isn't (a maintenance page) still
-  // goes to the client, but never replaces the copy kept to fall back on
-  if (cache && body && /\bjson\b/i.test(contentType)) {
+  if (cache && body) {
     const [toClient, toCache] = body.tee();
     body = toClient;
     const copy = new Response(toCache, {

@@ -5,14 +5,14 @@
 // the history.
 import type { MeasurementFeature, TimeseriesResponse } from "../types.ts";
 import { fetchUpstream } from "../upstream/fetch.ts";
+import { ROUTES, WEATHER } from "../upstream/routes.ts";
 import { pairConfig, historyParameter } from "./pairs.ts";
 import { foehnReport } from "./report.ts";
 
-const WEATHER = "https://weather-ws-prod.ubmeteo.io/v1";
 export const SWISS_MEASUREMENTS_URL = `${WEATHER}/measurements/current?minLat=45.8&minLon=5.9&maxLat=47.8&maxLon=10.5`;
 
 /** Each call's timeout. */
-const TIMEOUT_MS = 8_000;
+const TIMEOUT_MS = ROUTES.foehn.timeoutMs;
 
 async function series(
   stationId: string,

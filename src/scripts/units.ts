@@ -4,14 +4,14 @@
 // missing.
 
 /** Degrees Celsius from Celsius or Kelvin. */
-export function toCelsius(v: number | null): number | null {
-  if (v === null || Number.isNaN(v)) return null;
+export function toCelsius(v: number | null | undefined): number | null {
+  if (v == null || Number.isNaN(v)) return null;
   return v > 200 ? v - 273.15 : v;
 }
 
 /** hPa from hPa or tenths of hPa. */
-export function toHpa(v: number | null): number | null {
-  if (v === null || Number.isNaN(v)) return null;
+export function toHpa(v: number | null | undefined): number | null {
+  if (v == null || Number.isNaN(v)) return null;
   return v > 5000 ? v / 10 : v;
 }
 
