@@ -785,7 +785,7 @@ export class MapView {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
         }),
-      (err) => console.warn("[MapView.locatePilot] Geolocation error:", err),
+      (err) => console.error("[MapView.locatePilot] Geolocation error:", err),
       { enableHighAccuracy: true, timeout: 6000 },
     );
   }

@@ -65,6 +65,23 @@ export type KeyValueStorage = Pick<
   "getItem" | "setItem" | "removeItem"
 >;
 
+/** The browser's localStorage or sessionStorage, or a storage that keeps
+ * nothing where the browser blocks it: reading `window.localStorage` itself
+ * throws then, before any try around getItem could catch it. */
+export function browserStorage(
+  name: "localStorage" | "sessionStorage",
+): KeyValueStorage {
+  try {
+    return globalThis[name];
+  } catch (err) {
+    console.error(
+      `[settings] ${name} is blocked; settings won't persist:`,
+      err,
+    );
+    return { getItem: () => null, setItem: () => {}, removeItem: () => {} };
+  }
+}
+
 export function defaultSettings(): Settings {
   return {
     lang: "de",

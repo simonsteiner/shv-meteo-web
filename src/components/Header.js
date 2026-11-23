@@ -190,9 +190,8 @@ export function renderHeader(container) {
           },
           (err) => {
             btnGps.classList.remove("spinning");
-            console.warn("Geolocation error:", err);
-            // Default center of Switzerland (Flüeli-Ranft / Älggialp)
-            store.setPilotLocation({ lat: 46.8012, lng: 8.2267 });
+            // no made-up position: the map stays as it is, with no marker
+            console.error("[Header] Geolocation error:", err);
           },
           { enableHighAccuracy: true, timeout: 6000 },
         );

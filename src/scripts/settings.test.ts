@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
+  browserStorage,
   defaultSettings,
   loadChecklist,
   loadSettings,
@@ -139,4 +140,28 @@ test("the checklist goes to its own storage", () => {
   assert.deepEqual(loadChecklist(odd), { p1: true });
   const bad = fakeStorage({ shv_checklist: "[" }).storage;
   quiet(() => assert.deepEqual(loadChecklist(bad), {}));
+});
+
+test("a blocked storage becomes one that keeps nothing", () => {
+  const descriptor = Object.getOwnPropertyDescriptor(
+    globalThis,
+    "localStorage",
+  );
+  Object.defineProperty(globalThis, "localStorage", {
+    configurable: true,
+    get() {
+      throw new DOMException("blocked", "SecurityError");
+    },
+  });
+  try {
+    let storage: KeyValueStorage | undefined;
+    const errors = quiet(() => (storage = browserStorage("localStorage")));
+    assert.equal(errors.length, 1);
+    storage?.setItem("shv_lang", "fr");
+    assert.equal(storage?.getItem("shv_lang"), null);
+  } finally {
+    if (descriptor)
+      Object.defineProperty(globalThis, "localStorage", descriptor);
+    else delete (globalThis as { localStorage?: unknown }).localStorage;
+  }
 });

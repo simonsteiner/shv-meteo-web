@@ -118,6 +118,13 @@ class App {
   }
 }
 
+// A page restored from the back/forward cache holds the settings it had
+// when left, and its setters would write them back over what another page
+// saved since; reload it from storage instead.
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) location.reload();
+});
+
 // Bootstrap
 window.addEventListener("DOMContentLoaded", () => {
   const app = new App();

@@ -1,6 +1,7 @@
 import { getTranslation } from "./i18n/index.js";
 
 import {
+  browserStorage,
   loadChecklist,
   loadSettings,
   saveChecklist,
@@ -9,14 +10,18 @@ import {
 
 const TABS = ["map", "weather", "forecast", "safety", "profile"];
 
+// Storages that never throw, even where the browser blocks them.
+const local = browserStorage("localStorage");
+const session = browserStorage("sessionStorage");
+
 class AppState {
   constructor() {
     this.listeners = new Set();
 
     // Each tab is its own page (src/pages/<tab>/), so the settings that must
     // outlive a page load come from storage (src/scripts/settings.ts).
-    const saved = loadSettings(localStorage);
-    const savedSession = localStorage.getItem("shv_session_id") || null;
+    const saved = loadSettings(local);
+    const savedSession = local.getItem("shv_session_id") || null;
     const savedProfile = this.loadSavedProfile();
     const view = document.body.dataset.view;
 
@@ -55,7 +60,7 @@ class AppState {
         p3: false,
         p4: false,
         p5: false,
-        ...loadChecklist(sessionStorage),
+        ...loadChecklist(session),
       },
 
       // Flight Logbook
@@ -70,12 +75,12 @@ class AppState {
 
   loadSavedProfile() {
     try {
-      const raw = localStorage.getItem("shv_profile");
+      const raw = local.getItem("shv_profile");
       if (!raw) return null;
       const data = JSON.parse(raw);
       // Purge any previously synthesized dummy/rubbish profile data
       if (!data || data.firstName === "Pilot" || !data.firstName) {
-        localStorage.removeItem("shv_profile");
+        local.removeItem("shv_profile");
         return null;
       }
       return data;
@@ -84,7 +89,7 @@ class AppState {
         "[AppState.loadSavedProfile] Failed to parse saved profile from localStorage:",
         e,
       );
-      localStorage.removeItem("shv_profile");
+      local.removeItem("shv_profile");
       return null;
     }
   }
@@ -93,14 +98,14 @@ class AppState {
     this.state.sid = sid;
     this.state.profile = profile;
     if (sid) {
-      localStorage.setItem("shv_session_id", sid);
+      local.setItem("shv_session_id", sid);
     } else {
-      localStorage.removeItem("shv_session_id");
+      local.removeItem("shv_session_id");
     }
     if (profile) {
-      localStorage.setItem("shv_profile", JSON.stringify(profile));
+      local.setItem("shv_profile", JSON.stringify(profile));
     } else {
-      localStorage.removeItem("shv_profile");
+      local.removeItem("shv_profile");
     }
     this.notify();
   }
@@ -108,9 +113,9 @@ class AppState {
   setProfile(profile) {
     this.state.profile = profile;
     if (profile) {
-      localStorage.setItem("shv_profile", JSON.stringify(profile));
+      local.setItem("shv_profile", JSON.stringify(profile));
     } else {
-      localStorage.removeItem("shv_profile");
+      local.removeItem("shv_profile");
     }
     this.notify();
   }
@@ -146,14 +151,14 @@ class AppState {
     if (this.state.activeTab === tab && tab !== "map") return;
     if (tab === "map" && this.state.activeTab === "map") {
       this.state.windFilter = [];
-      saveSetting(localStorage, "windFilter", []);
+      saveSetting(local, "windFilter", []);
     }
     location.assign(`/${tab}/`);
   }
 
   setMapCategory(category) {
     this.state.mapCategory = category;
-    saveSetting(localStorage, "mapCategory", category);
+    saveSetting(local, "mapCategory", category);
     if (category === "METEO") {
       this.state.layers.stations = true;
       this.state.layers.launches = false;
@@ -185,40 +190,40 @@ class AppState {
       this.state.layers.webcams = false;
       this.state.layers.foehnAxis = false;
     }
-    saveSetting(localStorage, "layers", this.state.layers);
+    saveSetting(local, "layers", this.state.layers);
     this.notify();
   }
 
   setLang(lang) {
     this.state.lang = lang;
-    saveSetting(localStorage, "lang", lang);
+    saveSetting(local, "lang", lang);
     this.notify();
   }
 
   setTheme(theme) {
     this.state.theme = theme;
-    saveSetting(localStorage, "theme", theme);
+    saveSetting(local, "theme", theme);
     document.documentElement.setAttribute("data-theme", theme);
     this.notify();
   }
 
   setBaseMap(baseMap) {
     this.state.baseMap = baseMap;
-    saveSetting(localStorage, "baseMap", baseMap);
+    saveSetting(local, "baseMap", baseMap);
     this.notify();
   }
 
   toggleLayer(layerKey) {
     if (Object.prototype.hasOwnProperty.call(this.state.layers, layerKey)) {
       this.state.layers[layerKey] = !this.state.layers[layerKey];
-      saveSetting(localStorage, "layers", this.state.layers);
+      saveSetting(local, "layers", this.state.layers);
       this.notify();
     }
   }
 
   setMeteoMode(mode) {
     this.state.meteoMode = mode;
-    saveSetting(localStorage, "meteoMode", mode);
+    saveSetting(local, "meteoMode", mode);
     if (mode === "WIND" || mode === "TEMPERATURE") {
       this.state.layers.stations = true;
       this.state.layers.webcams = false;
@@ -236,7 +241,7 @@ class AppState {
       this.state.layers.webcams = false;
       this.state.layers.foehnAxis = false;
     }
-    saveSetting(localStorage, "layers", this.state.layers);
+    saveSetting(local, "layers", this.state.layers);
     this.notify();
   }
 
@@ -252,13 +257,13 @@ class AppState {
     } else {
       this.state.windFilter.push(dir);
     }
-    saveSetting(localStorage, "windFilter", this.state.windFilter);
+    saveSetting(local, "windFilter", this.state.windFilter);
     this.notify();
   }
 
   clearWindFilter() {
     this.state.windFilter = [];
-    saveSetting(localStorage, "windFilter", []);
+    saveSetting(local, "windFilter", []);
     this.notify();
   }
 
@@ -295,7 +300,7 @@ class AppState {
 
   setChecklistPoint(key, value) {
     this.state.checklist[key] = value;
-    saveChecklist(sessionStorage, this.state.checklist);
+    saveChecklist(session, this.state.checklist);
     this.notify();
   }
 
@@ -303,7 +308,7 @@ class AppState {
     Object.keys(this.state.checklist).forEach((k) => {
       this.state.checklist[k] = true;
     });
-    saveChecklist(sessionStorage, this.state.checklist);
+    saveChecklist(session, this.state.checklist);
     this.notify();
   }
 
@@ -311,19 +316,19 @@ class AppState {
     Object.keys(this.state.checklist).forEach((k) => {
       this.state.checklist[k] = false;
     });
-    saveChecklist(sessionStorage, this.state.checklist);
+    saveChecklist(session, this.state.checklist);
     this.notify();
   }
 
   addFlight(flight) {
     this.state.flights.unshift(flight);
-    saveSetting(localStorage, "flights", this.state.flights);
+    saveSetting(local, "flights", this.state.flights);
     this.notify();
   }
 
   updateProfile(profile) {
     this.state.profile = { ...this.state.profile, ...profile };
-    localStorage.setItem("shv_profile", JSON.stringify(this.state.profile));
+    local.setItem("shv_profile", JSON.stringify(this.state.profile));
     this.notify();
   }
 
@@ -369,7 +374,7 @@ class AppState {
 
   setVarioRate(rate) {
     this.state.varioRate = Math.round(rate * 10) / 10;
-    saveSetting(localStorage, "varioRate", this.state.varioRate);
+    saveSetting(local, "varioRate", this.state.varioRate);
     this.notify();
   }
 
