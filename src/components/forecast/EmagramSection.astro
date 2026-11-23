@@ -1,0 +1,63 @@
+---
+// The sounding section: the station map and search, and the emagram of
+// the selected station. src/scripts/forecast/emagram-page.ts drives it;
+// /forecast/emagram/?station=Sion opens a station.
+import EmagramCard from "./EmagramCard.astro";
+import EmagramInfo from "./EmagramInfo.astro";
+---
+
+<div class="forecast-content-card" data-forecast-emagram>
+  <div class="section-header-row">
+    <div>
+      <span class="badge-tag">
+        Previtemps & Soundings (MeteoSchweiz ICON-CH1)
+      </span>
+      <h2 class="section-heading" data-t="forecast.emagramHeading"></h2>
+      <p class="section-sub" data-t="forecast.emagramSubline"></p>
+    </div>
+  </div>
+
+  <div class="emagram-map-container-box">
+    <div class="emagram-search-bar-row">
+      <div class="emagram-search-field">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input
+          type="text"
+          data-station-search
+          data-t-placeholder="forecast.searchStation"
+        />
+      </div>
+    </div>
+
+    <div class="popular-stations-pills-row">
+      <span class="popular-lbl" data-t="forecast.popular"></span>
+      <span class="popular-pills" data-popular-pills></span>
+    </div>
+
+    <div class="emagram-leaflet-map" data-emagram-map></div>
+    <div class="map-hint-text">
+      💡 <span data-t="forecast.mapHint"></span>
+    </div>
+    <p class="text-muted" data-stations-status hidden></p>
+  </div>
+
+  <div class="emagram-detail-box emagram-detail-plain" data-emagram-detail>
+    <EmagramCard />
+  </div>
+  <EmagramInfo />
+</div>
+
+<script>
+  import "../../scripts/forecast/emagram-page.ts";
+</script>
