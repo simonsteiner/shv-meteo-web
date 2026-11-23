@@ -52,8 +52,9 @@ pre-commit:
       glob: "*.{js,mjs,ts,tsx,astro,json,css,html}"
       run: npm exec -- prettier --write --ignore-unknown {staged_files}
       stage_fixed: true
-    # The only fixer of *.md. Config and excludes in .rumdl.toml; an excluded
-    # staged file is skipped, not an error.
+    # The only fixer of *.md. Config and excludes in .rumdl.toml; rumdl still
+    # lints an excluded path passed to it, which only matters for a tracked file
+    # under one (all of them are git-ignored today).
     rumdl:
       glob: "*.md"
       run: npm exec -- rumdl check --fix {staged_files}

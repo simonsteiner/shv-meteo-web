@@ -32,5 +32,5 @@ Both the Dockerfile and the compose file probe `GET /api/health` every 30 second
 ## State and secrets
 
 - **No secrets.** The Keycloak client is the public `app-android` client with PKCE; there is no client secret or API key to configure.
-- **Sessions are in memory.** Restarting or scaling the container logs everyone out, and more than one replica would need sticky sessions.
-- **Disk cache.** BAZL obstacle data is cached in `/app/server/cache/` inside the container; it is rebuilt after 24 hours or when the container is recreated.
+- **Sessions are in memory.** Restarting the container drops every server session (the UI keeps showing the profile cached in the browser, so the stored session id goes stale), and more than one replica would need sticky sessions.
+- **Obstacle cache.** The BAZL dataset is loaded into memory on the first `/api/obstacles` request and kept until the process restarts. On that load the server reuses `/app/server/cache/bazl_obstacles.geojson` if it is under 24 hours old, otherwise it downloads it again; a running container never refreshes it. Vector tiles are cached in the same folder with no expiry. Everything is lost when the container is recreated.

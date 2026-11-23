@@ -15,3 +15,7 @@ exclude = [
     "server/cache/**",
     "apk_analysis/**",
 ]
+
+# The data-flow table in docs/architecture.md breaks cells with <br/>.
+[MD033]
+allowed-elements = ["br"]

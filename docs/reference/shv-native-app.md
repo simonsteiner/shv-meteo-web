@@ -8,7 +8,7 @@ How the official SHV FSVL Android app (`ch.shv_fsvl`) and its backends work, as 
 
 The SHV FSVL app is the central digital tool for Swiss paragliding and hang gliding pilots. The system brings together several official government and meteorological data providers:
 
-```
+```text
 +---------------------------------------------------------------------------------------+
 |                                    SHV FSVL Client                                     |
 |                     (Native Android Kotlin Compose / Web App Vite)                    |
@@ -28,6 +28,7 @@ The SHV FSVL app is the central digital tool for Swiss paragliding and hang glid
 ```
 
 ### Key Ecosystem Entities
+
 1. **Verband (SHV FSVL)**: Operates the membership registry, pilot licensing (Brevets), collective liability insurance, and the official Keycloak authentication realm.
 2. **Ubique Innovation AG** (Zurich): Developer of the official mobile applications and operator of the backend cloud infrastructure (Fluid Meteo SDK).
 3. **Swisstopo (Federal Office of Topography)**: High-resolution national topographic maps (Pixelkarte) and aerial orthophotos (Swissimage) served via GeoAdmin WMTS.
@@ -42,6 +43,7 @@ The SHV FSVL app is the central digital tool for Swiss paragliding and hang glid
 Analysis of `apk_analysis/shv.apk` decompiled using `jadx` reveals the native implementation structure:
 
 ### Class Hierarchy & Packages
+
 - `ch.shv_fsvl.feature.account.*`: User account management, login controller, profile screen, and license card renderers.
 - `ch.shv_fsvl.feature.account.models.*`: Kotlin `@Serializable` data classes:
   - `g.c` (`UserProfile`): Detailed pilot data.
@@ -57,6 +59,7 @@ Analysis of `apk_analysis/shv.apk` decompiled using `jadx` reveals the native im
 - `ch.ubique.fluidsdk.*`: Meteo time series, raster/vector map engines, weather station products, and telemetry.
 
 ### Core Frameworks
+
 - **UI Toolkit**: Jetpack Compose with Material 3 Adaptive layout primitives.
 - **Dependency Injection**: Koin (`org.koin.core`).
 - **HTTP Engine**: Ktor Client (`io.ktor.client`) with JSON serialization plugins.
@@ -82,9 +85,12 @@ The official app uses standard **OAuth 2.0 / OpenID Connect with PKCE (Proof Key
 | **Challenge Method**| `S256` (SHA-256 base64url) |
 
 ### Native Authentication Sequence
+
 1. **PKCE Setup**: Client creates random `code_verifier` (32 bytes entropy) and derives `code_challenge = BASE64URL(SHA256(verifier))`.
+
 2. **Browser Launch**: Directs pilot to Keycloak auth endpoint:
-   ```
+
+   ```text
    https://login.shv-fsvl.ch/realms/SHV/protocol/openid-connect/auth
      ?client_id=app-android
      &redirect_uri=https%3A%2F%2Fprod.shv-app.ch%2Foidc%2Fcallback
@@ -95,11 +101,15 @@ The official app uses standard **OAuth 2.0 / OpenID Connect with PKCE (Proof Key
      &state=<state>
      &prompt=login
    ```
+
 3. **Keycloak Authentication**: Pilot submits credentials on the official Keycloak login form. Direct Access Grants (Resource Owner Password Credentials) are strictly **disabled** on this realm (`unauthorized_client`).
+
 4. **App Links Interception**: Keycloak redirects to `https://prod.shv-app.ch/oidc/callback?code=...&state=...`.
    - On Android: Android OS captures this via `intent-filter` matching `host="prod.shv-app.ch"` and launches `RedirectUriReceiverActivity`.
    - On Desktop: Browser renders the static callback page (`"Anmeldung erfolgreich - SHV"`) retaining the code and state parameters in the address bar.
+
 5. **Token Exchange**: POST to `https://login.shv-fsvl.ch/realms/SHV/protocol/openid-connect/token`:
+
    ```http
    POST /realms/SHV/protocol/openid-connect/token HTTP/1.1
    Host: login.shv-fsvl.ch
@@ -111,7 +121,9 @@ The official app uses standard **OAuth 2.0 / OpenID Connect with PKCE (Proof Key
    &redirect_uri=https%3A%2F%2Fprod.shv-app.ch%2Foidc%2Fcallback
    &code_verifier=<verifier>
    ```
+
    Returns `{ access_token, refresh_token, id_token, expires_in }`.
+
 6. **Token Role Validation (`TokenRoleValidator` / `qj7.java`)**:
    - Parses the JWT payload `realm_access.roles`.
    - Pilot is validated as an active member if `roles` contains at least one of:
@@ -127,6 +139,7 @@ The official app uses standard **OAuth 2.0 / OpenID Connect with PKCE (Proof Key
 Once authenticated, the app queries the member web service:
 
 ### Endpoints
+
 - **Individual Pilot Profile**: `GET https://shv-app-ws-prod.shv-app.ch/v1/wms/person`
   - Header: `Authorization: Bearer <access_token>`
   - Header: `Accept: application/json`
@@ -186,4 +199,3 @@ Once authenticated, the app queries the member web service:
   ]
 }
 ```
-
