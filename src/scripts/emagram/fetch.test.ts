@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Context, PrevitempsGrid } from "../types.ts";
-import { soundingRoute } from "./fetch.ts";
+import { RUNS_TRIED, soundingRoute } from "./fetch.ts";
 import { BROKEN, COLUMN, pointAnswer } from "./point.fixture.ts";
 import { soundingFromForecast } from "./sounding.ts";
 
@@ -147,9 +147,10 @@ test("a run without one complete level is the route's 503", async () => {
     ),
   );
   assert.equal(res.status, 503);
-  // the runs list, then each of the three runs: none has a complete level,
-  // so each falls back to the one before
-  assert.equal(calls.length, 4);
+  // the runs list, then runs 3 and 2: neither has a complete level, and
+  // run 1 is never asked for
+  assert.equal(calls.length, 3);
+  assert.ok(!calls.some((u) => u.includes("/1/")));
 });
 
 test("a failed point fetch is the route's 503", async () => {
@@ -172,6 +173,6 @@ test("a column that is no atmosphere is the route's 503", async () => {
     ),
   );
   assert.equal(res.status, 503);
-  // every listed run tried before giving up
-  assert.equal(calls.length, 4);
+  // the newest two runs tried before giving up
+  assert.equal(calls.length, 1 + RUNS_TRIED);
 });
