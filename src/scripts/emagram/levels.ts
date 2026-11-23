@@ -64,7 +64,11 @@ export function valuesAt(
   };
 }
 
-/** The sounding's levels at one time step, ground first, up to 550 hPa. */
+const isNumber = (v: unknown): v is number =>
+  typeof v === "number" && Number.isFinite(v);
+
+/** The sounding's levels at one time step, ground first, up to 550 hPa. A
+ * level missing any value is left out rather than filled in. */
 export function soundingLevels(
   byParam: Record<SoundingParameter, (number | undefined)[]>,
 ): SoundingLevel[] {
@@ -72,17 +76,27 @@ export function soundingLevels(
   for (let l = byParam.temperature.length - 1; l >= 0; l--) {
     const tempK = byParam.temperature[l];
     const pressPa = byParam.pressure[l];
-    if (tempK === undefined || pressPa === undefined) continue;
+    const q = byParam.specific_humidity[l];
+    const heightM = byParam.height_half_level[l];
+    const u = byParam.wind_u[l];
+    const v = byParam.wind_v[l];
+    if (
+      !isNumber(tempK) ||
+      !isNumber(pressPa) ||
+      !isNumber(q) ||
+      !isNumber(heightM) ||
+      !isNumber(u) ||
+      !isNumber(v)
+    )
+      continue;
     const pressHpa = pressPa / 100;
     if (pressHpa < 550) break;
-    const u = byParam.wind_u[l] ?? 0;
-    const v = byParam.wind_v[l] ?? 0;
     levels.push({
       levelIndex: l,
-      heightM: Math.round(byParam.height_half_level[l] ?? 0),
+      heightM: Math.round(heightM),
       pressHpa: round1(pressHpa),
       tempC: round1(tempK - 273.15),
-      dewC: round1(dewPoint(byParam.specific_humidity[l] ?? 0, pressHpa)),
+      dewC: round1(dewPoint(q, pressHpa)),
       speedKmH: round1(Math.hypot(u, v) * 3.6),
       // where the wind comes from, in degrees
       dirDeg: Math.round(((Math.atan2(-u, -v) * 180) / Math.PI + 360) % 360),

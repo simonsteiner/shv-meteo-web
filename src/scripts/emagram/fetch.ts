@@ -50,6 +50,15 @@ export async function fetchSounding(
     SOUNDING_PARAMETERS.map((p, i) => [p, parsePointData(raws[i])]),
   ) as Record<SoundingParameter, number[][]>;
   const validTimes = pointValidTimes(raws[0]);
+  const timeSteps = validTimes.map((timestamp, t) => ({
+    timestamp,
+    timeIso: new Date(timestamp).toISOString(),
+    levels: soundingLevels(valuesAt(matrices, t)),
+  }));
+  // a run still being ingested answers without data: an upstream failure,
+  // so it never replaces the last good copy
+  if (!timeSteps.some((step) => step.levels.length > 0))
+    throw new Error(`no levels for ${point.name} in run ${run}`);
   return {
     stationName: point.name,
     model: point.model,
@@ -58,11 +67,7 @@ export async function fetchSounding(
     latitude: point.latitude,
     longitude: point.longitude,
     validTimes,
-    timeSteps: validTimes.map((timestamp, t) => ({
-      timestamp,
-      timeIso: new Date(timestamp).toISOString(),
-      levels: soundingLevels(valuesAt(matrices, t)),
-    })),
+    timeSteps,
   };
 }
 

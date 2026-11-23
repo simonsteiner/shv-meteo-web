@@ -8,6 +8,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { nearestGridPoint, tileUrl } from "../src/scripts/emagram/gridpoint.ts";
 import type { PrevitempsGrid, SoundingStation } from "../src/scripts/types.ts";
+import { fetchUpstream } from "../src/scripts/upstream/fetch.ts";
 
 const STATIONS = "public/data/previtemps_stations.json";
 const OUT = "src/data/previtemps_grid.json";
@@ -20,7 +21,7 @@ const tiles = new Map<string, Promise<unknown>>();
 function tile(url: string): Promise<unknown> {
   let pending = tiles.get(url);
   if (!pending) {
-    pending = fetch(url).then((res) => {
+    pending = fetchUpstream(url, 30_000).then((res) => {
       if (!res.ok) throw new Error(`${url} answered ${res.status}`);
       return res.json();
     });

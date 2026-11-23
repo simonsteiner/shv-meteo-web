@@ -110,20 +110,28 @@ test("no lapse rate when two levels are 10 m or less apart", () => {
   );
 });
 
-test("a missing height_half_level series puts every level at 0 m", () => {
+test("a missing height_half_level series leaves no level", () => {
   const m = column([
     { t: 283.15, p: 95000, h: 500 },
     { t: 278.15, p: 85000, h: 1500 },
   ]);
   m.height_half_level = [[], []];
+  assert.deepEqual(soundingLevels(valuesAt(m, 0)), []);
+});
+
+test("a level with a missing or null value is left out, not filled in", () => {
+  const m = column([
+    { t: 283.15, p: 95000, h: 500 },
+    { t: 278.15, p: 85000, h: 1500 },
+    { t: 273.15, p: 75000, h: 2500 },
+  ]);
+  // top first: index 0 is the 750 hPa level, 2 the ground
+  m.specific_humidity[1] = [];
+  m.temperature[0] = [null as unknown as number];
   const levels = soundingLevels(valuesAt(m, 0));
   assert.deepEqual(
     levels.map((l) => l.heightM),
-    [0, 0],
-  );
-  assert.deepEqual(
-    levels.map((l) => l.lapseRate),
-    [0, 0],
+    [500],
   );
 });
 
@@ -131,6 +139,9 @@ test("a one-value height series serves every time step", () => {
   const m = column([{ t: 283.15, p: 95000, h: 500 }]);
   m.temperature = [[283.15, 284.15]];
   m.pressure = [[95000, 95000]];
+  m.specific_humidity = [[0.005, 0.005]];
+  m.wind_u = [[0, 0]];
+  m.wind_v = [[0, 0]];
   assert.equal(soundingLevels(valuesAt(m, 1))[0].heightM, 500);
   assert.equal(soundingLevels(valuesAt(m, 1))[0].tempC, 11);
 });

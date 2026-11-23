@@ -51,6 +51,13 @@ test("a timeseries id with a slash or a malformed escape is a 400", async () => 
   );
 });
 
+test("a sounding name with a malformed escape is a 400", async () => {
+  await status400(
+    quiet(() => parseParams("sounding", { name: "%E0%A4%A" }, none)),
+    "Ungültiger Stationsname",
+  );
+});
+
 test("the text forecast language falls back to German", () => {
   for (const [lang, want] of [
     ["de", "de"],

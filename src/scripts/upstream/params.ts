@@ -53,9 +53,10 @@ export function parseParams(
   }
   if (route === "sounding") {
     // names may hold `/` (Disentis/Mustér); matched case-insensitively, so
-    // the lower-cased name keys the cached copy. A malformed escape matches
-    // no station.
-    params.name = (decoded(path.name) ?? "").trim().toLowerCase();
+    // the lower-cased name keys the cached copy
+    const name = decoded(path.name);
+    if (name === null) return badRequest("Ungültiger Stationsname");
+    params.name = name.trim().toLowerCase();
   }
   if (route === "foehn") {
     // an unknown or missing pair gets the Gotthard pair, as before
