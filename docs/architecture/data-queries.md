@@ -13,9 +13,9 @@ The browser calls an upstream directly when it allows CORS and the payload is li
 | :--- | :--- | :--- | :--- | :--- |
 | **Swisstopo and OSM tiles** | `wmts.geo.admin.ch`, `*.tile.openstreetmap.org` | **Direct** | Public tile caches with CORS. | None; Leaflet loads the images. |
 | **Flying sites, airspaces, wildlife zones** | `public/data/*.geojson`, falling back to `shv-app-static-prod.ubmeteo.io` | **Direct** | Snapshots served by Pages; the CDN allows CORS. | None: the local copy first, the live CDN only if it fails. |
-| **Outlook frames and index** | `static-prod.ubmeteo.io/v1/animation/switzerland/days_overview.json` and its WebP frames | **Direct** | CORS `*`. | None; `ShvApi.getOutlooks` fetches `OUTLOOKS_URL` ([src/scripts/client.ts](../../src/scripts/client.ts)). |
+| **Outlook frames and index** | `static-prod.ubmeteo.io/v1/animation/switzerland/days_overview.json` and its WebP frames | **Direct** | CORS `*`. | None; `ShvApi.getOutlooks` fetches `OUTLOOKS_URL` ([src/scripts/api.ts](../../src/scripts/api.ts)). |
 | **Isobar chart** | `shv-app-ws-prod.shv-app.ch/v1/text/isobaren/{lang}.svg` | **Direct** | Used only as an `<img>`, which needs no CORS and never runs the SVG's scripts. | `isobarenUrl(lang)` maps `en` and anything unknown to `de`. |
-| **DABS card** | None | **Browser** | Today's date and fixed Skybriefing links. | `buildDabs(now)` in [src/scripts/client.ts](../../src/scripts/client.ts), dated in Swiss time. |
+| **DABS card** | None | **Browser** | Today's date and fixed Skybriefing links. | `buildDabs(now)` in [src/scripts/api.ts](../../src/scripts/api.ts), dated in Swiss time. |
 | **Live ground stations (`/api/measurements`)** | `weather-ws-prod.ubmeteo.io/v1/measurements/current` | **Function** | 403 to browsers; 3.1 MB. | Always the Alps bbox (lat 43.5 to 49.5, lon 4 to 16), no query accepted; 12 s timeout; `max-age=60`. |
 | **Station timeseries (`/api/measurements/timeseries/:id`)** | `weather-ws-prod.ubmeteo.io/v1/measurements/timeseries/{id}` | **Function** | 403 to browsers. | Fixed parameter list `wind_speed,wind_direction,wind_gust,temperature,pressure_msl,relative_humidity`, no `?parameters=`; `max-age=180`. |
 | **Webcams (`/api/webcams`)** | `webcam-prod.ubmeteo.io/v1/webcams/overview` | **Function** | 403 to browsers. | Fixed Swiss bbox (west 5.9, south 45.8, east 10.5, north 47.8); `max-age=120`. |
