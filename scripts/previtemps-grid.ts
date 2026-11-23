@@ -8,7 +8,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { nearestGridPoint, tileUrl } from "../src/scripts/emagram/gridpoint.ts";
 import type { PrevitempsGrid, SoundingStation } from "../src/scripts/types.ts";
-import { fetchUpstream } from "../src/scripts/upstream/fetch.ts";
+import { USER_AGENT } from "../src/scripts/upstream/routes.ts";
 
 const STATIONS = "public/data/previtemps_stations.json";
 const OUT = "src/data/previtemps_grid.json";
@@ -18,10 +18,17 @@ const stations = JSON.parse(
 ) as SoundingStation[];
 const tiles = new Map<string, Promise<unknown>>();
 
+/** Each tile's whole download, body included: fetchUpstream times only the
+ * headers, so a stalled body would hang the script. */
+const TILE_TIMEOUT_MS = 30_000;
+
 function tile(url: string): Promise<unknown> {
   let pending = tiles.get(url);
   if (!pending) {
-    pending = fetchUpstream(url, 30_000).then((res) => {
+    pending = fetch(url, {
+      headers: { "User-Agent": USER_AGENT },
+      signal: AbortSignal.timeout(TILE_TIMEOUT_MS),
+    }).then((res) => {
       if (!res.ok) throw new Error(`${url} answered ${res.status}`);
       return res.json();
     });
