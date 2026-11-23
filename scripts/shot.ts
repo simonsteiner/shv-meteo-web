@@ -102,9 +102,18 @@ async function connect(pageWs: string) {
   const listeners = new Map<string, Listener[]>();
   ws.onmessage = (m) => {
     const msg = JSON.parse(String(m.data));
-    if (msg.id) pending.get(msg.id)?.(msg);
+    if (msg.id) {
+      pending.get(msg.id)?.(msg);
+      pending.delete(msg.id);
+    }
     if (msg.method)
       for (const fn of listeners.get(msg.method) ?? []) fn(msg.params);
+  };
+  // Chromium gone (a crash): every call still waiting fails, none hangs
+  ws.onclose = () => {
+    for (const settle of pending.values())
+      settle({ error: "the DevTools connection closed" });
+    pending.clear();
   };
   const send = <T>(method: string, params: object = {}) =>
     new Promise<T>((resolve, reject) => {
@@ -160,9 +169,17 @@ try {
 
   const loaded = new Promise<void>((resolve) => {
     page.on("Page.loadEventFired", () => resolve());
-    setTimeout(resolve, 30_000);
+    // unref: a pending fallback must not keep Node alive after the shot
+    setTimeout(() => {
+      console.error("[shot] No load event after 30 s, taking the shot anyway");
+      resolve();
+    }, 30_000).unref();
   });
-  await page.send("Page.navigate", { url });
+  const nav = await page.send<{ errorText?: string }>("Page.navigate", {
+    url,
+  });
+  // an unreachable server or a refused connection, not a page to capture
+  if (nav.errorText) throw new Error(`${url}: ${nav.errorText}`);
   await loaded;
   await sleep(wait);
 
