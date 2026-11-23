@@ -1,0 +1,113 @@
+---
+// The dialog to log a flight; page.ts opens it, fills today's date and the
+// last glider, and reads the form through flightFromForm (flights.ts).
+import { MAX_DURATION } from "../../scripts/safety/flights.ts";
+---
+
+<div class="modal-scrim" data-flight-dialog hidden>
+  <div
+    class="modal-card"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="flight-dialog-title"
+  >
+    <div class="modal-header">
+      <h3 id="flight-dialog-title" data-t="safety.newFlight"></h3>
+      <button
+        type="button"
+        class="modal-close"
+        data-action="close-dialog"
+        data-t-aria-label="map.close"
+      >
+        &times;
+      </button>
+    </div>
+    <form data-flight-form class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="flight-date" data-t="safety.date"></label>
+          <input id="flight-date" type="date" name="date" required />
+        </div>
+        <div class="form-group">
+          <label for="flight-duration" data-t="safety.duration"></label>
+          <input
+            id="flight-duration"
+            type="number"
+            name="duration"
+            required
+            min="1"
+            max={MAX_DURATION}
+            step="1"
+          />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="flight-site" data-t="safety.site"></label>
+        <input
+          id="flight-site"
+          type="text"
+          name="site"
+          required
+          pattern=".*\S.*"
+          data-t-placeholder="safety.sitePlaceholder"
+        />
+      </div>
+      <div class="form-group">
+        <label for="flight-landing" data-t="safety.landing"></label>
+        <input
+          id="flight-landing"
+          type="text"
+          name="landing"
+          required
+          pattern=".*\S.*"
+          data-t-placeholder="safety.landingPlaceholder"
+        />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="flight-glider" data-t="safety.glider"></label>
+          <input
+            id="flight-glider"
+            type="text"
+            name="glider"
+            required
+            pattern=".*\S.*"
+          />
+        </div>
+        <div class="form-group">
+          <label for="flight-distance" data-t="safety.distance"></label>
+          <input
+            id="flight-distance"
+            type="number"
+            step="0.1"
+            min="0"
+            name="distance"
+            data-t-placeholder="safety.distancePlaceholder"
+          />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="flight-notes" data-t="safety.notes"></label>
+        <textarea
+          id="flight-notes"
+          name="notes"
+          rows="2"
+          data-t-placeholder="safety.notesPlaceholder"
+        ></textarea>
+      </div>
+      <div class="modal-actions">
+        <button
+          type="button"
+          class="btn-secondary"
+          data-action="close-dialog"
+          data-t="safety.cancel"
+        ></button>
+        <button
+          type="submit"
+          class="btn-primary"
+          data-t="safety.saveFlight"
+        ></button>
+      </div>
+    </form>
+  </div>
+</div>

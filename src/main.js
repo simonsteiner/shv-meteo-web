@@ -5,7 +5,6 @@ import { renderBottomSheet } from "./components/BottomSheet.js";
 import { MapView } from "./views/MapView.js";
 import { WeatherView } from "./views/WeatherView.js";
 import { ForecastView } from "./views/ForecastView.js";
-import { SafetyView } from "./views/SafetyView.js";
 import { ShvApi } from "./scripts/api.ts";
 
 export const storeInstance = store;
@@ -42,7 +41,8 @@ class App {
 
   async init() {
     // 1. Render UI immediately so app is instantly interactive. The page
-    // names its view (<body data-view>, src/layouts/Base.astro).
+    // names its view (<body data-view>, src/layouts/Base.astro); a ported
+    // page brings its view in the markup and mounts it itself.
     this.renderShell();
     this.mountView(store.state.activeTab);
 
@@ -100,8 +100,8 @@ class App {
           this.currentViewInstance.mount();
           break;
         case "safety":
-          this.currentViewInstance = new SafetyView(this.viewContainer);
-          this.currentViewInstance.mount();
+          // A ported page: its markup is built in and its own script
+          // drives it (src/pages/safety/index.astro).
           break;
         default:
           this.currentViewInstance = new MapView(this.viewContainer);

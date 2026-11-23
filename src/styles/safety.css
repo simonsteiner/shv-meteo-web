@@ -338,3 +338,37 @@
   font-style: italic;
   color: var(--text-muted);
 }
+
+/* The empty flight log (formerly inline styles in SafetyView.js) */
+.flights-empty {
+  text-align: center;
+  padding: 36px 16px;
+  background: var(--bg-primary);
+  border-radius: 14px;
+  border: 1px dashed var(--border-color);
+}
+
+.flights-empty-title {
+  font-weight: 700;
+  margin: 0 0 6px;
+  color: var(--text-primary);
+}
+
+.flights-empty-hint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* Parts the safety page shows and hides (src/scripts/safety/page.ts);
+   their own display rules would otherwise win over [hidden]. */
+.modal-scrim[hidden],
+.flights-empty[hidden] {
+  display: none;
+}
+
+/* The sound toggle's icon: waves when on, a cross when off */
+.btn-vario-audio:not(.active-audio) [data-vario-icon="on"],
+.btn-vario-audio.active-audio [data-vario-icon="off"] {
+  display: none;
+}
