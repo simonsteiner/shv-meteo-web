@@ -533,3 +533,65 @@ body.emagram-expanded-open {
   user-select: text !important;
   -webkit-user-select: text !important;
 }
+
+/* The forecast pages (src/components/forecast/), formerly inline styles of
+   the legacy forecast view */
+a.forecast-tab-btn {
+  text-decoration: none;
+}
+
+.forecast-text-header,
+.outlook-types {
+  margin-top: 14px;
+}
+
+.emagram-detail-plain {
+  border: none;
+  padding: 0;
+  margin-top: 16px;
+}
+
+.emagram-play-btn {
+  width: 34px;
+  height: 34px;
+}
+
+/* The popular station pills stay items of their scrolling row */
+.popular-pills {
+  display: contents;
+}
+
+/* One button, two icons */
+.player-btn:not(.playing) .icon-pause,
+.player-btn.playing .icon-play,
+.emagram-expand-btn:not(.active) .icon-shrink,
+.emagram-expand-btn.active .icon-expand {
+  display: none;
+}
+
+/* A station without a sounding (upstream's ICON data can be missing) */
+.emagram-empty-state {
+  padding: 48px 20px;
+  text-align: center;
+}
+
+.emagram-empty-title {
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.emagram-empty-hint {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.emagram-placeholder-prompt[hidden],
+.emagram-android-frame[hidden],
+.emagram-backdrop[hidden],
+.emagram-info-modal-backdrop[hidden],
+.outlook-player-container[hidden],
+.text-forecast-day-card[hidden],
+.region-pills-row[hidden] {
+  display: none;
+}

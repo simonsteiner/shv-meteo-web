@@ -1,0 +1,54 @@
+---
+// The text forecasts: the regional weather report and the paragliding,
+// gliding and general forecasts. src/scripts/forecast/text-page.ts loads
+// them for the UI language and sanitizes upstream's HTML.
+import { REGIONS } from "../../scripts/forecast/text.ts";
+const CATEGORIES = [
+  { id: "weather_report", icon: "🇨🇭", key: "forecast.catWeatherReport" },
+  { id: "gleitschirm", icon: "🪂", key: "forecast.catGleitschirm" },
+  { id: "segelflug", icon: "✈️", key: "forecast.catSegelflug" },
+  { id: "general", icon: "🌐", key: "forecast.catGeneral" },
+];
+---
+
+<div class="forecast-content-card" data-forecast-text>
+  <div class="text-category-switcher-row">
+    {CATEGORIES.map((c) => (
+      <button type="button" class="category-pill" data-cat={c.id}>
+        {c.icon} <span data-t={c.key} />
+      </button>
+    ))}
+  </div>
+
+  <div class="section-header-row forecast-text-header">
+    <div>
+      <span class="badge-tag" data-t="forecast.sourceBadge"></span>
+      <h2 class="section-heading" data-text-title></h2>
+      <p class="section-sub" data-text-issued hidden></p>
+    </div>
+  </div>
+
+  <div class="region-pills-row" data-regions>
+    {REGIONS.map((r) => (
+      <button
+        type="button"
+        class="region-pill"
+        data-region={r}
+        data-t={`forecast.region${r}`}
+      />
+    ))}
+  </div>
+
+  <div class="forecast-prognosis-container">
+    <div class="prognosis-text-body">
+      <p class="text-muted" data-text-status data-t="forecast.loading"></p>
+      <div class="text-forecast-day-card" data-text-card hidden>
+        <div class="forecast-day-body" data-text-body></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import "../../scripts/forecast/text-page.ts";
+</script>

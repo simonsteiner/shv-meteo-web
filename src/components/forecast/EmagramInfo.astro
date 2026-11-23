@@ -1,0 +1,72 @@
+---
+// How to read the emagram, opened from the card's info button.
+const LAPSE = [
+  { cls: "purple", n: 1 },
+  { cls: "red", n: 2 },
+  { cls: "blue", n: 3 },
+  { cls: "green", n: 4 },
+  { cls: "yellow", n: 5 },
+];
+---
+
+<div class="emagram-info-modal-backdrop" data-emagram-info hidden>
+  <div
+    class="emagram-info-modal-card"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="emagram-info-title"
+  >
+    <div class="modal-header">
+      <div>
+        <h3
+          class="modal-title"
+          id="emagram-info-title"
+          data-t="forecast.infoTitle"
+        ></h3>
+        <p class="modal-subtitle" data-t="forecast.infoSub"></p>
+      </div>
+      <button
+        type="button"
+        class="modal-close"
+        data-info-close
+        data-t-aria-label="map.close"
+      >
+        &times;
+      </button>
+    </div>
+    <div class="emagram-info-modal-body">
+      <div class="emagram-guide-section">
+        <div class="guide-badge temp" data-t="forecast.guideTemp"></div>
+        <p data-t="forecast.guideTempText"></p>
+        <div class="lapse-rate-guide-grid">
+          {LAPSE.map((l) => (
+            <div class={`lapse-pill ${l.cls}`}>
+              <strong data-t={`forecast.lapseLabel${l.n}`} />
+              <span data-t={`forecast.lapseText${l.n}`} />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div class="emagram-guide-section">
+        <div class="guide-badge dew" data-t="forecast.guideDew"></div>
+        <p data-t="forecast.guideDewText"></p>
+      </div>
+      <div class="emagram-guide-section">
+        <div class="guide-badge wind" data-t="forecast.guideWind"></div>
+        <p data-t="forecast.guideWindText"></p>
+      </div>
+      <div class="emagram-guide-section">
+        <div class="guide-badge model" data-t="forecast.guideModel"></div>
+        <p data-t="forecast.guideModelText"></p>
+      </div>
+    </div>
+    <div class="modal-actions-row">
+      <button
+        type="button"
+        class="btn-primary"
+        data-info-close
+        data-t="forecast.understood"
+      ></button>
+    </div>
+  </div>
+</div>

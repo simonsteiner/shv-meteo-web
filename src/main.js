@@ -3,7 +3,6 @@ import { renderHeader } from "./components/Header.js";
 import { renderBottomNav } from "./components/BottomNav.js";
 import { renderBottomSheet } from "./components/BottomSheet.js";
 import { MapView } from "./views/MapView.js";
-import { ForecastView } from "./views/ForecastView.js";
 import { ShvApi } from "./scripts/api.ts";
 
 export const storeInstance = store;
@@ -91,9 +90,6 @@ class App {
           this.currentViewInstance.mount();
           break;
         case "forecast":
-          this.currentViewInstance = new ForecastView(this.viewContainer);
-          this.currentViewInstance.mount();
-          break;
         case "weather":
         case "safety":
           // Ported pages: their markup is built in and their own script

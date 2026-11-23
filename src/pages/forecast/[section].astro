@@ -1,0 +1,16 @@
+---
+// /forecast/outlooks/, /forecast/emagram/ and /forecast/isobaren/: the
+// other forecast sections, one page each (the text is /forecast/).
+import ForecastPage from "../../components/forecast/ForecastPage.astro";
+
+export function getStaticPaths() {
+  return (["outlooks", "emagram", "isobaren"] as const).map((section) => ({
+    params: { section },
+    props: { section },
+  }));
+}
+
+const { section } = Astro.props;
+---
+
+<ForecastPage section={section} />

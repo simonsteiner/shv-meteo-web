@@ -52,7 +52,6 @@ pre-commit:
             # modules; the PR that does drops it here. Never add a file to
             # this list.
             exclude:
-              - src/views/ForecastView.js
               - src/views/MapView.js
               - src/components/BottomSheet.js
           # No em or en dashes in the staged files: they read as machine-written.
