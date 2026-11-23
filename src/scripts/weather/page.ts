@@ -52,6 +52,9 @@ export function mountWeather(root: HTMLElement): void {
   // undefined while loading, null when the call failed
   let foehn: FoehnReport | null | undefined;
   let foehnPair = pairId;
+  // the pair whose report failed to load, so its chart shows the empty
+  // state and a click on it retries
+  let failedPair: string | null = null;
   let stations: MeasurementFeature[] | null | undefined;
   let webcams: Webcam[] | null | undefined;
   let lang: string | null = null;
@@ -126,8 +129,11 @@ export function mountWeather(root: HTMLElement): void {
     q("[data-pair-chart-title]").textContent = say(chartTitleKey(pair.id));
 
     // the history belongs to the pair the report was fetched for; until a
-    // switched pair's report arrives, the chart keeps the old one
-    const pairHistory = foehnPair === pair.id ? foehn.history : null;
+    // switched pair's report arrives, the chart keeps the old one, and if
+    // it fails, the chart shows the empty state
+    let pairHistory: FoehnReport["history"] | null = null;
+    if (foehnPair === pair.id) pairHistory = foehn.history;
+    else if (failedPair === pair.id) pairHistory = [];
     if (pairHistory === null) return;
     const key = `${pair.id}|${store.state.theme}|${lang}|${pairHistory.length}|${pairHistory[pairHistory.length - 1]?.timestamp}`;
     if (key === chartKey) return;
@@ -219,20 +225,31 @@ export function mountWeather(root: HTMLElement): void {
     modal.refresh();
   }
 
+  function failPair(id: string): void {
+    if (pairId !== id) return;
+    failedPair = id;
+    render();
+  }
+
   function selectPair(id: string): void {
-    if (id === pairId) return;
+    // a click on the shown pair retries it only when its report failed
+    if (id === pairId && id !== failedPair) return;
     pairId = id;
+    failedPair = null;
     writeUrl();
     render();
     ShvApi.getFoehn(id)
       .then((report) => {
-        if (pairId !== id || !report) return;
+        if (pairId !== id) return;
+        // getJson has logged the failure
+        if (!report) return failPair(id);
         foehn = report;
         foehnPair = id;
         render();
       })
       .catch((err: unknown) => {
         console.error("[weather] Cannot load the pair's history:", err);
+        failPair(id);
       });
   }
 
