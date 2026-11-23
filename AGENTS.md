@@ -16,6 +16,7 @@ npm test  # node --test over src/scripts/**/*.test.ts
 npm run lint  # oxlint and prettier --check, as in the pre-commit hook
 npm run format  # prettier --write
 npm run grid  # rewrite src/data/previtemps_grid.json from the station catalogue (needs network)
+npm run obstacles  # build the BAZL obstacle shards into public/data/obstacles/ (needs network)
 npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a running dev server; see docs/setup.md
 ```
 
@@ -52,7 +53,8 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 - **Every tab is its own page.** `src/pages/<tab>/index.astro` sets `<body data-view>` through `src/layouts/Base.astro`, and `src/main.js` mounts that view; `store.setTab` navigates. A selection handed to the map travels in its URL (`src/scripts/handoff.ts`), and settings that must outlive a page load persist through `src/scripts/settings.ts`.
 - **Browser code stays at ES2020.** `astro.config.mjs` keeps the old build target (Safari 14, Chrome 87, Firefox 78) on purpose; syntax is lowered but builtins are not polyfilled, so don't use newer ones (`Object.hasOwn`, `Array.prototype.at`, `structuredClone`) in browser code.
 - **The sounding Function reads a generated grid.** `src/data/previtemps_grid.json` maps each station of `public/data/previtemps_stations.json` to its ICON grid point; rerun `npm run grid` after changing the catalogue, or when a station's sounding answers 503 for a day.
-- **Not every `/api` route is ported yet.** Obstacles (PR12) answer 404 until their PR lands, in dev as in production; member login is gone. `ShvApi.getEmagramSounding` and the parcel-analysis methods call routes that no longer exist.
+- **Member login is gone.** Its `/api/auth/*` routes answer 404; `ShvApi.getEmagramSounding` and the parcel-analysis methods call routes that no longer exist (PR13 and PR14 remove them).
+- **The BAZL obstacles are build-time shards.** `npm run obstacles` downloads the dataset (about 128 MB) and writes `public/data/obstacles/` (git-ignored, about 250 MB); `deploy.yml` runs it before each deploy and daily. Without it locally the obstacle layer stays empty.
 - **`public/data/*.geojson` are snapshots of the upstream CDN datasets.** `ShvApi` loads them first and falls back to the CDN URLs in `src/services/api.js`.
 
 ## Docs

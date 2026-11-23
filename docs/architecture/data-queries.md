@@ -23,11 +23,23 @@ The browser calls an upstream directly when it allows CORS and the payload is li
 | **Foehn station pairs (`/api/foehn`)** | `weather-ws-prod.ubmeteo.io`: the measurements of the Swiss bbox and the pair's two timeseries | **Function** | Maths over several stations. | [src/scripts/foehn/](../../src/scripts/foehn/): the four pairs' differences and alert levels, their GeoJSON, and `?pair=` (unknown: `KLO_LUG`) adds that pair's 24 h history, labelled in Swiss time. A failed measurements call is the 503 "Föhndaten vorübergehend nicht erreichbar"; a failed or empty series only empties `history`. `max-age=60`, cached per pair. |
 | **Sounding station catalogue** | `public/data/previtemps_stations.json` | **Static** | 107 stations, served by Pages. | `ShvApi.getPrevitempsStations` loads the file; no Function. |
 | **Sounding forecast (`/api/meteo/previtemps/forecast/:name`)** | `weather-ws-prod.ubmeteo.io/v1/point-data/<model>/runs` and six point-data series | **Function** | Point data refuses browsers; several calls and the level maths. | The station's ICON grid point comes from `src/data/previtemps_grid.json` (`npm run grid`, ICON-CH1 before ICON-CH2); a name outside the catalogue is a 404 "Unbekannte Sondierungsstation", matched case-insensitively, `/` allowed. [src/scripts/emagram/levels.ts](../../src/scripts/emagram/levels.ts) turns each time step into levels up to 550 hPa (dew point, wind, lapse rate). A failed call is the 503 "Sondierung vorübergehend nicht erreichbar". `max-age=1200`. |
-| **BAZL obstacles (`/api/obstacles`)** | `shv-app-static-prod.ubmeteo.io/v1/obstacles/...` | **Not ported yet** | 122 MB dataset. | 404 until PR12 (upstream vector tiles in the browser, or build-time shards). |
+| **BAZL obstacles** | `public/data/obstacles/<tier>/<cell>.json`, built from `shv-app-static-prod.ubmeteo.io/v1/obstacles/bazl.geojson` | **Static** | 128 MB dataset: too big for a Function or the browser whole. | `npm run obstacles` ([scripts/obstacles.ts](../../scripts/obstacles.ts)) writes one tier per LOD cut point (z7, z9, z10, z11, z12, z13), each holding every feature visible from its zoom, in cells of 1, 0.5 or 0.25 degrees; a cell over 2 MB is split in four. `ShvApi.getObstacles` reads `index.json` once, loads the cells the view touches, dedupes by `_uid`, cuts to the view and caps at 2000 ([src/scripts/obstacles/](../../src/scripts/obstacles/)). `deploy.yml` rebuilds them daily. |
 | **Member login (`/api/auth/*`)** | SHV Keycloak | **Dropped** | Reused the official app's client. | 404; PR13 removes the client side and the Profile tab. |
 
-Express and its Python parcel analysis are gone (PR9). The routes nothing called (`/api/health`, `/api/emagram/calculate`, `/api/meteo/previtemps/sounding*`, `/api/obstacles/tiles/*`) were not ported.
+Express and its Python parcel analysis are gone (PR9), and so is `/api/obstacles` (PR12). The routes nothing called (`/api/health`, `/api/emagram/calculate`, `/api/meteo/previtemps/sounding*`, `/api/obstacles/tiles/*`) were not ported.
 
 ## Spike: edge caching and CPU on pages.dev
 
 Pending: the repo owner runs the spike from PR9's description on a branch deploy and records the results here. Until then the code assumes the edge cache works (the plan's default path). If it doesn't, an upstream failure shows the 503 state, and the Foehn badge moves to the browser in PR10 ([target.md](../plan/2026-11-23-astro-cloudflare/target.md)).
+
+## Spike: BAZL vector tiles (PR12, 2026-11-23)
+
+Upstream serves the dataset as MVT tiles (`shv-app-static-prod.ubmeteo.io/v1/obstacles/tiles/bazl/{z}/{x}/{y}.pbf`, CORS `*`), but only at z6, z9 and z12. Decoded and compared with `bazl.geojson` against the LOD rules:
+
+| Tile | Size (gzip on the wire / decoded) | Zooms it would serve | Features visible there | Missing from the tile |
+| :--- | :--- | :--- | :--- | :--- |
+| `6/33/22` (all of Switzerland) | 2.4 MB / 8.4 MB, 97,874 features | z7, z8 | 8,808 | 667: the tile holds no points at all, so every tall or marked mast, crane, stack and windmill is gone |
+| `9/267/180` (Bernese Oberland) | 0.34 MB / 1.1 MB, 11,713 features | z9 to z11 | 1,679 / 3,046 / 11,533 | 0 |
+| `12/2137/1445` (Interlaken) | 6 KB / 17 KB, 184 features | z12, z13 | 82 / 184 | 0 |
+
+Every tile feature has a stable `id` and carries `obstacleType`, `marking`, `styleId`, `maxHeightAgl`, `small`, `lighting`, `topElevationAmsl`, `sourceId` and `airport`. The tiles fall short at z7 and z8 (MapView shows obstacles from z8), so PR12 took the shard path. A later change could read the z9 and z12 tiles for z9 and up and keep shards only for the overview.

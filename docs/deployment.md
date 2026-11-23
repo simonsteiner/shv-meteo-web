@@ -2,7 +2,7 @@
 
 The site is static Astro output on Cloudflare Pages, project `shv-meteo`, served at <https://shv-meteo.pages.dev>. [wrangler.jsonc](../wrangler.jsonc) names the project and the output directory (`dist/`); there are no bindings and no secrets.
 
-The API is Pages Functions in `functions/api/`, deployed with the pages by the same `wrangler pages deploy`. Routes not ported yet (Foehn, soundings, obstacles; see the [migration plan](plan/2026-11-23-astro-cloudflare/prs-api.md)) answer 404.
+The API is Pages Functions in `functions/api/`, deployed with the pages by the same `wrangler pages deploy`. The BAZL obstacles are static shards built before each deploy (`npm run obstacles`).
 
 ## One-time setup (the repo owner)
 
@@ -13,12 +13,13 @@ npx wrangler pages project create shv-meteo --production-branch main
 
 ## Deploy on merge
 
-[.github/workflows/deploy.yml](../.github/workflows/deploy.yml) deploys every merge to `main` once [ci](../.github/workflows/ci.yml) has passed on it, and only `main`'s head: when ci finishes on an older commit, that run is skipped. It needs two repo secrets (Settings, Secrets and variables, Actions): `CLOUDFLARE_API_TOKEN`, a token with the Account permission "Cloudflare Pages: Edit", and `CLOUDFLARE_ACCOUNT_ID`. Actions, deploy, "Run workflow" on `main` redeploys by hand.
+[.github/workflows/deploy.yml](../.github/workflows/deploy.yml) deploys every merge to `main` once [ci](../.github/workflows/ci.yml) has passed on it, and once a day at 03:17 UTC to refresh the obstacle shards (the downloaded dataset is cached a day under `.cache/obstacles`), and only `main`'s head: when ci finishes on an older commit, that run is skipped. It needs two repo secrets (Settings, Secrets and variables, Actions): `CLOUDFLARE_API_TOKEN`, a token with the Account permission "Cloudflare Pages: Edit", and `CLOUDFLARE_ACCOUNT_ID`. Actions, deploy, "Run workflow" on `main` redeploys by hand.
 
 ## Deploy by hand
 
 ```bash
 npm ci
+npm run obstacles   # the BAZL obstacle shards, public/data/obstacles/ (downloads about 128 MB)
 npm run build
 npx wrangler pages deploy dist --project-name shv-meteo --branch main
 ```
