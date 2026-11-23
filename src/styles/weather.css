@@ -340,3 +340,34 @@
   font-size: 0.78rem;
   font-weight: 800;
 }
+
+/* The weather page's empty, loading and error lines (src/scripts/weather/page.ts) */
+.weather-status {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 12px 0;
+}
+
+/* Formerly inline styles of the legacy weather view */
+.provider-filter-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.modal-map-btn {
+  flex: 1;
+}
+
+/* Parts the page shows and hides; their own display rules would otherwise
+   win over [hidden]. */
+.foehn-gauge-pill[hidden],
+.station-modal-backdrop[hidden],
+.stations-cards-grid[hidden],
+.webcams-cards-grid[hidden],
+.provider-filter-pills[hidden],
+.modal-canvas-box[hidden],
+.weather-status[hidden],
+.chart-canvas-container canvas[hidden] {
+  display: none;
+}

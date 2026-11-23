@@ -1,0 +1,64 @@
+---
+// The four station pairs: the selected pair's difference, its alert
+// banner, its two stations and its 24-hour chart. src/scripts/weather/
+// page.ts fills it from ShvApi.getFoehn.
+---
+
+<section id="pairs" class="weather-section foehn-card">
+  <div class="section-header-row">
+    <div>
+      <span class="badge-tag" data-t="weather.pairsBadge"></span>
+      <h2 class="section-heading" data-t="weather.foehnTitle"></h2>
+      <p class="section-sub" data-t="weather.gradientsSub"></p>
+    </div>
+    <div class="foehn-gauge-pill" data-pair-gauge hidden>
+      <span class="gauge-val" data-pair-delta></span>
+      <span class="gauge-unit" data-pair-unit></span>
+    </div>
+  </div>
+
+  <p class="weather-status" data-foehn-status data-t="weather.loading"></p>
+
+  <div data-foehn-body hidden>
+    <div class="pair-switcher-row" data-pair-pills></div>
+
+    <div class="foehn-banner" data-pair-banner>
+      <div class="banner-icon" data-pair-icon></div>
+      <div class="banner-content">
+        <strong data-pair-status></strong>
+        <p data-pair-description></p>
+      </div>
+    </div>
+
+    <div class="transect-row">
+      <div class="transect-station">
+        <span class="station-side" data-side="first"></span>
+        <span class="st-name" data-station="2" data-field="name"></span>
+        <span class="st-qnh" data-station="2" data-field="reading"></span>
+        <span class="st-alt" data-station="2" data-field="altitude"></span>
+      </div>
+      <div class="transect-arrow-box">
+        <span class="arrow-label" data-pair-arrow></span>
+        <div class="transect-line"></div>
+      </div>
+      <div class="transect-station">
+        <span class="station-side" data-side="second"></span>
+        <span class="st-name" data-station="1" data-field="name"></span>
+        <span class="st-qnh" data-station="1" data-field="reading"></span>
+        <span class="st-alt" data-station="1" data-field="altitude"></span>
+      </div>
+    </div>
+
+    <div class="chart-wrapper">
+      <h4 class="chart-title" data-pair-chart-title></h4>
+      <div class="chart-canvas-container">
+        <canvas data-foehn-chart></canvas>
+        <p
+          class="weather-status chart-empty"
+          data-t="weather.noHistory"
+          hidden
+        ></p>
+      </div>
+    </div>
+  </div>
+</section>

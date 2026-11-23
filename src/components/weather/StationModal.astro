@@ -1,0 +1,74 @@
+---
+// A station's latest values and its recent series, opened from a station
+// card; page.ts fills it and draws the chart.
+---
+
+<div class="station-modal-backdrop" data-station-modal hidden>
+  <div
+    class="station-modal-content"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="station-modal-title"
+  >
+    <div class="modal-header">
+      <div>
+        <span class="sheet-badge badge-station" data-modal="provider"></span>
+        <h3 class="modal-title" id="station-modal-title" data-modal="name"></h3>
+        <p class="modal-subtitle" data-modal="subtitle"></p>
+      </div>
+      <button
+        type="button"
+        class="modal-close"
+        data-modal-close
+        data-t-aria-label="map.close"
+      >
+        &times;
+      </button>
+    </div>
+
+    <div class="modal-telemetry-grid">
+      <div class="stat-box">
+        <span class="stat-label" data-t="weather.wind"></span>{" "}
+        <span class="stat-val" data-modal="wind"></span>
+        <span class="stat-sub" data-modal="direction"></span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label" data-t="weather.gustShort"></span>{" "}
+        <span class="stat-val text-warning" data-modal="gust"></span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label" data-t="weather.temp"></span>{" "}
+        <span class="stat-val" data-modal="temp"></span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label" data-t="weather.dewPoint"></span>{" "}
+        <span class="stat-val" data-modal="dew"></span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label" data-t="weather.humidityFull"></span>{" "}
+        <span class="stat-val" data-modal="humidity"></span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label" data-t="weather.qnhFull"></span>{" "}
+        <span class="stat-val" data-modal="qnh"></span>
+      </div>
+    </div>
+
+    <div class="modal-chart-section">
+      <h4 class="modal-section-title" data-t="weather.history24h"></h4>
+      <p class="weather-status" data-modal="series-status"></p>
+      <div class="modal-canvas-box" data-modal="chart-box">
+        <canvas data-station-chart></canvas>
+      </div>
+    </div>
+
+    <div class="modal-actions-row">
+      <button
+        type="button"
+        class="btn-primary modal-map-btn"
+        data-view-on-map
+        data-t="weather.viewOnMap"
+      ></button>
+    </div>
+  </div>
+</div>
