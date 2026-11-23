@@ -1,25 +1,110 @@
-// The three upstream calls behind /api/foehn: the measurements of the Swiss
-// bbox, which holds all eight pair stations (0.84 MB rather than the Alps'
-// 3.1 MB), and the requested pair's two series for its history. A failed
-// measurements call fails the route (its 503); a failed series only empties
-// the history.
+// The upstream calls behind /api/foehn: the current values the pairs read,
+// in one call per parameter (pressure_msl for the pressure pairs,
+// temperature for the Pilatus/Matro pair), each limited to that parameter
+// and to the box around its stations (about 20 KB each), and the requested
+// pair's two series for its history, from 25 hours ago (about 6 KB each).
+// Parsing the unfiltered Swiss bbox and 14-day series instead (0.98 MB) took
+// 8 to 29 ms CPU per report on Pages, over the Free plan's 10 ms
+// (docs/architecture/data-queries.md). A failed measurements call fails the
+// route (its 503); a failed series only empties the history.
 import type { MeasurementFeature, TimeseriesResponse } from "../types.ts";
 import { fetchUpstream } from "../upstream/fetch.ts";
 import { ROUTES, WEATHER } from "../upstream/routes.ts";
-import { pairConfig, historyParameter } from "./pairs.ts";
+import {
+  historyParameter,
+  PAIRS,
+  pairConfig,
+  STATION_POSITIONS,
+} from "./pairs.ts";
 import { foehnReport } from "./report.ts";
 
-export const SWISS_MEASUREMENTS_URL = `${WEATHER}/measurements/current?minLat=45.8&minLon=5.9&maxLat=47.8&maxLon=10.5`;
+/** Degrees a box reaches past its outermost stations, about 2 km: room for
+ * upstream's rounding of a position. */
+const BOX_MARGIN = 0.02;
 
 /** Each call's timeout. */
 const TIMEOUT_MS = ROUTES.foehn.timeoutMs;
 
+/** The pair stations by the upstream parameter their pairs read. */
+export function stationsByParameter(): Map<string, string[]> {
+  const byParameter = new Map<string, string[]>();
+  for (const cfg of PAIRS) {
+    const ids = byParameter.get(historyParameter(cfg)) ?? [];
+    for (const id of [cfg.startId, cfg.endId])
+      if (!ids.includes(id)) ids.push(id);
+    byParameter.set(historyParameter(cfg), ids);
+  }
+  return byParameter;
+}
+
+/** The current values of `parameter` in the box around `stationIds`. */
+export function measurementsUrl(
+  parameter: string,
+  stationIds: string[],
+): string {
+  const lons = stationIds.map((id) => STATION_POSITIONS[id][0]);
+  const lats = stationIds.map((id) => STATION_POSITIONS[id][1]);
+  const d = BOX_MARGIN;
+  const box = [
+    `minLat=${Math.min(...lats) - d}`,
+    `minLon=${Math.min(...lons) - d}`,
+    `maxLat=${Math.max(...lats) + d}`,
+    `maxLon=${Math.max(...lons) + d}`,
+  ].join("&");
+  return `${WEATHER}/measurements/current?${box}&parameters=${parameter}`;
+}
+
+/** The pair stations' current measurements; rejects when any call fails. A
+ * station missing from its answer is logged and left out, which drops its
+ * pair from the report. */
+async function measurements(
+  fetchFn: typeof fetch,
+): Promise<MeasurementFeature[]> {
+  const answers = await Promise.all(
+    [...stationsByParameter()].map(async ([parameter, ids]) => {
+      const res = await fetchUpstream(
+        measurementsUrl(parameter, ids),
+        TIMEOUT_MS,
+        fetchFn,
+      );
+      if (!res.ok)
+        throw new Error(`${parameter} measurements answered ${res.status}`);
+      const body = (await res.json()) as { features?: MeasurementFeature[] };
+      const byId = new Map((body.features ?? []).map((f) => [f.id, f]));
+      return ids.flatMap((id) => {
+        const station = byId.get(id);
+        if (station) return [station];
+        console.error(
+          `[foehn] No ${parameter} for ${id}, its pair is left out`,
+        );
+        return [];
+      });
+    }),
+  );
+  return answers.flat();
+}
+
+/** How far back a series is asked for: the history's 24 hours and one more,
+ * so the Function's and upstream's clocks never cut its first point.
+ * Without `start` upstream sends 14 days (about 76 KB rather than 6 KB). */
+const SERIES_SPAN_MS = 25 * 3600 * 1000;
+
+/** `stationId`'s series of `parameter` since `since` (epoch ms). */
+export function seriesUrl(
+  stationId: string,
+  parameter: string,
+  since: number,
+): string {
+  return `${WEATHER}/measurements/timeseries/${encodeURIComponent(stationId)}?parameters=${parameter}&start=${since}`;
+}
+
 async function series(
   stationId: string,
   parameter: string,
+  since: number,
   fetchFn: typeof fetch,
 ): Promise<TimeseriesResponse | null> {
-  const url = `${WEATHER}/measurements/timeseries/${encodeURIComponent(stationId)}?parameters=${parameter}`;
+  const url = seriesUrl(stationId, parameter, since);
   try {
     const res = await fetchUpstream(url, TIMEOUT_MS, fetchFn);
     if (!res.ok) throw new Error(`upstream answered ${res.status}`);
@@ -41,22 +126,18 @@ export async function foehnResponse(
 ): Promise<Response> {
   const cfg = pairConfig(pairId);
   const parameter = historyParameter(cfg);
-  const [measurements, start, end] = await Promise.all([
-    fetchUpstream(SWISS_MEASUREMENTS_URL, TIMEOUT_MS, fetchFn).then(
-      async (res) => {
-        if (!res.ok) throw new Error(`measurements answered ${res.status}`);
-        const body = (await res.json()) as { features?: MeasurementFeature[] };
-        return body.features ?? [];
-      },
-    ),
-    series(cfg.startId, parameter, fetchFn),
-    series(cfg.endId, parameter, fetchFn),
+  const at = now();
+  const since = at.getTime() - SERIES_SPAN_MS;
+  const [stations, start, end] = await Promise.all([
+    measurements(fetchFn),
+    series(cfg.startId, parameter, since, fetchFn),
+    series(cfg.endId, parameter, since, fetchFn),
   ]);
   const report = foehnReport(
-    measurements,
+    stations,
     { [cfg.startId]: start, [cfg.endId]: end },
     cfg.id,
-    now(),
+    at,
   );
   return Response.json(report);
 }

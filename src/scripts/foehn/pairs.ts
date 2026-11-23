@@ -71,6 +71,21 @@ export const PAIRS: PairConfig[] = [
   },
 ];
 
+/** Each pair station's position as upstream's measurements give it
+ * (longitude, latitude; read on 2026-11-23). fetch.ts asks only for the box
+ * around a parameter's stations, so the Function parses about 40 KB rather
+ * than the whole of Switzerland's measurements. */
+export const STATION_POSITIONS: Record<string, [number, number]> = {
+  "meteo_swiss:KLO": [8.535961, 47.479611],
+  "meteo_swiss:LUG": [8.960322, 46.004217],
+  "meteo_swiss:GVE": [6.127742, 46.247519],
+  "meteo_swiss:GUT": [9.279428, 47.601733],
+  "meteo_swiss:PIL": [8.252256, 46.978869],
+  "meteo_swiss:MTR": [8.924742, 46.410103],
+  "meteo_swiss:DEM": [7.349567, 47.351706],
+  "meteo_swiss:GRE": [7.415144, 47.179097],
+};
+
 export const DEFAULT_PAIR = "KLO_LUG";
 
 /** The pair for `id`; an unknown id gets the Gotthard pair, as before. */
