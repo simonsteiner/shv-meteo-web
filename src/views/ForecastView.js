@@ -309,10 +309,10 @@ export class ForecastView {
           ${this.activeSection === "text" ? this.renderTextSection(lang) : ""}
 
           <!-- Section 2: Days Overview / Outlooks ("Aussichten") -->
-          ${this.activeSection === "outlooks" ? this.renderOutlooksSection(lang) : ""}
+          ${this.activeSection === "outlooks" ? this.renderOutlooksSection() : ""}
 
           <!-- Section 3: Emagram & Previtemps Map -->
-          ${this.activeSection === "emagram" ? this.renderEmagramSection(lang) : ""}
+          ${this.activeSection === "emagram" ? this.renderEmagramSection() : ""}
 
           <!-- Section 4: Synoptic Isobar Chart -->
           ${this.activeSection === "isobaren" ? this.renderIsobarenSection(isobarenUrl) : ""}
