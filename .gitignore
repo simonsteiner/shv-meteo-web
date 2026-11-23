@@ -8,3 +8,6 @@ apk_analysis/
 .wrangler/
 public/data/obstacles/
 .cache/
+.env
+.env.*
+.dev.vars
