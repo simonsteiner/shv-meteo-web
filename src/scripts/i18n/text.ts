@@ -57,3 +57,10 @@ export function applyText(
       if (value !== null) el.setAttribute(name, value);
     }
 }
+
+/** The string at `key`, or "" after logging that the dictionary lacks it. */
+export function say(dict: Dictionary, key: string): string {
+  const text = lookup(dict, key);
+  if (text === null) console.error(`[i18n] Missing string ${key}`);
+  return text ?? "";
+}

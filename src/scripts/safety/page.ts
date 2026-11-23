@@ -6,7 +6,8 @@
 
 import { store } from "../../state.js";
 import { ShvApi } from "../api.ts";
-import { applyText, lookup, type Dictionary } from "../i18n/text.ts";
+import { must } from "../dom.ts";
+import { applyText, say as sayIn, type Dictionary } from "../i18n/text.ts";
 import { VarioAudio } from "./audio.ts";
 import { flightCardsHtml } from "./cards.ts";
 import { allChecked, isCheckPoint } from "./checklist.ts";
@@ -21,20 +22,12 @@ import {
 } from "./flights.ts";
 import { formatRate, gaugeState } from "./vario.ts";
 
-function must<T extends Element>(root: ParentNode, selector: string): T {
-  const el = root.querySelector<T>(selector);
-  if (!el) throw new Error(`[safety] Missing ${selector}`);
-  return el;
-}
-
 function dictionary(): Dictionary {
   return store.t as unknown as Dictionary;
 }
 
 function say(key: string): string {
-  const text = lookup(dictionary(), key);
-  if (text === null) console.error(`[safety] Missing string ${key}`);
-  return text ?? "";
+  return sayIn(dictionary(), key);
 }
 
 export function mountSafety(root: HTMLElement): void {
