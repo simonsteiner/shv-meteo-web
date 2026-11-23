@@ -5,7 +5,7 @@ Date: 2026-11-23. Live checks ran between 12:58 and 13:03 UTC with `curl` (User-
 ## Summary
 
 - `/api/foehn` spent 8 to 29 ms CPU (Free limit 10 ms), mostly parsing 0.82 MB of Swiss measurements and two 14-day series. Asking upstream only for what the report reads (`parameters=` and a box per parameter, `start=` 25 hours back on the series) cuts the payload to about 52 KB and the CPU to a median of 5.5 ms (3 to 13 ms), with identical output; no upstream change needed.
-- Upstream's sounding point data was still down at 12:58 UTC: `/runs` lists runs, every uncached point answers 404. Our Function's 503 is correct; there is no other SHV-side source.
+- Upstream's sounding point data was still down at 12:58 UTC: `/runs` lists runs, every uncached point answers 404; there is no other SHV-side source. By 17:30 UTC it was back, and the Function's 503s that remained were our bug: it took the oldest listed run (see "Recovered" below).
 - The official app 1.1.0 makes the same anonymous calls, so it fails too; a member login would change nothing.
 - MeteoSwiss Open Government Data has ICON-CH1/CH2 (CC BY 4.0, 09Z run published 10:23 UTC), but only as whole-domain GRIB2 (about 184 MB per variable and lead time), kept 24 hours. Own soundings from it need a build pipeline outside Pages.
 - xcbenz.com publishes ready emagram bundles (09Z ICON-CH1, CORS `*`) per region, but has no terms or license: not something to depend on.
@@ -35,6 +35,13 @@ Re-checked 2026-11-23T12:58Z:
 - Interlaken, ICON-CH1 06Z, point 776549, `temperature?nc=<random>`: 404, `cf-cache-status: BYPASS`, `{"detail":"meteo_swiss:icon_ch1:TEMPERATURE:2026-11-23T06:00:00Z not available"}`. **Still down.**
 - The same URL without a query string: 200 from cache (`HIT`, last modified 09:31:38 GMT), 80 levels, 34 time steps, one ensemble member.
 - With an `Origin` header, `/runs` and point data answer 403, so the browser cannot call point data directly (matches data-queries.md).
+
+Recovered, re-checked 2026-11-23T17:30Z:
+
+- `/runs` for `meteo_swiss:icon_ch1`: `{"runs":[1795435200000,1795413600000]}`, 12Z then 06Z, newest first.
+- Interlaken, point 776549, `?nc=<random>`: all six parameters 200 for 12Z, all six 404 "... 2026-11-23T06:00:00Z not available" for 06Z.
+- The Function took `runs[runs.length - 1]`, the older run, so it still answered 503; its test listed runs oldest first. Fixed to take the newest run, falling back to the one before when a series is missing, as the official app uses only complete runs.
+- On the `sounding-run` preview: 16 stations 200, ICON-CH1 12Z, 34 time steps, 80 levels, about 325 KB each. CPU per fresh sounding (from `wrangler pages deployment tail`, 9 requests caught): 6, 7, 8, 10, 15, 17, 19, 23, 25 ms, median 15 ms.
 
 ## Official app's sounding calls
 
