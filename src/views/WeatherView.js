@@ -1,6 +1,6 @@
 import { Chart, registerables } from "chart.js";
 import { store } from "../state.js";
-import { ShvApi } from "../services/api.js";
+import { ShvApi } from "../scripts/api.ts";
 import { handoffUrl } from "../scripts/handoff.ts";
 
 Chart.register(...registerables);

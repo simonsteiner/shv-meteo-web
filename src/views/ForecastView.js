@@ -1,6 +1,6 @@
 import L from "leaflet";
 import { store } from "../state.js";
-import { ShvApi } from "../services/api.js";
+import { ShvApi } from "../scripts/api.ts";
 
 // =========================================================================
 // Official Ubique / MeteoSchweiz Days Overview Color Palettes & Bounding Box

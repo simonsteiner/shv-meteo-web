@@ -1,6 +1,6 @@
 import L from "leaflet";
 import { store } from "../state.js";
-import { ShvApi } from "../services/api.js";
+import { ShvApi } from "../scripts/api.ts";
 import { readHandoff, withoutHandoff } from "../scripts/handoff.ts";
 
 const WIND_BUCKETS = [

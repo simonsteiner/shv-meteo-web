@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { ShvApi } from "../services/api.js";
+import { buildDabs, isobarenUrl, OUTLOOKS_URL, ShvApi } from "./api.ts";
 
 test("getFoehn() twice makes one fetch, getFoehn('GVE_GUT') a second", async () => {
   const calls: string[] = [];
@@ -26,4 +26,38 @@ test("getFoehn() twice makes one fetch, getFoehn('GVE_GUT') a second", async () 
   } finally {
     globalThis.fetch = real;
   }
+});
+
+test("en gets the German isobar chart, fr and it keep theirs", () => {
+  const base = "https://shv-app-ws-prod.shv-app.ch/v1/text/isobaren/";
+  assert.equal(isobarenUrl("en"), `${base}de.svg`);
+  assert.equal(isobarenUrl("de"), `${base}de.svg`);
+  assert.equal(isobarenUrl("fr"), `${base}fr.svg`);
+  assert.equal(isobarenUrl("it"), `${base}it.svg`);
+  assert.equal(isobarenUrl("../x"), `${base}de.svg`);
+});
+
+test("the outlooks come from upstream", () => {
+  assert.match(OUTLOOKS_URL, /^https:\/\/static-prod\.ubmeteo\.io\//);
+});
+
+test("buildDabs returns the former /api/dabs fields for the date", () => {
+  assert.deepEqual(buildDabs(new Date("2026-07-14T10:00:00Z")), {
+    date: "2026-07-14",
+    status: "ACTIVE",
+    bulletinUrl: "https://www.skybriefing.com/de/dabs",
+    bulletinPdfUrl: "https://www.skybriefing.com/dabs/dabs.pdf",
+    validity: "00:00 - 23:59 LT (2026-07-14)",
+    notesDe:
+      "Täglich ab 16:00 LT für den Folgetag durch Skybriefing publiziert. Vor jedem Streckenflug obligatorisch zu konsultieren!",
+    notesEn:
+      "Published daily at 16:00 LT for the next day via Skybriefing. Mandatory consultation prior to cross-country flights!",
+  });
+});
+
+test("the DABS date is Swiss, not UTC", () => {
+  // 23:30 UTC on 14 July is 01:30 on 15 July in Zurich (CEST)
+  assert.equal(buildDabs(new Date("2026-07-14T23:30:00Z")).date, "2026-07-15");
+  // 23:30 UTC on 14 January is 00:30 on 15 January (CET)
+  assert.equal(buildDabs(new Date("2026-01-14T23:30:00Z")).date, "2026-01-15");
 });

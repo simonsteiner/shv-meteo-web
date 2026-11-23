@@ -6,7 +6,7 @@ import { MapView } from "./views/MapView.js";
 import { WeatherView } from "./views/WeatherView.js";
 import { ForecastView } from "./views/ForecastView.js";
 import { SafetyView } from "./views/SafetyView.js";
-import { ShvApi } from "./services/api.js";
+import { ShvApi } from "./scripts/api.ts";
 
 export const storeInstance = store;
 if (typeof window !== "undefined") {
