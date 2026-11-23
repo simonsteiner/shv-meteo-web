@@ -25,7 +25,7 @@ const ctx = (path: string) =>
     waitUntil: () => {},
   }) satisfies Context;
 
-const series = (value: number, times: number) => ({
+const series = (value: number | null, times: number) => ({
   validTimes: [0, 3_600_000].slice(0, times),
   data: {
     levels: [{ ensembleMembers: [{ timeSeries: Array(times).fill(value) }] }],
@@ -36,7 +36,7 @@ const series = (value: number, times: number) => ({
  * `{"runs":[1795435200000,1795413600000]}` (12 and 06 UTC). */
 const RUNS = [3, 2, 1];
 
-function fakeFetch(calls: string[], failing = "") {
+function fakeFetch(calls: string[], failing = "", empty = "") {
   return (async (input: RequestInfo | URL) => {
     const url = String(input);
     calls.push(url);
@@ -52,6 +52,8 @@ function fakeFetch(calls: string[], failing = "") {
       wind_v: 0,
     };
     const param = url.split("/").at(-2) ?? "";
+    // `empty`: a series still being written, every value null
+    if (param === empty) return Response.json(series(null, 2));
     return Response.json(series(value[param], 2));
   }) as typeof fetch;
 }
@@ -117,6 +119,21 @@ test("an unknown name is a 404 without an upstream call", async () => {
     error: "Unbekannte Sondierungsstation",
   });
   assert.equal(calls.length, 0);
+});
+
+test("a run without one complete level is the route's 503", async () => {
+  const calls: string[] = [];
+  const res = await quietly(() =>
+    soundingRoute(
+      ctx("Disentis%2FMust%C3%A9r"),
+      grid,
+      fakeFetch(calls, "", "specific_humidity"),
+    ),
+  );
+  assert.equal(res.status, 503);
+  // the runs list, then six series for each of the three runs: none has a
+  // complete level, so each falls back to the one before
+  assert.equal(calls.length, 19);
 });
 
 test("a failed point fetch is the route's 503", async () => {

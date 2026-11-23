@@ -70,8 +70,8 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          # no npm cache: a workflow that publishes restores nothing other
-          # runs wrote (zizmor cache-poisoning), and deploys are rare
+          # no npm cache: a workflow that publishes restores no dependency
+          # cache (zizmor cache-poisoning), and deploys are rare
           node-version: 24
       - run: npm ci
       # The BAZL dataset (about 128 MB), downloaded at most once a day: the

@@ -22,6 +22,14 @@ import { foehnReport } from "./report.ts";
  * upstream's rounding of a position. */
 const BOX_MARGIN = 0.02;
 
+/** What each measurements call asks upstream for: a pressure station
+ * without an MSL value falls back to its standard MSL or surface pressure
+ * (`stationPressure` in report.ts), and `parameters=` drops every field it
+ * doesn't name. */
+const CURRENT_PARAMETERS: Record<string, string> = {
+  pressure_msl: "pressure_msl,pressure_standard_msl,pressure_surface",
+};
+
 /** Each call's timeout. */
 const TIMEOUT_MS = ROUTES.foehn.timeoutMs;
 
@@ -37,7 +45,8 @@ export function stationsByParameter(): Map<string, string[]> {
   return byParameter;
 }
 
-/** The current values of `parameter` in the box around `stationIds`. */
+/** The current values of `parameter` (with its fallbacks) in the box around
+ * `stationIds`. */
 export function measurementsUrl(
   parameter: string,
   stationIds: string[],
@@ -51,7 +60,7 @@ export function measurementsUrl(
     `maxLat=${Math.max(...lats) + d}`,
     `maxLon=${Math.max(...lons) + d}`,
   ].join("&");
-  return `${WEATHER}/measurements/current?${box}&parameters=${parameter}`;
+  return `${WEATHER}/measurements/current?${box}&parameters=${CURRENT_PARAMETERS[parameter] ?? parameter}`;
 }
 
 /** The pair stations' current measurements; rejects when any call fails. A
