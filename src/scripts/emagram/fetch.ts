@@ -1,9 +1,11 @@
 // /api/meteo/previtemps/forecast/<name>: a catalogue station's ICON
-// sounding over every time step of the latest run. Seven upstream calls,
+// sounding over every time step of the newest run. Seven upstream calls,
 // 8 s each: the model's runs list, then six point-data series (about
-// 180 KB). An unknown name is a 404; any failed call is the route's 503,
-// logged with the station (a station whose grid point moved shows the 503
-// until `npm run grid` runs again).
+// 180 KB). Upstream lists its runs newest first and soon drops the older
+// one; a run with a series missing (still being ingested) is passed over
+// for the one before, as the official app does. An unknown name is a 404;
+// no usable run is the route's 503, logged with the station (a station
+// whose grid point moved shows the 503 until `npm run grid` runs again).
 import type { Context, GridPoint, PrevitempsGrid, Sounding } from "../types.ts";
 import { fetchUpstream } from "../upstream/fetch.ts";
 import { serve } from "../upstream/respond.ts";
@@ -26,7 +28,8 @@ async function json(url: string, fetchFn: typeof fetch): Promise<unknown> {
   return res.json();
 }
 
-/** The station's sounding, as the Express route returned it. */
+/** The station's sounding from the newest run that has all of it, as the
+ * Express route returned it. */
 export async function fetchSounding(
   point: GridPoint,
   fetchFn: typeof fetch = fetch,
@@ -37,9 +40,28 @@ export async function fetchSounding(
   )) as {
     runs?: number[];
   };
-  const list = runs.runs ?? [];
-  const run = list[list.length - 1];
-  if (run === undefined) throw new Error(`no runs for ${point.modelKey}`);
+  // newest first, whatever order upstream lists them in
+  const list = [...(runs.runs ?? [])].sort((a, b) => b - a);
+  if (list.length === 0) throw new Error(`no runs for ${point.modelKey}`);
+  for (const [i, run] of list.entries()) {
+    try {
+      return await soundingOfRun(point, run, fetchFn);
+    } catch (err) {
+      if (i === list.length - 1) throw err;
+      console.error(
+        `[sounding] ${point.name} run ${run} unusable, trying the one before:`,
+        err,
+      );
+    }
+  }
+  throw new Error(`no runs for ${point.modelKey}`);
+}
+
+async function soundingOfRun(
+  point: GridPoint,
+  run: number,
+  fetchFn: typeof fetch,
+): Promise<Sounding> {
   const base = `${POINT_DATA}/${point.modelKey}/${run}`;
   const raws = await Promise.all(
     SOUNDING_PARAMETERS.map((p) =>

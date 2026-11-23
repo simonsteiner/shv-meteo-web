@@ -32,13 +32,17 @@ const series = (value: number, times: number) => ({
   },
 });
 
+/** Upstream lists its runs newest first, as on 2026-11-23:
+ * `{"runs":[1795435200000,1795413600000]}` (12 and 06 UTC). */
+const RUNS = [3, 2, 1];
+
 function fakeFetch(calls: string[], failing = "") {
   return (async (input: RequestInfo | URL) => {
     const url = String(input);
     calls.push(url);
     if (failing && url.includes(failing))
-      return new Response("", { status: 500 });
-    if (url.endsWith("/runs")) return Response.json({ runs: [1, 2, 3] });
+      return new Response("", { status: 404 });
+    if (url.endsWith("/runs")) return Response.json({ runs: RUNS });
     const value: Record<string, number> = {
       temperature: 283.15,
       pressure: 95000,
@@ -92,6 +96,17 @@ test("a catalogue name with a slash returns the sounding from the latest run", a
       "https://weather-ws-prod.ubmeteo.io/v1/point-data/meteo_swiss:icon_ch1/3/wind_v/42",
     ),
   );
+});
+
+test("a newest run without data falls back to the one before", async () => {
+  const calls: string[] = [];
+  const res = await quietly(() =>
+    soundingRoute(ctx("Disentis%2FMust%C3%A9r"), grid, fakeFetch(calls, "/3/")),
+  );
+  assert.equal(res.status, 200);
+  assert.equal((await res.json()).run, 2);
+  // the runs list, run 3's six series, run 2's six series
+  assert.equal(calls.length, 13);
 });
 
 test("an unknown name is a 404 without an upstream call", async () => {
