@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Context, PrevitempsGrid } from "../types.ts";
-import { RUNS_TRIED, soundingRoute } from "./fetch.ts";
+import { soundingRoute } from "./fetch.ts";
 import { BROKEN, COLUMN, pointAnswer } from "./point.fixture.ts";
 import { soundingFromForecast } from "./sounding.ts";
 
@@ -173,6 +173,8 @@ test("a column that is no atmosphere is the route's 503", async () => {
     ),
   );
   assert.equal(res.status, 503);
-  // the newest two runs tried before giving up
-  assert.equal(calls.length, 1 + RUNS_TRIED);
+  // the runs list, then the newest two runs (3 and 2) before giving up;
+  // run 1 is never asked for
+  assert.equal(calls.length, 3);
+  assert.ok(!calls.some((u) => u.includes("/1/")));
 });

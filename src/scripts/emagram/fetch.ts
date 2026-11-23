@@ -27,7 +27,7 @@ const POINT_DATA = "https://weather-ws-prod.ubmeteo.io/v1/point-data";
 const TIMEOUT_MS = ROUTES.sounding.timeoutMs;
 
 /** How many runs are tried, newest first: the newest and the one before. */
-export const RUNS_TRIED = 2;
+const RUNS_TRIED = 2;
 
 /** The point's six series of `run` in one answer. */
 export function soundingUrl(point: GridPoint, run: number): string {
