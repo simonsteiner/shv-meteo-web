@@ -47,10 +47,14 @@ const quietly = async <T>(fn: () => Promise<T>): Promise<T> => {
   }
 };
 
+/** Upstream answering `body`, as JSON unless `init` names another type. */
 const upstream =
   (body: string, init: ResponseInit = {}) =>
   async () =>
-    new Response(body, init);
+    new Response(body, {
+      ...init,
+      headers: { "Content-Type": "application/json", ...init.headers },
+    });
 
 test("a 200 carries the route's max-age and upstream's Content-Type only", async () => {
   const { ctx } = context();
@@ -111,7 +115,7 @@ test("a fresh copy is served without upstream", async () => {
   const res = await respond(
     route,
     KEY,
-    async () => ((called = true), new Response("v2")),
+    async () => ((called = true), Response.json("v2")),
     again.ctx,
     cache,
     31_000,
@@ -174,7 +178,7 @@ test("proxy keys the copy by the checked parameters", async () => {
     "https://shv-meteo.pages.dev/api/meteo/text-forecast/en?x=1",
   );
   const real = globalThis.fetch;
-  globalThis.fetch = (async () => new Response("{}")) as typeof fetch;
+  globalThis.fetch = (async () => Response.json({})) as typeof fetch;
   try {
     await proxy("textForecast", { ...ctx, params: { lang: "en" } }, cache);
   } finally {
@@ -191,4 +195,21 @@ test("proxy answers a bad id with a 400 before going upstream", async () => {
   const { ctx } = context();
   const res = await proxy("timeseries", { ...ctx, params: { id: "a/b" } });
   assert.equal(res.status, 400);
+});
+
+test("a 200 that isn't JSON never replaces the fallback copy", async () => {
+  const { cache, store } = fakeCache();
+  const { ctx, settled } = context();
+  const res = await respond(
+    route,
+    KEY,
+    upstream("<html>maintenance</html>", {
+      headers: { "Content-Type": "text/html" },
+    }),
+    ctx,
+    cache,
+  );
+  await settled();
+  assert.equal(await res.text(), "<html>maintenance</html>");
+  assert.equal(store.size, 0);
 });

@@ -84,7 +84,9 @@ export async function respond(
 
   const contentType = upstream.headers.get("Content-Type") ?? DEFAULT_TYPE;
   let body = upstream.body;
-  if (cache && body) {
+  // every route answers JSON: a 200 that isn't (a maintenance page) still
+  // goes to the client, but never replaces the copy kept to fall back on
+  if (cache && body && /\bjson\b/i.test(contentType)) {
     const [toClient, toCache] = body.tee();
     body = toClient;
     const copy = new Response(toCache, {

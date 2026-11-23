@@ -18,15 +18,17 @@ export function isobarenUrl(lang: string): string {
   return `https://shv-app-ws-prod.shv-app.ch/v1/text/isobaren/${l}.svg`;
 }
 
-/** Today's date in Switzerland as YYYY-MM-DD. */
+/** Today's date in Switzerland as YYYY-MM-DD, from the parts rather than
+ * a locale's layout, which older browsers' ICU data varies. */
 function swissDate(now: Date): string {
-  // en-CA formats as YYYY-MM-DD
-  return new Intl.DateTimeFormat("en-CA", {
+  const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "Europe/Zurich",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(now);
+  }).formatToParts(now);
+  const part = (type: string) => parts.find((p) => p.type === type)?.value;
+  return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
 /** The DABS card's fields for `now`, as the former /api/dabs returned
