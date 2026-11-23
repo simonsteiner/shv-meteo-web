@@ -1,6 +1,7 @@
 // A request's parameters checked against its route: the path parameters
 // decoded once, plus only the query keys the route accepts. Invalid input
 // is a 400 here, before anything goes upstream.
+import { pairConfig } from "../foehn/pairs.ts";
 import { ROUTES, type RouteName } from "./routes.ts";
 
 /** Upstream station ids: `meteo_swiss:KLO`,
@@ -49,6 +50,10 @@ export function parseParams(
     // anything else, the UI's `en` included, gets German, as before
     const lang = (decoded(path.lang) ?? "").toLowerCase();
     params.lang = TEXT_LANGS.includes(lang) ? lang : "de";
+  }
+  if (route === "foehn") {
+    // an unknown or missing pair gets the Gotthard pair, as before
+    params.pair = pairConfig(params.pair).id;
   }
   return params;
 }

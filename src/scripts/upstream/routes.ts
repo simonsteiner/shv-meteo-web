@@ -32,7 +32,7 @@ const TIMESERIES_PARAMETERS =
   "wind_speed,wind_direction,wind_gust,temperature,pressure_msl,relative_humidity";
 
 export type RouteName =
-  "measurements" | "timeseries" | "webcams" | "textForecast";
+  "measurements" | "timeseries" | "webcams" | "textForecast" | "foehn";
 
 export const ROUTES: Record<RouteName, Route> = {
   measurements: {
@@ -71,5 +71,12 @@ export const ROUTES: Record<RouteName, Route> = {
     timeoutMs: 8_000,
     errorBody: { error: "Textprognose vorübergehend nicht erreichbar" },
     query: [],
+  },
+  // three calls (foehn/fetch.ts), 8 s each; keyed by its pair
+  foehn: {
+    ttl: 60,
+    timeoutMs: 8_000,
+    errorBody: { error: "Föhndaten vorübergehend nicht erreichbar" },
+    query: ["pair"],
   },
 };

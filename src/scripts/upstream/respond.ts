@@ -119,26 +119,43 @@ function edgeCache(): Cache | undefined {
     : undefined;
 }
 
-/** A whole proxied route: what each Function in functions/api/ calls. */
-export async function proxy(
+/** A whole route: checks the parameters, then answers through `respond`
+ * from what `fetcher` makes of them. What each Function in functions/api/
+ * calls, through `proxy` for a route with one upstream. */
+export async function serve(
   name: RouteName,
   ctx: Context,
+  fetcher: (params: Record<string, string>) => Promise<Response>,
   cache: Cache | undefined = edgeCache(),
 ): Promise<Response> {
   const search = new URL(ctx.request.url).searchParams;
   const params = parseParams(name, ctx.params, search);
   if (params instanceof Response) return params;
-  const route = ROUTES[name];
-  const url = route.url?.(params);
-  if (!url) throw new Error(`[proxy] Route ${name} has no single upstream`);
   // the copy is keyed by the route and its checked parameters, so
   // `meteo_swiss%3AKLO` and `meteo_swiss:KLO`, or `en` and `de`, share one
   const query = new URLSearchParams(Object.entries(params).sort());
   return respond(
-    route,
+    ROUTES[name],
     `/api/_cache/${name}?${query}`,
-    () => fetchUpstream(url, route.timeoutMs),
+    () => fetcher(params),
     ctx,
+    cache,
+  );
+}
+
+/** A route with a single upstream URL (routes.ts). */
+export function proxy(
+  name: RouteName,
+  ctx: Context,
+  cache: Cache | undefined = edgeCache(),
+): Promise<Response> {
+  const route = ROUTES[name];
+  const url = route.url;
+  if (!url) throw new Error(`[proxy] Route ${name} has no single upstream`);
+  return serve(
+    name,
+    ctx,
+    (params) => fetchUpstream(url(params), route.timeoutMs),
     cache,
   );
 }
