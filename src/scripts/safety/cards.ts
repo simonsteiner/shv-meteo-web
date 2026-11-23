@@ -1,4 +1,4 @@
-// The flight log's cards as an HTML string; every stored value is escaped,
+// The logbook's cards as an HTML string; every stored value is escaped,
 // since the log is free text.
 
 import { escapeHtml } from "../escape.ts";

@@ -1,4 +1,4 @@
-// The flight log: entries the pilot types in, kept in localStorage
+// The logbook: entries the pilot types in, kept in localStorage
 // (`shv_flights`, src/scripts/settings.ts). Older entries carry a `type`
 // and `maxAlt` the form no longer asks for; they show when present. An
 // entry that isn't a flight is skipped with a log, so a hand-edited store
@@ -65,7 +65,7 @@ export function readFlights(entries: readonly unknown[]): Flight[] {
   entries.forEach((entry, i) => {
     const flight = readFlight(entry);
     if (flight) flights.push(flight);
-    else console.error(`[safety] Skipping flight log entry ${i}:`, entry);
+    else console.error(`[safety] Skipping logbook entry ${i}:`, entry);
   });
   return flights;
 }
