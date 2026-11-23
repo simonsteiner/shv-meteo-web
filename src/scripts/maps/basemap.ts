@@ -20,7 +20,7 @@ export interface BaseLayerSpec {
 
 const LINK = (href: string, text: string) =>
   `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
-const SHV = ` · Daten: ${LINK("https://www.shv-fsvl.ch", "SHV FSVL")}`;
+const SHV = ` · ${LINK("https://www.shv-fsvl.ch", "SHV FSVL")}`;
 const SWISSTOPO = (layer: string) =>
   `https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.${layer}/default/current/3857/{z}/{x}/{y}.jpeg`;
 
