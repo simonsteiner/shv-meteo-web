@@ -2,7 +2,7 @@
 // its words come from the `src/i18n/` dictionaries at runtime, so the
 // header's language switch keeps working without a reload. An element names
 // its string by a dotted key: `data-t` for its text, `data-t-<attribute>`
-// for an attribute (placeholder, title, aria-label).
+// for an attribute (placeholder, title, aria-label, alt).
 
 /** A dictionary as `src/i18n/*.js` export it: nested objects of strings. */
 export interface Dictionary {
@@ -24,7 +24,12 @@ export function lookup(dict: Dictionary, key: string): string | null {
 }
 
 /** The attributes `applyText` fills besides the text. */
-export const TEXT_ATTRIBUTES = ["placeholder", "title", "aria-label"] as const;
+export const TEXT_ATTRIBUTES = [
+  "placeholder",
+  "title",
+  "aria-label",
+  "alt",
+] as const;
 
 /** What `applyText` needs of an element; a real Element has it. */
 export interface TextTarget {
@@ -63,4 +68,17 @@ export function say(dict: Dictionary, key: string): string {
   const text = lookup(dict, key);
   if (text === null) console.error(`[i18n] Missing string ${key}`);
   return text ?? "";
+}
+
+/** `template` with each `{name}` replaced by its value, e.g. "Intervall
+ * {n} von {total}"; an unknown name stays as written. */
+export function fill(
+  template: string,
+  values: Record<string, string | number>,
+): string {
+  return template.replace(/\{(\w+)\}/g, (whole, name: string) =>
+    Object.prototype.hasOwnProperty.call(values, name)
+      ? String(values[name])
+      : whole,
+  );
 }

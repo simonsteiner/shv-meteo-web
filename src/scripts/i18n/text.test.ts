@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { applyText, lookup, type TextTarget } from "./text.ts";
+import { applyText, fill, lookup, type TextTarget } from "./text.ts";
 
 const dict = { safety: { p1: "Gurtzeug", nested: { title: "Titel" } } };
 
@@ -50,4 +50,12 @@ test("applyText fills text and attributes and leaves a missing key alone", () =>
   assert.equal(input.attrs.placeholder, "Titel");
   assert.equal(gap.textContent, "old");
   assert.equal(errors.length, 1);
+});
+
+test("fill replaces named placeholders and leaves unknown ones", () => {
+  assert.equal(
+    fill("Intervall {n} von {total}", { n: 2, total: 23 }),
+    "Intervall 2 von 23",
+  );
+  assert.equal(fill("{name} {missing}", { name: "Sion" }), "Sion {missing}");
 });
