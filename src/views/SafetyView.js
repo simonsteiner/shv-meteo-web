@@ -1,6 +1,6 @@
 import { store } from "../state.js";
 import { varioAudio } from "../services/varioAudio.js";
-import { ShvApi } from "../services/api.js";
+import { ShvApi } from "../scripts/api.ts";
 
 export class SafetyView {
   constructor(container) {

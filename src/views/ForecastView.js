@@ -1,6 +1,6 @@
 import L from "leaflet";
 import { store } from "../state.js";
-import { ShvApi } from "../services/api.js";
+import { ShvApi } from "../scripts/api.ts";
 
 // =========================================================================
 // Official Ubique / MeteoSchweiz Days Overview Color Palettes & Bounding Box
@@ -204,11 +204,7 @@ export class ForecastView {
     this.updateEmagramDetailDOM();
 
     try {
-      const data = await ShvApi.getEmagramForecast(
-        station.name,
-        station.lat,
-        station.lon,
-      );
+      const data = await ShvApi.getEmagramForecast(station.name);
       if (data && !data.error) {
         this.emagramForecastData = data;
 

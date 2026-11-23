@@ -2,9 +2,9 @@
 
 ## Prerequisites
 
-- **Node.js** 20 or newer (the Docker image uses Node 22).
+- **Node.js 24**: it runs the `.ts` tests and scripts directly, stripping their types.
 - **npm** (the repo has a `package-lock.json`).
-- **Python 3**, optional: only the Python parcel-analysis routes (`/api/emagram/calculate`, `/api/meteo/previtemps/sounding*`) spawn `python3 server/emagram_calc.py`, and no view calls them today.
+- **Python 3**, for the git hooks' scripts (lefthook's token budget and dash check). Nothing in the app runs Python.
 
 ## Install and run
 
@@ -13,45 +13,49 @@ npm install
 npm run dev
 ```
 
-`npm run dev` runs [server/start-dev.js](../server/start-dev.js), which starts two processes:
+`npm run dev` runs [scripts/dev.ts](../scripts/dev.ts), which starts two processes:
 
-- the Express API ([server/index.js](../server/index.js)) on port `3001`
-- the Vite dev server on port `3000`, which proxies `/api/*` to `http://127.0.0.1:3001` ([vite.config.js](../vite.config.js))
+- `wrangler pages dev public` on port `8788`, which compiles the Pages Functions in `functions/` without a build
+- `astro dev` on port `4321`, which proxies `/api/*` to `http://127.0.0.1:8788` ([astro.config.mjs](../astro.config.mjs))
 
-Open <http://localhost:3000>.
+A route not ported to a Function yet answers 404, in dev as in production. Ctrl-C stops both.
 
-To run the two in separate terminals instead:
+Open <http://localhost:4321>; `/` redirects to `/map/` once built (`public/_redirects`), so in dev open <http://localhost:4321/map/>.
+
+## Pages and navigation
+
+Every tab is its own page, `src/pages/<tab>/index.astro`, wrapped in [src/layouts/Base.astro](../src/layouts/Base.astro), which sets `<body data-view>`; `src/main.js` mounts the view it names. Switching tabs navigates, so Back works. Selections handed to the map travel in its URL (`/map/?station=`, `?webcam=`, `?locate`, [src/scripts/handoff.ts](../src/scripts/handoff.ts)); settings that must survive a page load are in localStorage under `shv_*` keys ([src/scripts/settings.ts](../src/scripts/settings.ts)).
+
+## Checks
 
 ```bash
-npm run server    # Express API only, port 3001
-npm run dev:vite  # Vite only, port 3000
+npm run lint       # oxlint and prettier --check, as in the pre-commit hook
+npm run typecheck  # astro check; also the pre-push hook
+npm test           # node --test over src/scripts/**/*.test.ts
 ```
 
 ## Build and preview
 
 ```bash
-npm run build    # bundle the frontend into dist/
-npm run preview  # serve dist/ on port 3000 (needs the API running on 3001 for /api)
+npm run build    # astro build into dist/
+npm run preview  # wrangler pages dev dist: the built site as Pages serves it, on port 8788
 ```
 
-When `dist/` exists, the Express server also serves it, together with the API, on its own port. That is how the Docker image runs; see [deployment.md](deployment.md).
+`npm run preview` serves exactly what Pages will serve: the built pages, `_redirects` and the Functions.
 
 ## Configuration
 
-There is no `.env` file and nothing loads one. The server reads one environment variable:
-
-- `PORT`: the Express port, default `3001`.
-
-Caches live in memory, except BAZL obstacle data, which [server/obstacles_provider.js](../server/obstacles_provider.js) writes to `server/cache/` (gitignored; created on first start).
+There is no `.env` file and nothing loads one: the Functions have no bindings and no secrets. Each Function keeps its last good answer in the edge cache (`caches.default`); locally `wrangler` keeps that cache under `.wrangler/`.
 
 ## Screenshots
 
-[scripts/generate_screenshots.js](../scripts/generate_screenshots.js) captures every view into `screenshots/`. It does not launch a browser; it attaches to one you already run:
+[scripts/shot.ts](../scripts/shot.ts) takes a PNG of one page against a running `npm run dev` or `npm run preview`:
 
-1. Install `puppeteer-core`, which the script imports but `package.json` does not list: `npm install --no-save puppeteer-core`.
-2. Start Chrome with remote debugging on `127.0.0.1:9222` (`--remote-debugging-port=9222`).
-3. Start the app (`npm run dev`) and open <http://localhost:3000> in that Chrome.
-4. Run `node scripts/generate_screenshots.js`.
+```bash
+npm run shot -- http://localhost:4321/map/ /tmp/map.png [--size 1280x800] [--wait 3000]
+```
+
+It launches a headless Chromium (`$CHROME`, else Playwright's newest under `~/.cache/ms-playwright`, else `chromium` on `PATH`; that lookup is Linux-only, so on macOS or Windows set `$CHROME` to the browser binary), waits for the load event plus `--wait` ms so the map tiles arrive, and prints the page's exceptions and console errors. The refactor PRs attach before/after shots taken with it. The gallery in `screenshots/` predates it and is regenerated once the views are ported.
 
 ## Chrome DevTools MCP
 
@@ -59,5 +63,5 @@ Caches live in memory, except BAZL obstacle data, which [server/obstacles_provid
 
 ## Troubleshooting
 
-- **First obstacle request is slow**: the server downloads and indexes the full BAZL dataset (about 122 MB) on first use and keeps it in memory until the server restarts ([deployment.md](deployment.md#state-and-secrets) has the cache details).
-- **`/api` returns 500 and the Vite terminal logs `http proxy error`**: the API is not running on `3001`; start it with `npm run server` or use `npm run dev`.
+- **`/api` returns 500 and the Astro terminal logs a proxy error**: `wrangler pages dev` is not running on `8788`; use `npm run dev`.
+- **An `/api` call answers 503**: the upstream failed or timed out and the edge cache had no copy yet; the Functions log the cause in the `wrangler` output.

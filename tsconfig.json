@@ -1,0 +1,15 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  // An unused name fails astro check: oxlint skips them in .astro files,
+  // since a variable there may be used only by the markup it doesn't read.
+  // Node runs the .ts tests and scripts by stripping the types, so only
+  // erasable syntax, and imports name the .ts file.
+  "compilerOptions": {
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "allowImportingTsExtensions": true
+  },
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"]
+}

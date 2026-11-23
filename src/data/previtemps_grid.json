@@ -1,0 +1,965 @@
+{
+  "tuttlingen": {
+    "name": "Tuttlingen",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 612913,
+    "elevation": 656,
+    "latitude": 47.98910903930664,
+    "longitude": 8.820058822631836
+  },
+  "menzenschwand": {
+    "name": "Menzenschwand",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 608179,
+    "elevation": 926,
+    "latitude": 47.81869888305664,
+    "longitude": 8.071523666381836
+  },
+  "altusried": {
+    "name": "Altusried",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 999730,
+    "elevation": 718,
+    "latitude": 47.80429458618164,
+    "longitude": 10.218984603881836
+  },
+  "beggingen": {
+    "name": "Beggingen",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 610525,
+    "elevation": 600,
+    "latitude": 47.77182388305664,
+    "longitude": 8.534902572631836
+  },
+  "benken": {
+    "name": "Benken",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 793951,
+    "elevation": 431,
+    "latitude": 47.65219497680664,
+    "longitude": 8.656484603881836
+  },
+  "frauenfeld": {
+    "name": "Frauenfeld",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 794377,
+    "elevation": 419,
+    "latitude": 47.55990982055664,
+    "longitude": 8.901113510131836
+  },
+  "porrentruy": {
+    "name": "Porrentruy",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 595377,
+    "elevation": 433,
+    "latitude": 47.41904067993164,
+    "longitude": 7.079335689544678
+  },
+  "biberstein": {
+    "name": "Biberstein",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 784679,
+    "elevation": 374,
+    "latitude": 47.41049575805664,
+    "longitude": 8.083730697631836
+  },
+  "oberstdorf": {
+    "name": "Oberstdorf",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 587640,
+    "elevation": 805,
+    "latitude": 47.41171646118164,
+    "longitude": 10.280019760131836
+  },
+  "reigoldswil": {
+    "name": "Reigoldswil",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 782351,
+    "elevation": 561,
+    "latitude": 47.39731216430664,
+    "longitude": 7.693105220794678
+  },
+  "zürich": {
+    "name": "Zürich",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 791564,
+    "elevation": 432,
+    "latitude": 47.37607192993164,
+    "longitude": 8.544668197631836
+  },
+  "delémont": {
+    "name": "Delémont",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 781540,
+    "elevation": 420,
+    "latitude": 47.35800552368164,
+    "longitude": 7.344472408294678
+  },
+  "appenzell": {
+    "name": "Appenzell",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 795525,
+    "elevation": 800,
+    "latitude": 47.32675552368164,
+    "longitude": 9.413320541381836
+  },
+  "matzendorf": {
+    "name": "Matzendorf",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 782176,
+    "elevation": 530,
+    "latitude": 47.30600357055664,
+    "longitude": 7.620839595794678
+  },
+  "wald": {
+    "name": "Wald",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 792659,
+    "elevation": 636,
+    "latitude": 47.27035903930664,
+    "longitude": 8.915761947631836
+  },
+  "besançon": {
+    "name": "Besançon",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 594144,
+    "elevation": 260,
+    "latitude": 47.23227310180664,
+    "longitude": 6.022695064544678
+  },
+  "ermensee": {
+    "name": "Ermensee",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 783625,
+    "elevation": 492,
+    "latitude": 47.22519302368164,
+    "longitude": 8.235097885131836
+  },
+  "neu st. johann": {
+    "name": "Neu St. Johann",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 790009,
+    "elevation": 765,
+    "latitude": 47.22519302368164,
+    "longitude": 9.191152572631836
+  },
+  "langendorf": {
+    "name": "Langendorf",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 770341,
+    "elevation": 490,
+    "latitude": 47.21957778930664,
+    "longitude": 7.512441158294678
+  },
+  "frambouhans": {
+    "name": "Frambouhans",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 747903,
+    "elevation": 874,
+    "latitude": 47.20932388305664,
+    "longitude": 6.779042720794678
+  },
+  "rufi": {
+    "name": "Rufi",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 790169,
+    "elevation": 419,
+    "latitude": 47.18124771118164,
+    "longitude": 9.046133041381836
+  },
+  "buchs": {
+    "name": "Buchs",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 795251,
+    "elevation": 449,
+    "latitude": 47.16440200805664,
+    "longitude": 9.475820541381836
+  },
+  "zug": {
+    "name": "Zug",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 791777,
+    "elevation": 415,
+    "latitude": 47.16928482055664,
+    "longitude": 8.509023666381836
+  },
+  "saint-imier": {
+    "name": "Saint-Imier",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 748431,
+    "elevation": 980,
+    "latitude": 47.15512466430664,
+    "longitude": 6.993886470794678
+  },
+  "einsiedeln": {
+    "name": "Einsiedeln",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 792468,
+    "elevation": 899,
+    "latitude": 47.12631607055664,
+    "longitude": 8.741933822631836
+  },
+  "walenstadt": {
+    "name": "Walenstadt",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 789809,
+    "elevation": 437,
+    "latitude": 47.12192153930664,
+    "longitude": 9.317617416381836
+  },
+  "huttwil": {
+    "name": "Huttwil",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 782578,
+    "elevation": 669,
+    "latitude": 47.11166763305664,
+    "longitude": 7.846913814544678
+  },
+  "schruns": {
+    "name": "Schruns",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 582830,
+    "elevation": 749,
+    "latitude": 47.08066177368164,
+    "longitude": 9.921621322631836
+  },
+  "neuchâtel": {
+    "name": "Neuchâtel",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 746875,
+    "elevation": 432,
+    "latitude": 46.98862075805664,
+    "longitude": 6.929921627044678
+  },
+  "buochs": {
+    "name": "Buochs",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 793618,
+    "elevation": 455,
+    "latitude": 46.97275161743164,
+    "longitude": 8.414297103881836
+  },
+  "schiers": {
+    "name": "Schiers",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 583202,
+    "elevation": 682,
+    "latitude": 46.97055435180664,
+    "longitude": 9.687246322631836
+  },
+  "linthal": {
+    "name": "Linthal",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 788722,
+    "elevation": 979,
+    "latitude": 46.93442153930664,
+    "longitude": 8.999258041381836
+  },
+  "môtiers": {
+    "name": "Môtiers",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 747707,
+    "elevation": 737,
+    "latitude": 46.90854263305664,
+    "longitude": 6.607656002044678
+  },
+  "altdorf": {
+    "name": "Altdorf",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 786383,
+    "elevation": 457,
+    "latitude": 46.87680435180664,
+    "longitude": 8.635976791381836
+  },
+  "marbach": {
+    "name": "Marbach",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 769917,
+    "elevation": 929,
+    "latitude": 46.85312271118164,
+    "longitude": 7.905995845794678
+  },
+  "chur": {
+    "name": "Chur",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 577367,
+    "elevation": 581,
+    "latitude": 46.85434341430664,
+    "longitude": 9.518301010131836
+  },
+  "payerne": {
+    "name": "Payerne",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 746374,
+    "elevation": 476,
+    "latitude": 46.81796646118164,
+    "longitude": 6.944570064544678
+  },
+  "engelberg": {
+    "name": "Engelberg",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 785661,
+    "elevation": 1043,
+    "latitude": 46.81796646118164,
+    "longitude": 8.402578353881836
+  },
+  "scuol": {
+    "name": "Scuol",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 583845,
+    "elevation": 1405,
+    "latitude": 46.80478286743164,
+    "longitude": 10.301015853881836
+  },
+  "davos": {
+    "name": "Davos",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 576989,
+    "elevation": 1624,
+    "latitude": 46.79501724243164,
+    "longitude": 9.818593978881836
+  },
+  "baulmes": {
+    "name": "Baulmes",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 743595,
+    "elevation": 682,
+    "latitude": 46.78622817993164,
+    "longitude": 6.514882564544678
+  },
+  "ilanz": {
+    "name": "Ilanz",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 788942,
+    "elevation": 830,
+    "latitude": 46.77841567993164,
+    "longitude": 9.201406478881836
+  },
+  "blumenstein": {
+    "name": "Blumenstein",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 772486,
+    "elevation": 680,
+    "latitude": 46.73886489868164,
+    "longitude": 7.521718502044678
+  },
+  "meiringen": {
+    "name": "Meiringen",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 777334,
+    "elevation": 618,
+    "latitude": 46.72275161743164,
+    "longitude": 8.181386947631836
+  },
+  "wassen": {
+    "name": "Wassen",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 786349,
+    "elevation": 966,
+    "latitude": 46.70468521118164,
+    "longitude": 8.601797103881836
+  },
+  "disentis/mustér": {
+    "name": "Disentis/Mustér",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 786116,
+    "elevation": 1135,
+    "latitude": 46.69906997680664,
+    "longitude": 8.852773666381836
+  },
+  "interlaken": {
+    "name": "Interlaken",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 776549,
+    "elevation": 577,
+    "latitude": 46.68271255493164,
+    "longitude": 7.861073970794678
+  },
+  "boltigen": {
+    "name": "Boltigen",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 772555,
+    "elevation": 935,
+    "latitude": 46.63046646118164,
+    "longitude": 7.387441158294678
+  },
+  "grindelwald": {
+    "name": "Grindelwald",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 777042,
+    "elevation": 1010,
+    "latitude": 46.62436294555664,
+    "longitude": 8.029531478881836
+  },
+  "müstair": {
+    "name": "Müstair",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 585482,
+    "elevation": 1338,
+    "latitude": 46.62436294555664,
+    "longitude": 10.454336166381836
+  },
+  "charmey": {
+    "name": "Charmey",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 773307,
+    "elevation": 873,
+    "latitude": 46.62192153930664,
+    "longitude": 7.152089595794678
+  },
+  "le sentier": {
+    "name": "Le Sentier",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 743341,
+    "elevation": 1039,
+    "latitude": 46.60727310180664,
+    "longitude": 6.231191158294678
+  },
+  "savognin": {
+    "name": "Savognin",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 575985,
+    "elevation": 1214,
+    "latitude": 46.60043716430664,
+    "longitude": 9.590566635131836
+  },
+  "frutigen": {
+    "name": "Frutigen",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 774220,
+    "elevation": 789,
+    "latitude": 46.58530044555664,
+    "longitude": 7.655019283294678
+  },
+  "samedan": {
+    "name": "Samedan",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 576154,
+    "elevation": 1803,
+    "latitude": 46.53696060180664,
+    "longitude": 9.869863510131836
+  },
+  "bedretto": {
+    "name": "Bedretto",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 766764,
+    "elevation": 1506,
+    "latitude": 46.50693130493164,
+    "longitude": 8.520254135131836
+  },
+  "ulrichen": {
+    "name": "Ulrichen",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 767067,
+    "elevation": 1376,
+    "latitude": 46.50619888305664,
+    "longitude": 8.305410385131836
+  },
+  "faido": {
+    "name": "Faido",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 768192,
+    "elevation": 925,
+    "latitude": 46.47543716430664,
+    "longitude": 8.793691635131836
+  },
+  "château-d'oex": {
+    "name": "Château-d'Oex",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 778801,
+    "elevation": 1052,
+    "latitude": 46.47714614868164,
+    "longitude": 7.128163814544678
+  },
+  "bormio": {
+    "name": "Bormio",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 574969,
+    "elevation": 1383,
+    "latitude": 46.47128677368164,
+    "longitude": 10.380605697631836
+  },
+  "lenk": {
+    "name": "Lenk",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 774036,
+    "elevation": 1166,
+    "latitude": 46.45395278930664,
+    "longitude": 7.435292720794678
+  },
+  "givrins": {
+    "name": "Givrins",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 743846,
+    "elevation": 567,
+    "latitude": 46.43149185180664,
+    "longitude": 6.200917720794678
+  },
+  "fiesch": {
+    "name": "Fiesch",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 775412,
+    "elevation": 1125,
+    "latitude": 46.40439224243164,
+    "longitude": 8.134511947631836
+  },
+  "villeneuve": {
+    "name": "Villeneuve",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 740070,
+    "elevation": 377,
+    "latitude": 46.39120864868164,
+    "longitude": 6.926503658294678
+  },
+  "lamoura": {
+    "name": "Lamoura",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 744573,
+    "elevation": 1207,
+    "latitude": 46.39755630493164,
+    "longitude": 5.981679439544678
+  },
+  "mesocco": {
+    "name": "Mesocco",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 787297,
+    "elevation": 857,
+    "latitude": 46.39413833618164,
+    "longitude": 9.234121322631836
+  },
+  "poschiavo": {
+    "name": "Poschiavo",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 561554,
+    "elevation": 1148,
+    "latitude": 46.32431411743164,
+    "longitude": 10.052968978881836
+  },
+  "cevio": {
+    "name": "Cevio",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 767861,
+    "elevation": 692,
+    "latitude": 46.32284927368164,
+    "longitude": 8.598379135131836
+  },
+  "orcier": {
+    "name": "Orcier",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 738900,
+    "elevation": 943,
+    "latitude": 46.31210708618164,
+    "longitude": 6.512441158294678
+  },
+  "visp": {
+    "name": "Visp",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 774599,
+    "elevation": 673,
+    "latitude": 46.30136489868164,
+    "longitude": 7.878163814544678
+  },
+  "sion": {
+    "name": "Sion",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 778693,
+    "elevation": 490,
+    "latitude": 46.21786880493164,
+    "longitude": 7.340566158294678
+  },
+  "péron": {
+    "name": "Péron",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 306939,
+    "elevation": 539,
+    "latitude": 46.19125747680664,
+    "longitude": 5.930409908294678
+  },
+  "bellinzona": {
+    "name": "Bellinzona",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 765733,
+    "elevation": 249,
+    "latitude": 46.18466567993164,
+    "longitude": 9.020254135131836
+  },
+  "sondrio": {
+    "name": "Sondrio",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 562484,
+    "elevation": 299,
+    "latitude": 46.16928482055664,
+    "longitude": 9.876211166381836
+  },
+  "camedo": {
+    "name": "Camedo",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 768225,
+    "elevation": 625,
+    "latitude": 46.15707778930664,
+    "longitude": 8.614980697631836
+  },
+  "domodossola": {
+    "name": "Domodossola",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 768736,
+    "elevation": 301,
+    "latitude": 46.12118911743164,
+    "longitude": 8.285879135131836
+  },
+  "evolène": {
+    "name": "Evolène",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 780306,
+    "elevation": 1434,
+    "latitude": 46.10800552368164,
+    "longitude": 7.498281002044678
+  },
+  "martigny": {
+    "name": "Martigny",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 779515,
+    "elevation": 463,
+    "latitude": 46.10776138305664,
+    "longitude": 7.080800533294678
+  },
+  "samoëns": {
+    "name": "Samoëns",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 738760,
+    "elevation": 725,
+    "latitude": 46.08188247680664,
+    "longitude": 6.732167720794678
+  },
+  "orsières": {
+    "name": "Orsières",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 780772,
+    "elevation": 965,
+    "latitude": 46.03696060180664,
+    "longitude": 7.146718502044678
+  },
+  "zermatt": {
+    "name": "Zermatt",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 778103,
+    "elevation": 1737,
+    "latitude": 46.02206802368164,
+    "longitude": 7.755116939544678
+  },
+  "groisy": {
+    "name": "Groisy",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 306410,
+    "elevation": 754,
+    "latitude": 46.02060317993164,
+    "longitude": 6.178945064544678
+  },
+  "sessa": {
+    "name": "Sessa",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 763416,
+    "elevation": 559,
+    "latitude": 46.00644302368164,
+    "longitude": 8.820058822631836
+  },
+  "chamonix": {
+    "name": "Chamonix",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 738045,
+    "elevation": 1051,
+    "latitude": 45.92221450805664,
+    "longitude": 6.869863033294678
+  },
+  "clusone": {
+    "name": "Clusone",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 564665,
+    "elevation": 599,
+    "latitude": 45.88608169555664,
+    "longitude": 9.950429916381836
+  },
+  "thônes": {
+    "name": "Thônes",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 305169,
+    "elevation": 687,
+    "latitude": 45.88071060180664,
+    "longitude": 6.326894283294678
+  },
+  "valtournenche": {
+    "name": "Valtournenche",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 778393,
+    "elevation": 1660,
+    "latitude": 45.87997817993164,
+    "longitude": 7.621327877044678
+  },
+  "lecco": {
+    "name": "Lecco",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 539902,
+    "elevation": 218,
+    "latitude": 45.84946060180664,
+    "longitude": 9.400625228881836
+  },
+  "coldrerio": {
+    "name": "Coldrerio",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 763204,
+    "elevation": 336,
+    "latitude": 45.85239028930664,
+    "longitude": 8.991933822631836
+  },
+  "aosta": {
+    "name": "Aosta",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 749545,
+    "elevation": 556,
+    "latitude": 45.74155044555664,
+    "longitude": 7.368398189544678
+  },
+  "biella": {
+    "name": "Biella",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 758986,
+    "elevation": 382,
+    "latitude": 45.55698013305664,
+    "longitude": 8.071035385131836
+  },
+  "vals": {
+    "name": "Vals",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 787893,
+    "elevation": 1373,
+    "latitude": 46.62314224243164,
+    "longitude": 9.186269760131836
+  },
+  "pontarlier": {
+    "name": "Pontarlier",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 741759,
+    "elevation": 838,
+    "latitude": 46.90048599243164,
+    "longitude": 6.347402095794678
+  },
+  "bourg-en-bresse": {
+    "name": "Bourg-en-Bresse",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 314164,
+    "elevation": 235,
+    "latitude": 46.20444107055664,
+    "longitude": 5.226796627044678
+  },
+  "chambéry": {
+    "name": "Chambéry",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 303048,
+    "elevation": 283,
+    "latitude": 45.56723403930664,
+    "longitude": 5.917714595794678
+  },
+  "albertville": {
+    "name": "Albertville",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 304099,
+    "elevation": 402,
+    "latitude": 45.67905044555664,
+    "longitude": 6.387441158294678
+  },
+  "lyon": {
+    "name": "Lyon",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 302582,
+    "elevation": 186,
+    "latitude": 45.76449966430664,
+    "longitude": 4.831777095794678
+  },
+  "saint-martin-de-belleville": {
+    "name": "Saint-Martin-de-Belleville",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 285187,
+    "elevation": 1312,
+    "latitude": 45.38364028930664,
+    "longitude": 6.499745845794678
+  },
+  "courmayeur": {
+    "name": "Courmayeur",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 781478,
+    "elevation": 1302,
+    "latitude": 45.79306411743164,
+    "longitude": 6.975820064544678
+  },
+  "omegna": {
+    "name": "Omegna",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 761771,
+    "elevation": 376,
+    "latitude": 45.87607192993164,
+    "longitude": 8.414297103881836
+  },
+  "bergamo": {
+    "name": "Bergamo",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 539291,
+    "elevation": 259,
+    "latitude": 45.69589614868164,
+    "longitude": 9.672597885131836
+  },
+  "malcesine": {
+    "name": "Malcesine",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 565794,
+    "elevation": 117,
+    "latitude": 45.75888442993164,
+    "longitude": 10.807851791381836
+  },
+  "meran": {
+    "name": "Meran",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 580482,
+    "elevation": 331,
+    "latitude": 46.66879653930664,
+    "longitude": 11.164785385131836
+  },
+  "sölden": {
+    "name": "Sölden",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 580991,
+    "elevation": 1488,
+    "latitude": 46.97275161743164,
+    "longitude": 11.004140853881836
+  },
+  "landeck": {
+    "name": "Landeck",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 582432,
+    "elevation": 844,
+    "latitude": 47.13949966430664,
+    "longitude": 10.563222885131836
+  },
+  "füssen": {
+    "name": "Füssen",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 1000993,
+    "elevation": 800,
+    "latitude": 47.57333755493164,
+    "longitude": 10.695547103881836
+  },
+  "freiburg im breisgau": {
+    "name": "Freiburg im Breisgau",
+    "modelKey": "meteo_swiss:icon_ch1",
+    "model": "ICON-CH1",
+    "pointIndex": 616492,
+    "elevation": 288,
+    "latitude": 47.99863052368164,
+    "longitude": 7.853749752044678
+  }
+}

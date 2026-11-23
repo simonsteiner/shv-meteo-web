@@ -1,4 +1,8 @@
 import { store } from "../state.js";
+import { handoffUrl } from "../scripts/handoff.ts";
+
+/** Where SHV members log in; this site has no member login. */
+const MEMBER_PORTAL_URL = "https://www.shv-fsvl.ch/anmelden/login/";
 
 export function renderHeader(container) {
   const { lang, theme, foehn, activeTab } = store.state;
@@ -71,14 +75,6 @@ export function renderHeader(container) {
           </svg>
           <span>${t.tabs.safety}</span>
         </button>
-        <button data-tab="profile" class="header-nav-link ${activeTab === "profile" ? "active" : ""}">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect width="20" height="14" x="2" y="5" rx="2"></rect>
-            <circle cx="8" cy="12" r="2"></circle>
-            <path d="M14 10h4"></path>
-          </svg>
-          <span>${t.tabs.profile}</span>
-        </button>
       </nav>
 
       <div class="header-center">
@@ -96,6 +92,16 @@ export function renderHeader(container) {
             <line x1="20" y1="12" x2="22" y2="12"></line>
           </svg>
         </button>
+
+        <!-- SHV member portal: member login is not part of this site -->
+        <a id="btn-member-portal" class="icon-btn" href="${MEMBER_PORTAL_URL}" target="_blank" rel="noopener noreferrer" title="${t.memberPortal}" aria-label="${t.memberPortal}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect width="20" height="14" x="2" y="5" rx="2"></rect>
+            <circle cx="8" cy="12" r="2"></circle>
+            <path d="M14 10h4"></path>
+            <path d="M14 14h2"></path>
+          </svg>
+        </a>
 
         <!-- Theme Toggle -->
         <button id="btn-theme" class="icon-btn" title="Farbschema">
@@ -172,6 +178,11 @@ export function renderHeader(container) {
   const btnGps = container.querySelector("#btn-gps");
   if (btnGps) {
     btnGps.addEventListener("click", () => {
+      // Off the map, the map asks for the position itself (src/scripts/handoff.ts)
+      if (store.state.activeTab !== "map") {
+        location.assign(handoffUrl({ locate: true }));
+        return;
+      }
       if ("geolocation" in navigator) {
         btnGps.classList.add("spinning");
         navigator.geolocation.getCurrentPosition(
@@ -181,15 +192,11 @@ export function renderHeader(container) {
               lat: pos.coords.latitude,
               lng: pos.coords.longitude,
             });
-            if (store.state.activeTab !== "map") {
-              store.setTab("map");
-            }
           },
           (err) => {
             btnGps.classList.remove("spinning");
-            console.warn("Geolocation error:", err);
-            // Default center of Switzerland (Flüeli-Ranft / Älggialp)
-            store.setPilotLocation({ lat: 46.8012, lng: 8.2267 });
+            // no made-up position: the map stays as it is, with no marker
+            console.error("[Header] Geolocation error:", err);
           },
           { enableHighAccuracy: true, timeout: 6000 },
         );

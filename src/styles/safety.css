@@ -1,0 +1,340 @@
+/* ==========================================================
+   SAFETY & CHECKLIST
+   ========================================================== */
+.checklist-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-primary);
+  padding: 12px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.check-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.check-item input[type="checkbox"] {
+  display: none;
+}
+
+.custom-checkbox {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.check-item input:checked + .custom-checkbox {
+  background: var(--shv-green);
+  border-color: var(--shv-green);
+}
+
+.check-item input:checked + .custom-checkbox::after {
+  content: "✓";
+  color: white;
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.check-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.check-item.done .check-text {
+  color: var(--text-secondary);
+}
+
+.checklist-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.check-ready-badge {
+  background: #10b981;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 14px;
+}
+
+.sos-buttons-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.sos-btn {
+  padding: 16px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s;
+}
+
+.sos-btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn-rega {
+  background: var(--shv-red);
+  color: white;
+}
+
+.btn-euro {
+  background: #0284c7;
+  color: white;
+}
+
+.sos-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.9;
+}
+.sos-phone {
+  font-size: 1.5rem;
+  font-weight: 900;
+  margin: 4px 0;
+}
+.sos-sub {
+  font-size: 0.68rem;
+  opacity: 0.8;
+}
+
+.radio-box {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg-primary);
+  padding: 14px;
+  border-radius: 14px;
+  margin-bottom: 14px;
+}
+
+.radio-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+.radio-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.tree-rescue-box {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  padding: 14px;
+  border-radius: 14px;
+}
+
+.tree-heading {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--shv-amber);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.tree-steps {
+  list-style: none;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Vario Card */
+.vario-display-box {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: var(--bg-primary);
+  padding: 20px;
+  border-radius: 16px;
+}
+
+.vario-gauge {
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-strong);
+  width: 110px;
+  height: 90px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.vario-digital {
+  font-size: 1.8rem;
+  font-weight: 900;
+  font-family: monospace;
+}
+
+.vario-unit {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.vario-lift {
+  border-color: var(--shv-green);
+  color: var(--shv-green);
+}
+
+.vario-sink {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.vario-slider-wrapper {
+  flex: 1;
+}
+
+.vario-slider-wrapper input[type="range"] {
+  width: 100%;
+  accent-color: var(--shv-green);
+}
+
+.vario-scale-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.btn-vario-audio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.btn-vario-audio.active-audio {
+  background: var(--shv-green);
+  color: white;
+  border-color: var(--shv-green);
+}
+
+/* Logbook */
+.logbook-top-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.log-stats-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  background: var(--bg-primary);
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.log-stat-item {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.log-stat-lbl {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.log-stat-val {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.flights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.flight-item-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.fl-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.fl-site {
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+.fl-landing {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.fl-duration-badge {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.fl-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.fl-type-pill {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.fl-notes {
+  font-size: 0.82rem;
+  font-style: italic;
+  color: var(--text-muted);
+}

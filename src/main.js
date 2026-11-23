@@ -1,4 +1,3 @@
-import "leaflet/dist/leaflet.css";
 import { store } from "./state.js";
 import { renderHeader } from "./components/Header.js";
 import { renderBottomNav } from "./components/BottomNav.js";
@@ -7,8 +6,7 @@ import { MapView } from "./views/MapView.js";
 import { WeatherView } from "./views/WeatherView.js";
 import { ForecastView } from "./views/ForecastView.js";
 import { SafetyView } from "./views/SafetyView.js";
-import { renderProfileView } from "./views/ProfileView.js";
-import { ShvApi } from "./services/api.js";
+import { ShvApi } from "./scripts/api.ts";
 
 export const storeInstance = store;
 if (typeof window !== "undefined") {
@@ -38,15 +36,15 @@ class App {
     this.bottomNavContainer = document.getElementById("bottom-nav-container");
 
     this.currentViewInstance = null;
-    this.activeTab = null;
     this.lang = null;
     this.theme = null;
   }
 
   async init() {
-    // 1. Render UI immediately so app is instantly interactive
+    // 1. Render UI immediately so app is instantly interactive. The page
+    // names its view (<body data-view>, src/layouts/Base.astro).
     this.renderShell();
-    this.switchView(store.state.activeTab);
+    this.mountView(store.state.activeTab);
 
     // 2. Fetch background Foehn data for header pill asynchronously
     ShvApi.getFoehn()
@@ -60,31 +58,12 @@ class App {
         console.error("[App.init] Failed to fetch background foehn data:", e);
       });
 
-    // 3. Subscribe to state updates
-    store.subscribe((state, meta) => {
-      // Handle repeat clicks on active tab (e.g. clicking Live-Karte resets map)
-      if (meta && meta.type === "TAB_REPEAT") {
-        if (meta.tab === "map") {
-          if (
-            this.currentViewInstance &&
-            typeof this.currentViewInstance.resetView === "function"
-          ) {
-            this.currentViewInstance.resetView();
-          }
-        }
-        return;
-      }
-
+    // 3. Subscribe to state updates. The tab never changes within a page:
+    // switching tabs navigates (store.setTab).
+    store.subscribe((state) => {
       // Re-render shell if language or theme changed
       if (state.lang !== this.lang || state.theme !== this.theme) {
         this.renderShell();
-      }
-
-      // Re-render header & bottom nav if active tab changed
-      if (state.activeTab !== this.activeTab) {
-        renderHeader(this.headerContainer);
-        renderBottomNav(this.bottomNavContainer);
-        this.switchView(state.activeTab);
       }
 
       // Re-render bottom sheet
@@ -105,18 +84,8 @@ class App {
     renderBottomSheet(this.bottomSheetContainer);
   }
 
-  switchView(tab) {
+  mountView(tab) {
     try {
-      if (
-        this.currentViewInstance &&
-        typeof this.currentViewInstance.unmount === "function"
-      ) {
-        this.currentViewInstance.unmount();
-      }
-      this.currentViewInstance = null;
-      this.activeTab = tab;
-      this.viewContainer.innerHTML = "";
-
       switch (tab) {
         case "map":
           this.currentViewInstance = new MapView(this.viewContainer);
@@ -134,19 +103,23 @@ class App {
           this.currentViewInstance = new SafetyView(this.viewContainer);
           this.currentViewInstance.mount();
           break;
-        case "profile":
-          renderProfileView(this.viewContainer);
-          break;
         default:
           this.currentViewInstance = new MapView(this.viewContainer);
           this.currentViewInstance.mount();
           break;
       }
     } catch (err) {
-      console.error(`[App.switchView] Error mounting view "${tab}":`, err);
+      console.error(`[App.mountView] Error mounting view "${tab}":`, err);
     }
   }
 }
+
+// A page restored from the back/forward cache holds the settings it had
+// when left, and its setters would write them back over what another page
+// saved since; reload it from storage instead.
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) location.reload();
+});
 
 // Bootstrap
 window.addEventListener("DOMContentLoaded", () => {

@@ -1,0 +1,118 @@
+/* ==========================================================
+   FORECAST & EMAGRAM
+   ========================================================== */
+.thermal-rating-pill {
+  background: rgba(0, 165, 81, 0.15);
+  border: 1px solid rgba(0, 165, 81, 0.35);
+  padding: 6px 14px;
+  border-radius: 20px;
+  text-align: right;
+}
+
+.rating-label {
+  font-size: 0.65rem;
+  color: var(--shv-green);
+  text-transform: uppercase;
+  display: block;
+}
+
+.rating-val {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--shv-green);
+}
+
+.synopsis-content p {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.forecast-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.metric-card {
+  background: var(--bg-primary);
+  padding: 12px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-lbl {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.metric-val {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin: 2px 0;
+}
+
+.metric-sub {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.wind-aloft-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.wind-aloft-table th,
+.wind-aloft-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.wind-aloft-table th {
+  color: var(--text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+}
+
+.emagram-canvas-container {
+  height: 280px;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.emagram-sim-box {
+  background: var(--bg-primary);
+  padding: 16px;
+  border-radius: 14px;
+}
+
+.sim-heading {
+  font-size: 0.88rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.sim-controls-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 16px;
+  align-items: center;
+}
+
+.sim-field label {
+  display: block;
+  font-size: 0.78rem;
+  margin-bottom: 6px;
+}
+
+.sim-field input[type="range"] {
+  width: 100%;
+  accent-color: var(--shv-red);
+}

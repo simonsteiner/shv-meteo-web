@@ -10,8 +10,9 @@
   },
   "ignorePatterns": [
     "dist/",
+    ".astro/",
+    ".wrangler/",
     "node_modules/",
-    "server/cache/",
     "apk_analysis/",
     ".claude/"
   ],
@@ -151,7 +152,7 @@
       }
     },
     {
-      "files": ["server/**", "scripts/**", "*.config.js", "*.config.mjs"],
+      "files": ["scripts/**", "*.config.js", "*.config.mjs"],
       "env": {
         "node": true
       }

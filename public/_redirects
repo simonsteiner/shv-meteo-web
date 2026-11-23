@@ -1,0 +1,4 @@
+/ /map/ 302
+# the Profile tab went with member login
+/profile/ /map/ 301
+/profile /map/ 301

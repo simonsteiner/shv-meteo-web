@@ -3,5 +3,11 @@ dist/
 .DS_Store
 apk_analysis/
 *.log
-server/cache/
 .rumdl_cache/
+.astro/
+.wrangler/
+public/data/obstacles/
+.cache/
+.env
+.env.*
+.dev.vars

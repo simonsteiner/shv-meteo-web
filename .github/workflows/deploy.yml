@@ -1,0 +1,102 @@
+# Builds the site and deploys it to Cloudflare Pages (project shv-meteo)
+# once ci has passed on main, by hand from main, and once a day, so the BAZL
+# obstacle shards (npm run obstacles) are at most a day old.
+#
+# Secrets: CLOUDFLARE_API_TOKEN (Account: Cloudflare Pages edit) and
+# CLOUDFLARE_ACCOUNT_ID.
+name: deploy
+
+on:
+  # Runs only after ci on a push to main: the if below checks the event and
+  # the commit, so a pull request's ci never starts a deploy.
+  workflow_run: # zizmor: ignore[dangerous-triggers]
+    workflows: [ci]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+  # A scheduled run builds main's head (the default branch) with fresh shards.
+  schedule:
+    - cron: "17 3 * * *"
+
+permissions:
+  contents: read
+  # gh run list, to check ci passed before a scheduled or manual deploy
+  actions: read
+
+jobs:
+  deploy:
+    # Only the head of main is deployed. For a workflow_run, github.sha is
+    # main's head when this run starts: when ci passed on an older commit
+    # (merges back to back, or ci finishing out of order), this run is
+    # skipped and production stays on the last deployed commit until ci
+    # passes on a newer head. A scheduled or manual run builds main's head,
+    # and only main's (started on another branch a manual run would ship
+    # that branch as production), and only once ci has passed on it.
+    if: >-
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' &&
+       github.ref == 'refs/heads/main') ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_sha == github.sha)
+    # One deploy at a time, and a newer one cancels a running one, which
+    # ships everything the older would. A run cancelled mid-upload creates
+    # no deployment, so the site stays on the last finished one.
+    concurrency:
+      group: deploy
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://shv-meteo.pages.dev
+    env:
+      # The commit ci tested, not whatever main points at by now.
+      COMMIT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      - name: Require a passing ci
+        if: github.event_name != 'workflow_run'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          passed="$(gh run list -R "$REPO" -w ci -c "$COMMIT_SHA" -s success -L 1 --json databaseId --jq length)"
+          if [ "$passed" != "1" ]; then
+            echo "::error::ci has not passed on $COMMIT_SHA, so it is not deployed"
+            exit 1
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.COMMIT_SHA }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          # no npm cache: a workflow that publishes restores no dependency
+          # cache (zizmor cache-poisoning), and deploys are rare
+          node-version: 24
+      - run: npm ci
+      # The BAZL dataset (about 128 MB), downloaded at most once a day: the
+      # key holds the date, and a restored older copy is refetched by the
+      # script, which reuses only a copy under a day old.
+      - name: Date
+        id: date
+        run: echo "today=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache/obstacles
+          key: bazl-${{ steps.date.outputs.today }}
+          restore-keys: bazl-
+      - run: npm run obstacles
+      - run: npm run build
+      # The Cloudflare token is set on this step alone, so npm ci and the
+      # build, which run third-party code, cannot read it from their
+      # environment. It keeps the token out of the environment only: an
+      # install script could still rewrite node_modules/wrangler.
+      - name: Deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: >-
+          npx wrangler pages deploy dist
+          --project-name shv-meteo
+          --branch main
+          --commit-hash "$COMMIT_SHA"

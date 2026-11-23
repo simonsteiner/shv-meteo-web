@@ -1,36 +1,42 @@
 # Deployment
 
-The app ships as one Docker image: the built frontend plus the Express API in a single Node process. There is no hosted deployment or CI in this repo yet; a move to Astro on Cloudflare Pages is planned.
+The site is static Astro output on Cloudflare Pages, project `shv-meteo`, served at <https://shv-meteo.pages.dev>. [wrangler.jsonc](../wrangler.jsonc) names the project and the output directory (`dist/`); there are no bindings and no secrets.
 
-## Docker Compose
+The API is Pages Functions in `functions/api/`, deployed with the pages by the same `wrangler pages deploy`. The BAZL obstacles are static shards built before each deploy (`npm run obstacles`).
 
-```bash
-docker compose up --build -d   # build and start on http://localhost:3000
-docker compose down            # stop
-```
-
-[docker-compose.yml](../docker-compose.yml) maps port `3000`, sets `NODE_ENV=production` and `PORT=3000`, and restarts the container unless stopped.
-
-## Plain Docker
+## One-time setup (the repo owner)
 
 ```bash
-docker build -t swiss-free-flight .
-docker run -d --name swiss-free-flight -p 3000:3000 swiss-free-flight
+npx wrangler login
+npx wrangler pages project create shv-meteo --production-branch main
 ```
 
-## What the image contains
+## Deploy on merge
 
-The [Dockerfile](../Dockerfile) has two stages:
+[.github/workflows/deploy.yml](../.github/workflows/deploy.yml) deploys every merge to `main` once [ci](../.github/workflows/ci.yml) has passed on it, and once a day at 03:17 UTC to refresh the obstacle shards (the downloaded dataset is cached a day under `.cache/obstacles`, and yesterday's copy is used when the download fails), and only `main`'s head: when ci finishes on an older commit, that run is skipped, and production stays on the last deployed commit until ci passes on a newer head. A scheduled or manual run deploys only once ci has passed on `main`'s head. It needs two repo secrets (Settings, Secrets and variables, Actions): `CLOUDFLARE_API_TOKEN`, a token with the Account permission "Cloudflare Pages: Edit", and `CLOUDFLARE_ACCOUNT_ID`. Actions, deploy, "Run workflow" on `main` redeploys by hand.
 
-1. **builder** (`node:22-alpine`): `npm install`, then `npm run build` into `dist/`.
-2. **runner** (`node:22-alpine`): production dependencies, `server/`, `public/data/` and `dist/`, plus `python3` for [server/emagram_calc.py](../server/emagram_calc.py). It runs `node server/index.js` as the `node` user with `PORT=3000`, and the server serves `dist/` and `/api` on that port.
+## Deploy by hand
 
-## Health check
+```bash
+npm ci
+npm run obstacles   # the BAZL obstacle shards, public/data/obstacles/ (downloads about 128 MB)
+npm run build
+npx wrangler pages deploy dist --project-name shv-meteo --branch main
+```
 
-Both the Dockerfile and the compose file probe `GET /api/health` every 30 seconds. The route answers locally without calling any upstream API, so an upstream outage does not mark the container unhealthy.
+`--branch main` makes it the production deployment. Another branch name gives a preview deployment at `https://<branch>.shv-meteo.pages.dev`.
+
+## Rollback
+
+In the Cloudflare dashboard: Workers & Pages, `shv-meteo`, Deployments, then Rollback on the last good one. Then fix forward.
+
+## What Pages serves
+
+- `dist/` as static files: one page per tab (`/map/`, `/weather/`, `/forecast/`, `/safety/`; `/profile/` redirects to `/map/`), `public/` copied as is (assets and the GeoJSON snapshots under `/data/`).
+- [public/_redirects](../public/_redirects): `/` to `/map/` (302), and `/profile/` and `/profile` to `/map/` (301).
+- `functions/api/**`: the Pages Functions, at their file paths under `/api/`.
 
 ## State and secrets
 
-- **No secrets.** The Keycloak client is the public `app-android` client with PKCE; there is no client secret or API key to configure.
-- **Sessions are in memory.** Restarting the container drops every server session (the UI keeps showing the profile cached in the browser, so the stored session id goes stale), and more than one replica would need sticky sessions.
-- **Obstacle cache.** The BAZL dataset is loaded into memory on the first `/api/obstacles` request and kept until the process restarts. On that load the server reuses `/app/server/cache/bazl_obstacles.geojson` if it is under 24 hours old, otherwise it downloads it again; a running container never refreshes it. Vector tiles are cached in the same folder with no expiry. Everything is lost when the container is recreated.
+- **No secrets.** The site has no API keys or client secrets.
+- **No server state.** The Functions keep their last good upstream answers in the edge cache only. What a visitor sets (language, theme, map layers and filters, flight log) stays in their browser's localStorage under `shv_*` keys; the pre-flight checklist stays in sessionStorage.
