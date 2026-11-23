@@ -3,6 +3,8 @@ import { test } from "node:test";
 import {
   colorize,
   colorLut,
+  intervalLabel,
+  legendGradient,
   outlookFrames,
   PRECIP_PALETTE,
   SUNSHINE_PALETTE,
@@ -72,4 +74,31 @@ test("outlookFrames skips malformed frames", () => {
   };
   assert.equal(outlookFrames(answer, "RELATIVE_SUNSHINE").length, 1);
   assert.deepEqual(outlookFrames(null, "RELATIVE_SUNSHINE"), []);
+});
+
+test("intervalLabel gives the day and both times in the locale", () => {
+  // the frames' times have no offset, so they parse and print in the same
+  // zone and the label is the same whatever TZ the tests run in
+  assert.equal(
+    intervalLabel(
+      { start: "2026-11-23T06:00", end: "2026-11-23T12:00", url: "" },
+      "de-CH",
+    ),
+    "Mo., 23.11. 06:00 \u2013 12:00",
+  );
+});
+
+test("legendGradient follows the palette of the type", () => {
+  assert.equal(
+    legendGradient("RELATIVE_SUNSHINE"),
+    "linear-gradient(to right, #FFF8DB 0%, #FFE270 25%, #FFBE33 45%, #FF6F00 65%, #EB0900 85%, #CC0044 100%)",
+  );
+  assert.equal(
+    legendGradient("PRECIPITATION_PROBABILITY_WEAK"),
+    legendGradient("PRECIPITATION_PROBABILITY_STRONG"),
+  );
+  assert.match(
+    legendGradient("PRECIPITATION_PROBABILITY_WEAK"),
+    /^linear-gradient\(to right, #C7EDD2 0%/,
+  );
 });
