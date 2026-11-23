@@ -16,7 +16,8 @@ const DASH = "\u2013";
 export interface StationModal {
   open(station: MeasurementFeature, opener: HTMLElement | null): void;
   close(): void;
-  /** Redraws an open dialog, after a language or theme change. */
+  /** Redraws an open dialog after a language or theme change; does
+   * nothing when neither changed. */
   refresh(): void;
   isOpen(): boolean;
 }
@@ -25,6 +26,7 @@ export function stationModal(
   root: ParentNode,
   say: (key: string) => string,
   theme: () => string,
+  lang: () => string,
 ): StationModal {
   const backdrop = must<HTMLElement>(root, "[data-station-modal]");
   const field = (name: string) =>
@@ -36,8 +38,16 @@ export function stationModal(
   let series: TimeseriesResponse | null | undefined;
   let chart: Chart | null = null;
   let opener: HTMLElement | null = null;
+  // what the open dialog shows, so refresh() redraws only on a change
+  let drawn: {
+    station: MeasurementFeature;
+    series: TimeseriesResponse | null | undefined;
+    lang: string;
+    theme: string;
+  } | null = null;
 
   function fill(st: MeasurementFeature): void {
+    drawn = { station: st, series, lang: lang(), theme: theme() };
     const p = st.properties;
     const v = stationValues(st);
     field("provider").textContent = (p.providerKey || "Meteo").toUpperCase();
@@ -93,6 +103,7 @@ export function stationModal(
     chart?.destroy();
     chart = null;
     station = null;
+    drawn = null;
     opener?.focus();
   }
 
@@ -130,7 +141,15 @@ export function stationModal(
     },
     close,
     refresh() {
-      if (station) fill(station);
+      if (!station) return;
+      if (
+        drawn?.station === station &&
+        drawn.series === series &&
+        drawn.lang === lang() &&
+        drawn.theme === theme()
+      )
+        return;
+      fill(station);
     },
     isOpen: () => !backdrop.hidden,
   };

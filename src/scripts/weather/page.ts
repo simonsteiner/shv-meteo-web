@@ -72,7 +72,12 @@ export function mountWeather(root: HTMLElement): void {
   const listStatus = q("[data-list-status]");
   const stationCards = q("[data-station-cards]");
   const webcamCards = q("[data-webcam-cards]");
-  const modal = stationModal(root, say, () => store.state.theme);
+  const modal = stationModal(
+    root,
+    say,
+    () => store.state.theme,
+    () => store.state.lang,
+  );
 
   function writeUrl(): void {
     history.replaceState(
