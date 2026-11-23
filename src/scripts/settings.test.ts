@@ -5,6 +5,7 @@ import {
   defaultSettings,
   loadChecklist,
   loadSettings,
+  purgeLegacyAuth,
   saveChecklist,
   saveSetting,
   type KeyValueStorage,
@@ -164,4 +165,14 @@ test("a blocked storage becomes one that keeps nothing", () => {
       Object.defineProperty(globalThis, "localStorage", descriptor);
     else delete (globalThis as { localStorage?: unknown }).localStorage;
   }
+});
+
+test("purgeLegacyAuth leaves only the other keys", () => {
+  const { storage, map } = fakeStorage({
+    shv_session_id: "abc",
+    shv_profile: '{"firstName":"A"}',
+    shv_lang: "fr",
+  });
+  purgeLegacyAuth(storage);
+  assert.deepEqual([...map.keys()], ["shv_lang"]);
 });

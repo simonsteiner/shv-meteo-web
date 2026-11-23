@@ -4,15 +4,17 @@ import {
   browserStorage,
   loadChecklist,
   loadSettings,
+  purgeLegacyAuth,
   saveChecklist,
   saveSetting,
 } from "./scripts/settings.ts";
 
-const TABS = ["map", "weather", "forecast", "safety", "profile"];
+const TABS = ["map", "weather", "forecast", "safety"];
 
 // Storages that never throw, even where the browser blocks them.
 const local = browserStorage("localStorage");
 const session = browserStorage("sessionStorage");
+purgeLegacyAuth(local);
 
 class AppState {
   constructor() {
@@ -21,15 +23,12 @@ class AppState {
     // Each tab is its own page (src/pages/<tab>/), so the settings that must
     // outlive a page load come from storage (src/scripts/settings.ts).
     const saved = loadSettings(local);
-    const savedSession = local.getItem("shv_session_id") || null;
-    const savedProfile = this.loadSavedProfile();
     const view = document.body.dataset.view;
 
     this.state = {
       activeTab: TABS.includes(view) ? view : "map", // set by the page (Base.astro)
       lang: saved.lang,
       theme: saved.theme,
-      sid: savedSession,
 
       // Map configuration
       baseMap: saved.baseMap, // 'topoLight' | 'topoColor' | 'topoSatellite' | 'topoOsm'
@@ -50,9 +49,6 @@ class AppState {
       foehn: null,
       emagram: null,
 
-      // Pilot profile
-      profile: savedProfile,
-
       // Safety & Checklist: per browser tab (sessionStorage)
       checklist: {
         p1: false,
@@ -71,57 +67,6 @@ class AppState {
       varioRate: saved.varioRate, // m/s
       varioMuted: true,
     };
-  }
-
-  loadSavedProfile() {
-    try {
-      const raw = local.getItem("shv_profile");
-      if (!raw) return null;
-      const data = JSON.parse(raw);
-      // Purge any previously synthesized dummy/rubbish profile data
-      if (!data || data.firstName === "Pilot" || !data.firstName) {
-        local.removeItem("shv_profile");
-        return null;
-      }
-      return data;
-    } catch (e) {
-      console.error(
-        "[AppState.loadSavedProfile] Failed to parse saved profile from localStorage:",
-        e,
-      );
-      local.removeItem("shv_profile");
-      return null;
-    }
-  }
-
-  setSession(sid, profile) {
-    this.state.sid = sid;
-    this.state.profile = profile;
-    if (sid) {
-      local.setItem("shv_session_id", sid);
-    } else {
-      local.removeItem("shv_session_id");
-    }
-    if (profile) {
-      local.setItem("shv_profile", JSON.stringify(profile));
-    } else {
-      local.removeItem("shv_profile");
-    }
-    this.notify();
-  }
-
-  setProfile(profile) {
-    this.state.profile = profile;
-    if (profile) {
-      local.setItem("shv_profile", JSON.stringify(profile));
-    } else {
-      local.removeItem("shv_profile");
-    }
-    this.notify();
-  }
-
-  logout() {
-    this.setSession(null, null);
   }
 
   subscribe(listener) {
@@ -324,52 +269,6 @@ class AppState {
     this.state.flights.unshift(flight);
     saveSetting(local, "flights", this.state.flights);
     this.notify();
-  }
-
-  updateProfile(profile) {
-    this.state.profile = { ...this.state.profile, ...profile };
-    local.setItem("shv_profile", JSON.stringify(this.state.profile));
-    this.notify();
-  }
-
-  setProfilePreset(presetName) {
-    if (presetName === "tandem") {
-      this.updateProfile({
-        shvNumber: "42199",
-        firstName: "Christian",
-        lastName: "Maurer",
-        birthDate: "27.07.1982",
-        ratings: [
-          "Brevet Gleitschirm",
-          "Passagierberechtigung BIX",
-          "Fluglehrer SHV",
-          "IPPI Card Stage 5",
-        ],
-        club: "Gleitschirmclub Frutigen",
-      });
-    } else if (presetName === "student") {
-      this.updateProfile({
-        shvNumber: "79201",
-        firstName: "Laura",
-        lastName: "Zenger",
-        birthDate: "15.09.2003",
-        ratings: ["Aspirant Gleitschirm (Schülerkontrollheft)"],
-        club: "Fluggruppe Aletsch",
-      });
-    } else {
-      this.updateProfile({
-        shvNumber: "58412",
-        firstName: "Marco",
-        lastName: "Odermatt",
-        birthDate: "12.05.1992",
-        ratings: [
-          "Brevet Gleitschirm",
-          "IPPI Card Stage 5",
-          "Passagierberechtigung BAX",
-        ],
-        club: "Gleitschirmclub Jungfrau",
-      });
-    }
   }
 
   setVarioRate(rate) {

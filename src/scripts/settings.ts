@@ -219,6 +219,21 @@ export function saveSetting<K extends keyof Settings>(
   }
 }
 
+/** The keys member login kept: a session id and the member's profile
+ * (licence, insurance). Login is gone; each page load clears them, so no
+ * personal data lingers in the browser. */
+const LEGACY_AUTH_KEYS = ["shv_session_id", "shv_profile"];
+
+export function purgeLegacyAuth(local: KeyValueStorage): void {
+  for (const key of LEGACY_AUTH_KEYS) {
+    try {
+      local.removeItem(key);
+    } catch (err) {
+      console.error(`[settings] Cannot remove ${key}:`, err);
+    }
+  }
+}
+
 /** The ticked checklist points of this tab's session; only boolean entries. */
 export function loadChecklist(
   session: KeyValueStorage,
