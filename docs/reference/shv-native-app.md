@@ -1,6 +1,6 @@
 # SHV FSVL native app: reverse-engineered reference
 
-How the official SHV FSVL Android app (`ch.shv_fsvl`) and its backends work, as found by decompiling the APK (`jadx`), extracting its assets and checking the network calls. This web app is built against these upstream services; for how our code uses them, see [../architecture.md](../architecture.md). Member login is not implemented here (it was dropped in the Astro migration, PR13), so the Keycloak and member web service sections describe the official app only. The decompiled APK and its unpacked assets (`apk_analysis/`) are gitignored and not part of this repo.
+How the official SHV FSVL Android app (`ch.shv_fsvl`) and its backends work, as found by decompiling the APK (`jadx`), extracting its assets and checking the network calls. This web app is built against these upstream services; for how our code uses them, see [../architecture.md](../architecture.md). Member login is not implemented here (it was dropped in the Astro migration, PR13), so the Keycloak and member web service sections describe the official app only. The decompiled APK and its unpacked assets (`apk_analysis/`) are gitignored and not part of this repo. To run the app yourself, see [shv-app-emulator.md](shv-app-emulator.md).
 
 ---
 
