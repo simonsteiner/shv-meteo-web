@@ -65,3 +65,54 @@ export interface Dabs {
   notesDe: string;
   notesEn: string;
 }
+
+/** A station of the sounding catalogue (public/data/previtemps_stations.json). */
+export interface SoundingStation {
+  name: string;
+  lat: number;
+  lon: number;
+  elevation: number;
+}
+
+export type IconModelKey = "meteo_swiss:icon_ch1" | "meteo_swiss:icon_ch2";
+
+/** A catalogue station's ICON grid point (src/data/previtemps_grid.json). */
+export interface GridPoint {
+  name: string;
+  modelKey: IconModelKey;
+  model: "ICON-CH1" | "ICON-CH2";
+  pointIndex: number;
+  elevation: number;
+  latitude: number;
+  longitude: number;
+}
+
+/** Every catalogue station's grid point, by lower-cased name. */
+export type PrevitempsGrid = Record<string, GridPoint>;
+
+/** One model level of a sounding, ground first. */
+export interface SoundingLevel {
+  levelIndex: number;
+  heightM: number;
+  pressHpa: number;
+  tempC: number;
+  dewC: number;
+  speedKmH: number;
+  dirDeg: number;
+  /** °C per 100 m from the level below; 0 for the first level and when the
+   * two are 10 m or less apart. */
+  lapseRate: number;
+}
+
+/** A station's ICON forecast sounding over every time step of the latest
+ * run (/api/meteo/previtemps/forecast/<name>). */
+export interface Sounding {
+  stationName: string;
+  model: GridPoint["model"];
+  run: number;
+  elevation: number;
+  latitude: number;
+  longitude: number;
+  validTimes: number[];
+  timeSteps: { timestamp: number; timeIso: string; levels: SoundingLevel[] }[];
+}
