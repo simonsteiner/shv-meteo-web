@@ -58,6 +58,15 @@ Analysis of `apk_analysis/shv.apk` decompiled using `jadx` reveals the native im
   - `CodeChallengeMethod.S256`: PKCE challenge computation.
 - `ch.ubique.fluidsdk.*`: Meteo time series, raster/vector map engines, weather station products, and telemetry.
 
+### Forecast sounding (Previtemps), version 1.1.0
+
+Checked on 2026-11-23 against 1.1.0 (version code 1010001), decompiled with jadx; class names are obfuscated and change between builds.
+
+- **Calls, all anonymous** (the OIDC Bearer plugin is installed only on the member-service client): `GET https://weather-ws-prod.ubmeteo.io/v1/point-data/<model>/runs`, `GET https://static-prod.ubmeteo.io/v1/products/grid/10/<x>/<y>.json` for the grid points, then `GET https://weather-ws-prod.ubmeteo.io/v1/point-data/<model>/<run>/<parameter>/<pointIndex>` per run and parameter.
+- **Models it knows:** `meteo_swiss:icon_ch1`, `meteo_swiss:icon_ch2`, `dwd:icon_d2`, `dwd:icon_eu`, `dwd:icon_global`.
+- **Point:** the nearest grid point of the tile's definition for the model, used only within 20 km.
+- **Runs:** every listed run from the last one starting before the shown window up to its end, newest first; a run counts only when every parameter is present, else the screen shows "No complete emagram data available". There is no fallback source.
+
 ### Core Frameworks
 
 - **UI Toolkit**: Jetpack Compose with Material 3 Adaptive layout primitives.
