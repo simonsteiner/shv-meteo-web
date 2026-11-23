@@ -1,6 +1,6 @@
 // The safety page's behaviour over its static markup
 // (src/components/safety/): words from the dictionaries, the checklist,
-// vario and flight log from the store (src/state.js), every handler
+// vario and logbook from the store (src/state.js), every handler
 // attached here rather than inline. Re-renders on each store change, which
 // is how the header's language switch reaches the page.
 

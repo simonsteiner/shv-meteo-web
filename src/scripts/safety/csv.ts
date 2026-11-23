@@ -1,4 +1,4 @@
-// The flight log as CSV (RFC 4180): every field quoted, quotes doubled,
+// The logbook as CSV (RFC 4180): every field quoted, quotes doubled,
 // rows ended with CRLF, so a comma, quote or line break in a note stays in
 // its cell.
 
