@@ -26,14 +26,14 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 
 - **`ShvApi` is the only caller of `fetch` in the browser.** Add new endpoints to `src/scripts/api.ts`; views and components never fetch directly.
 - **Proxy only what has to be proxied.** The browser calls an upstream directly only when it allows CORS and the payload is light; anything with CORS limits (or a 403 to an `Origin` header), heavy data or multi-station math gets a Pages Function in `functions/api/`. The reasoning and the current split are in `docs/architecture/data-queries.md`.
-- **Upstream weather units are quirky.** Wind and gusts already arrive in km/h (never multiply by 3.6), a temperature above 200 is Kelvin, a pressure above 5000 is in tenths of hPa. New code converts through `src/scripts/units.ts` (`toCelsius`, `toHpa`); the legacy copies in `src/components/BottomSheet.js`, `src/views/WeatherView.js` and `src/views/MapView.js` (temperature only) go with their view's refactor, so until then change them together.
+- **Upstream weather units are quirky.** Wind and gusts already arrive in km/h (never multiply by 3.6), a temperature above 200 is Kelvin, a pressure above 5000 is in tenths of hPa. New code converts through `src/scripts/units.ts` (`toCelsius`, `toHpa`); the legacy copy in `src/views/WeatherView.js` goes with its view's refactor, so until then change both together.
 - **A Function is a one-line adapter.** Add a route to `ROUTES` in `src/scripts/upstream/routes.ts` (fixed upstream URL, TTL, timeout, German error body) and its checks to `params.ts`, then call `proxy(name, ctx)` from `functions/api/`. `respond.ts` streams the body unparsed, sets `Cache-Control`, keeps each 200 in the edge cache as the fallback for an upstream error, and answers anything else with a 503 that is never cached. Functions keep no memory between requests.
 
 ### UI and state
 
 - **App state lives in `store` (`src/state.js`).** Values persisted to `localStorage` use `shv_*` keys.
 - **UI strings come from `src/i18n/{de,fr,it,en}.js` through `store.t`.** Add every new key to all four files; German is the default language.
-- **Flying-site features are not all points.** Many are `Polygon`, `MultiPolygon` or `LineString`; get a position through the centroid helpers (`getFeatureLatLng()` in `src/views/MapView.js`, `getSiteCenterLatLng()` in `src/components/BottomSheet.js`), never by indexing `geometry.coordinates`.
+- **Flying-site features are not all points.** Many are `Polygon`, `MultiPolygon` or `LineString`; get a position through `featureLatLng()` in `src/scripts/maps/centroid.ts`, never by indexing `geometry.coordinates`.
 - **Use the glossary's terms** in code, UI and docs (take-off, not launch site; station pair, not transect).
 
 ### Errors
@@ -50,7 +50,7 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 
 - **The code was written by LLMs without human review.** Treat comments and doc claims as hints and check them against the code.
 - **Only new code is tested and type-checked.** `astro check` covers `.ts` and `.astro` files; the legacy `.js` is not checked (`checkJs` is off) and has no tests. CI (`.github/workflows/ci.yml`) runs lint, rumdl, tests, typecheck and build on every push and pull request, and `deploy.yml` deploys `main` to Cloudflare Pages once it passes. Check a change with `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` and by using it in the browser on `npm run dev`.
-- **Every tab is its own page.** `src/pages/<tab>/index.astro` sets `<body data-view>` through `src/layouts/Base.astro`, and `src/main.js` mounts that view; `store.setTab` navigates. A selection handed to the map travels in its URL (`src/scripts/handoff.ts`), and settings that must outlive a page load persist through `src/scripts/settings.ts`.
+- **Every tab is its own page.** `src/pages/<tab>/index.astro` sets `<body data-view>` through `src/layouts/Base.astro`, and `src/main.js` mounts that view; `store.setTab` navigates. A selection handed to the map travels in its URL (`src/scripts/handoff.ts`: `?site`, `?station`, `?webcam`, `?locate`, each with an optional `&z=<zoom>`), and settings that must outlive a page load persist through `src/scripts/settings.ts`.
 - **Browser code stays at ES2020.** `astro.config.mjs` keeps the old build target (Safari 14, Chrome 87, Firefox 78) on purpose; syntax is lowered but builtins are not polyfilled, so don't use newer ones (`Object.hasOwn`, `Array.prototype.at`, `structuredClone`) in browser code.
 - **The sounding Function reads a generated grid.** `src/data/previtemps_grid.json` maps each station of `public/data/previtemps_stations.json` to its ICON grid point; rerun `npm run grid` after changing the catalogue, or when a station's sounding answers 503 for a day.
 - **No member data in the browser.** `purgeLegacyAuth` (`src/scripts/settings.ts`) clears the old `shv_session_id` and `shv_profile` keys on every page load.

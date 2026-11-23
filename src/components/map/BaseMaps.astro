@@ -1,0 +1,33 @@
+---
+// The base map cards of a drawer tab.
+import { BASE_MAP_IMAGES } from "../../scripts/maps/basemap.ts";
+import type { BaseMap } from "../../scripts/settings.ts";
+
+interface Props {
+  maps: BaseMap[];
+}
+const { maps } = Astro.props;
+---
+
+<div class="drawer-section">
+  <h4 class="drawer-subtitle" data-t="map.section.baseMap"></h4>
+  <div class="basemap-grid">
+    {maps.map((key) => (
+      <button
+        type="button"
+        class="basemap-card"
+        data-base={key}
+        aria-pressed="false"
+      >
+        {BASE_MAP_IMAGES[key] ? (
+          <img src={BASE_MAP_IMAGES[key]} alt="" class="basemap-card-img" />
+        ) : (
+          <div class="basemap-osm-placeholder" aria-hidden="true">
+            OSM
+          </div>
+        )}
+        <span data-t={`map.baseMaps.${key}`} />
+      </button>
+    ))}
+  </div>
+</div>

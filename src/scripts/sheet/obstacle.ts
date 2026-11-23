@@ -1,0 +1,116 @@
+// A BAZL aviation obstacle's sheet: type, airport, marking and lighting,
+// heights, its BAZL id, and the directions and DABS links.
+
+import { escapeHtml } from "../escape.ts";
+import { fill, type Say } from "../i18n/text.ts";
+import { featureLatLng } from "../maps/centroid.ts";
+import { obstacleIconUrl } from "../maps/obstacles.ts";
+import type { ObstacleFeature } from "../types.ts";
+import {
+  ICON,
+  coordinatesItem,
+  metaItem,
+  metric,
+  navLink,
+  sheetHtml,
+} from "./parts.ts";
+
+const TYPES = [
+  "TRANSMISSION_LINE",
+  "CABLE_CAR",
+  "CATENARY",
+  "POLE",
+  "CRANE",
+  "BUILDING",
+  "VEGETATION",
+  "WINDMILL",
+  "STACK",
+  "BRIDGE",
+];
+
+function text(v: unknown): string {
+  return typeof v === "string" ? v : "";
+}
+
+function num(v: unknown): number | null {
+  return typeof v === "number" && Number.isFinite(v) && v !== 0 ? v : null;
+}
+
+/** An obstacle type's name, upstream's code when unknown. */
+export function obstacleTypeLabel(type: unknown, say: Say): string {
+  const t = text(type);
+  if (TYPES.includes(t)) return say(`map.sheet.obstacleType.${t}`);
+  return t || say("map.sheet.obstacle");
+}
+
+function attr(label: string, value: string, cls = ""): string {
+  return `<span class="attr-label">${escapeHtml(label)}</span><span${cls ? ` class="${cls}"` : ""}>${escapeHtml(value)}</span>`;
+}
+
+export function obstacleSheetHtml(f: ObstacleFeature, say: Say): string {
+  const p = f.properties ?? {};
+  const at = featureLatLng(f);
+  const type = text(p.obstacleType);
+  const title = obstacleTypeLabel(type, say);
+  const isLine =
+    p.geometryType === "LineString" ||
+    type === "TRANSMISSION_LINE" ||
+    type === "CABLE_CAR";
+  const icon = obstacleIconUrl(p.styleId, isLine ? "ms_pole" : "red_circle");
+  const marked = text(p.marking) !== "" && p.marking !== "NONE";
+  const lighting = text(p.lighting);
+  const lit = lighting !== "" && lighting !== "NONE";
+  const agl = num(p.maxHeightAgl);
+  const amsl = num(p.topElevationAmsl);
+  const airport = text(p.airport);
+
+  const head = `<div class="sheet-badges-row"><span class="sheet-badge badge-obstacle">${escapeHtml(say("map.sheet.obstacleBadge"))}</span>${
+    airport
+      ? `<span class="sheet-badge badge-launch">${escapeHtml(fill(say("map.sheet.airport"), { name: airport }))}</span>`
+      : ""
+  }${marked ? `<span class="sheet-badge badge-status-closed">${escapeHtml(say("map.sheet.marked"))}</span>` : ""}${
+    lit
+      ? `<span class="sheet-badge badge-status-open">${escapeHtml(say("map.sheet.lit"))}</span>`
+      : ""
+  }</div><h2 class="sheet-title obstacle-title"><img src="${icon}" alt="" data-hide-on-error /><span>${escapeHtml(title)}</span></h2><div class="sheet-meta">${
+    amsl === null
+      ? ""
+      : metaItem(ICON.mountain, fill(say("map.sheet.amsl"), { m: amsl }))
+  }${coordinatesItem(at, say)}</div>`;
+
+  const metrics = [
+    agl === null
+      ? ""
+      : metric(
+          say("map.sheet.maxAgl"),
+          `${agl} m`,
+          say("map.sheet.aboveGround"),
+          "metric-agl",
+        ),
+    amsl === null
+      ? ""
+      : metric(
+          say("map.sheet.maxAmsl"),
+          `${amsl} m`,
+          say("map.sheet.aboveSea"),
+        ),
+  ].join("");
+  const sourceId = text(p.sourceId);
+  const attributes = [
+    attr(say("map.sheet.type"), type || "-", "attr-strong"),
+    sourceId ? attr(say("map.sheet.bazlId"), sourceId, "attr-mono") : "",
+    attr(
+      say("map.sheet.marking"),
+      p.marking === "MARKED"
+        ? say("map.sheet.markedYes")
+        : say("map.sheet.none"),
+    ),
+    attr(
+      say("map.sheet.lighting"),
+      lit ? `💡 ${lighting}` : say("map.sheet.none"),
+    ),
+  ].join("");
+
+  const body = `${metrics ? `<div class="station-metrics-grid obstacle-metrics">${metrics}</div>` : ""}<div class="sheet-section obstacle-attributes"><div class="obstacle-attr-grid">${attributes}</div></div><div class="sheet-actions sheet-actions-spaced">${navLink(at, say)}<a href="https://www.skybriefing.com/de/dabs" target="_blank" rel="noopener" class="btn-action btn-dabs"><span>${escapeHtml(say("map.sheet.dabs"))}</span></a></div>`;
+  return sheetHtml({ head, body, label: title }, say);
+}

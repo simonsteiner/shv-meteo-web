@@ -53,9 +53,7 @@ pre-commit:
             # this list.
             exclude:
               - src/views/ForecastView.js
-              - src/views/MapView.js
               - src/views/WeatherView.js
-              - src/components/BottomSheet.js
           # No em or en dashes in the staged files: they read as machine-written.
           # Same built-in skips as file-tokens (not its legacy exclude list); a
           # file that must hold them goes in its own `exclude:`.

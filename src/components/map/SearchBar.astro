@@ -1,0 +1,67 @@
+---
+// The search over flying sites and the pills of the active filters, which
+// clear them. src/scripts/maps/page.ts fills and toggles them.
+---
+
+<div class="map-top-container">
+  <div class="map-search-wrapper">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      class="search-icon"
+      aria-hidden="true"
+    >
+      <circle cx="11" cy="11" r="8"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+    <input
+      type="text"
+      data-map-search
+      data-t-placeholder="map.searchPlaceholder"
+      data-t-aria-label="map.searchPlaceholder"
+      autocomplete="off"
+    />
+    <button
+      type="button"
+      class="clear-btn hidden"
+      data-action="clear-search"
+      data-t-title="map.clearSearch"
+      data-t-aria-label="map.clearSearch"
+    >
+      &times;
+    </button>
+  </div>
+
+  <div class="active-filter-pills hidden" data-filter-pills>
+    <div class="active-pill pill-wind hidden" data-pill="wind">
+      <span>
+        🍃 <span data-pill-text="wind"></span>
+      </span>
+      <button
+        type="button"
+        data-action="clear-wind"
+        data-t-title="map.removeWind"
+        data-t-aria-label="map.removeWind"
+      >
+        &times;
+      </button>
+    </div>
+    <div class="active-pill pill-search hidden" data-pill="search">
+      <span>
+        🔍 <span data-pill-text="search"></span>
+      </span>
+      <button
+        type="button"
+        data-action="clear-search"
+        data-t-title="map.removeSearch"
+        data-t-aria-label="map.removeSearch"
+      >
+        &times;
+      </button>
+    </div>
+  </div>
+</div>
