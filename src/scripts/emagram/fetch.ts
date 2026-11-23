@@ -67,8 +67,9 @@ export async function fetchForecast(
         station: { name, model, elevation, latitude, longitude },
         run,
       };
-      // upstream's text goes in as it is: parsing and rewriting it costs
-      // the CPU this route has to save
+      // upstream's text goes in as it is: pointProblem has parsed it, but
+      // building the levels and writing them back out is the CPU this
+      // route has to save
       return `${JSON.stringify(envelope).slice(0, -1)},"point":${text}}`;
     } catch (err) {
       if (i === list.length - 1) throw err;
