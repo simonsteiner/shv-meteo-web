@@ -80,7 +80,7 @@ The official application organizes real-time meteo into 5 distinct modes (`LiveM
 
 The SHV WMS API (`v1/wms/person`) and Kotlin models use specialized naming conventions and localized object structures:
 
-- **Pilot Names**: `vorname` holds the pilot's first name, while `name` holds the pilot's last name. The web layer (`ProfileView.js`) combines both (`vorname + ' ' + name`) to prevent missing first names.
+- **Pilot Names**: `vorname` holds the pilot's first name, while `name` holds the pilot's last name. The former Profile tab combined both (`vorname + ' ' + name`) to prevent missing first names.
 
 - **`LocalizedString` Model (`q64`)**: Multilingual strings are delivered as serialized objects:
 

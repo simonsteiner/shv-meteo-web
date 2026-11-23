@@ -43,7 +43,7 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 ## Hard constraints
 
 - **Never add mock, sample or synthesized data.** No fake profiles, placeholder ratings, simulated measurements or generated trend curves; show an empty or error state when real data is missing.
-- **Never accept or store SHV passwords, and never send tokens to the browser.** Member login is not implemented: its Express routes went with `server/`, and PR13 removes the client side. If it returns, it follows the cookie design in the migration plan (`target.md`, "Auth").
+- **Never accept or store SHV passwords, and never send tokens to the browser.** The site has no member login (it reused the official app's Keycloak client; the header links to the SHV member portal instead). If login returns, it follows the cookie design in the migration plan (`target.md`, "Auth").
 - **Never bypass the git hooks** (`--no-verify`, `LEFTHOOK=0`). lefthook (`lefthook.yml`, installed by `npm install`) blocks staged files over 5,000 tokens and any em or en dash. Split an oversized file along its seams; write a dash a user must see as a JavaScript unicode escape, as the views already do.
 
 ## Gotchas
@@ -53,7 +53,7 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 - **Every tab is its own page.** `src/pages/<tab>/index.astro` sets `<body data-view>` through `src/layouts/Base.astro`, and `src/main.js` mounts that view; `store.setTab` navigates. A selection handed to the map travels in its URL (`src/scripts/handoff.ts`), and settings that must outlive a page load persist through `src/scripts/settings.ts`.
 - **Browser code stays at ES2020.** `astro.config.mjs` keeps the old build target (Safari 14, Chrome 87, Firefox 78) on purpose; syntax is lowered but builtins are not polyfilled, so don't use newer ones (`Object.hasOwn`, `Array.prototype.at`, `structuredClone`) in browser code.
 - **The sounding Function reads a generated grid.** `src/data/previtemps_grid.json` maps each station of `public/data/previtemps_stations.json` to its ICON grid point; rerun `npm run grid` after changing the catalogue, or when a station's sounding answers 503 for a day.
-- **Member login is gone.** Its `/api/auth/*` routes answer 404; `ShvApi.getEmagramSounding` and the parcel-analysis methods call routes that no longer exist (PR13 and PR14 remove them).
+- **No member data in the browser.** `purgeLegacyAuth` (`src/scripts/settings.ts`) clears the old `shv_session_id` and `shv_profile` keys on every page load; `ShvApi.getEmagramSounding` and the parcel-analysis methods still call routes that no longer exist (PR14 removes them).
 - **The BAZL obstacles are build-time shards.** `npm run obstacles` downloads the dataset (about 128 MB) and writes `public/data/obstacles/` (git-ignored, about 250 MB); `deploy.yml` runs it before each deploy and daily. Without it locally the obstacle layer stays empty.
 - **`public/data/*.geojson` are snapshots of the upstream CDN datasets.** `ShvApi` loads them first and falls back to the CDN URLs in `src/services/api.js`.
 
@@ -63,6 +63,6 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 - `docs/setup.md`: local setup, screenshots tool, Chrome DevTools MCP, troubleshooting.
 - `docs/deployment.md`: Cloudflare Pages, deploying by hand, rollback, state and secrets.
 - `docs/architecture.md`: index of `docs/architecture/`: data sources, which calls go through a Function and why, every `/api` route, how the code is organised. Read `data-queries.md` before adding or changing an endpoint.
-- `docs/reference/shv-native-app.md`: reverse-engineered notes on the official app, Keycloak and the member web service. Read before touching auth or member data.
+- `docs/reference/shv-native-app.md`: reverse-engineered notes on the official app, Keycloak and the member web service. Read before bringing back login or member data.
 - `GLOSSARY.md`: domain terms in English and German.
 - `docs/plan/2026-11-23-astro-cloudflare/`: the migration plan and PR stack. Read before starting a migration PR.
