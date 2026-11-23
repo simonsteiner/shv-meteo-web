@@ -20,7 +20,7 @@
 
 ## Shared types
 
-- Domain and API shapes live in `src/scripts/types.ts`, a real module imported with `import type`: `MeasurementFeature`, `TimeseriesResponse`, `Webcam`, `FlyingSiteFeature`, `PrevitempsStation`, `EmagramLevel`, `EmagramForecast`, `FoehnPair`, `FoehnReport`, `ObstacleFeature`.
+- Domain and API shapes live in `src/scripts/types.ts`, a real module imported with `import type`: `MeasurementFeature`, `TimeseriesResponse`, `Webcam`, `FlyingSiteFeature`, `SoundingStation`, `SoundingLevel`, `Sounding` (glossary terms; "previtemps" stays only in legacy URLs and file names), `FoehnPair`, `FoehnReport`, `ObstacleFeature`.
 - `src/types.d.ts` holds ambient declarations only (`Window`, `ImportMetaEnv`, untyped modules), as in the reference project.
 - A module rather than the `.d.ts` because both `functions/` and the browser bundle import the types, as the reference project does with `contract/contract.ts`; explicit imports keep the dependency visible.
 - `types.ts` is created in PR9 and grows one PR at a time; near the token budget it splits into `src/scripts/types/<concern>.ts`.

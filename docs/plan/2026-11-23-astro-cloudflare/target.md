@@ -34,13 +34,13 @@ Whether edge caching of function responses (Cache API or `cf.cacheTtl`) works on
 
 - One static page per tab, `src/pages/<tab>/index.astro`; `/` redirects to `/map/` through `public/_redirects`.
 - Plain multi-page navigation, as in the reference project. `store.setTab(tab)` becomes `location.assign('/<tab>/')`.
-- Three handoffs need a selection to survive the page load (`WeatherView.js:662-663`, `MapView.js:1613`, `Header.js:172-177`). `state.js` writes the transient selection to `sessionStorage` before navigating and restores it on boot.
+- Three handoffs need a selection to survive the page load (station `WeatherView.js:662-663`, webcam `WeatherView.js:629-630`, pilot location `Header.js:172-177`). `state.js` writes the transient selection to `sessionStorage` before navigating and restores it on boot.
 - Deep-link query parameters arrive with each view's refactor PR.
 
 ## Build-time data
 
 - **BAZL obstacles:** `scripts/obstacles.ts` downloads `bazl.geojson`, applies the LOD tiers from `obstacles_provider.js:150-232` (ported to `src/scripts/obstacles/lod.ts` with tests) and writes `public/data/obstacles/<tier>/<gx>_<gy>.json` in 0.25 degree cells. `deploy.yml` runs it with `actions/cache` and a daily schedule. The client merges the shards covering the padded bbox and keeps the deterministic 2000-feature cap.
-- **Previtemps grid points:** `scripts/previtemps-grid.ts` resolves the 107 catalogue stations to their ICON-CH1 point index and elevation once and writes `src/data/previtemps_grid.json`. At runtime the function then needs only the runs list and 6 point-data fetches (about 180 KB).
+- **Previtemps grid points:** `scripts/previtemps-grid.ts` resolves the 107 catalogue stations to their ICON model key (CH1, or CH2 where a tile has no CH1 grid, as `emagram_provider.js:29-31` does), point index and elevation once and writes `src/data/previtemps_grid.json`. At runtime the function then needs only the runs list and 6 point-data fetches (about 180 KB).
 
 ## Auth (deferred)
 

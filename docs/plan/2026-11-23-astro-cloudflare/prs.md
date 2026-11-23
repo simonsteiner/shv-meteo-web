@@ -9,14 +9,14 @@ Every PR keeps these true:
 ## PR5 `feat/astro-shell`: deployable shell, TypeScript, astro check
 
 - Astro 7 static at the root, wrapping the legacy views in place. `src/layouts/Base.astro` holds the four mount points from `index.html` and imports `main.css` and Leaflet's CSS. Five `src/pages/<tab>/index.astro` load `main.js`; `main.js` reads `data-view`; `state.js` gets `setTab` navigation and the `sessionStorage` handoff. `public/_redirects`.
-- Dev proxy `/api` to Express :3001 (`server/start-dev.js` starts `astro dev`). Delete `Dockerfile`, `docker-compose.yml`, `.dockerignore` and the Express production static serving; `docs/deployment.md` describes Pages instead.
+- Dev proxy `/api` to Express :3001 (`server/start-dev.js` starts `astro dev`). Delete `Dockerfile`, `docker-compose.yml`, `.dockerignore` and the Express production static serving; `docs/deployment.md` describes Pages instead; AGENTS.md and README drop Docker and `dev:vite` and get the new commands.
 - TypeScript per [typescript.md](typescript.md); scripts `typecheck` and `test`; `prettier-plugin-astro`; lefthook pre-push `npm run typecheck`; first typed module `src/scripts/upstream/params.ts` with tests (bbox, station id, lang).
 - `package.json`: add `astro`, `typescript`, `@astrojs/check`, `prettier-plugin-astro`, `wrangler`, `@types/leaflet`, `@types/node`; drop `vite`, `lucide`; rename to `shv-meteo-web`. Delete `index.html`, `vite.config.js`.
 - **Accept:** all checks pass; `git push` runs `astro check`; `wrangler pages dev dist` serves `/map/` with tiles and flying sites and the other pages render; `/` redirects to `/map/`; nav changes the URL and Back works; `npm run dev` works against Express. After user approval, `npx wrangler pages project create shv-meteo --production-branch main` and a first manual deploy to `https://shv-meteo.pages.dev` (API calls 404 until PR9).
 
 ## PR6 `ci/workflows`
 
-- `ci.yml`: `npm ci`, lint, test, typecheck, build, `rumdl check .`. `deploy.yml`: the reference project's guard, concurrency and token-scoped deploy step. SHA-pinned actions (secure-github-actions checklist).
+- `ci.yml`: `npm ci`, lint, test, typecheck, build, `rumdl check .`. `deploy.yml`: the reference project's guard, concurrency and token-scoped deploy step. SHA-pinned actions (secure-github-actions checklist). AGENTS.md's "no tests, type checker or CI" gotcha goes.
 - **User step:** repo secrets `CLOUDFLARE_API_TOKEN` (Pages: Edit) and `CLOUDFLARE_ACCOUNT_ID`.
 - **Accept:** CI green; after merge, deploy publishes the merged commit.
 
@@ -52,7 +52,7 @@ Every PR keeps these true:
 
 ## PR13 `chore/drop-auth` (decided: no member login for now)
 
-- Remove the `/api/auth/*` routes, `server/auth.js` and the `ShvApi` auth methods; stop persisting `shv_session_id` and the profile in localStorage (clear old keys on boot); delete `ProfileView.js` and its `exclude:` entry; `/profile/` becomes a static `.astro` page linking to the SHV member portal. Update `docs/reference/shv-native-app.md` to say login is not implemented.
+- Remove the `/api/auth/*` routes, `server/auth.js` and the `ShvApi` auth methods; stop persisting `shv_session_id` and the profile in localStorage (clear old keys on boot); delete `ProfileView.js` and its `exclude:` entry; `/profile/` becomes a static `.astro` page linking to the SHV member portal. Update `docs/reference/shv-native-app.md` to say login is not implemented, and drop the Keycloak flow from AGENTS.md (intro and the password and token constraints) and README.
 - **Accept:** no `auth` route or Keycloak URL outside `docs/`; `/profile/` renders; localStorage holds no session or profile.
 
 ## PR14 `refactor/api-client-ts`
@@ -62,5 +62,5 @@ Every PR keeps these true:
 
 ## PR15 `chore/remove-express-python`
 
-- Capture the emagram fixture first if wanted. Delete `server/`, `express`, `cors`, `setProfilePreset`; dev proxy defaults to :8788; drop `server/index.js` from `exclude:`; update README, AGENTS.md, `docs/architecture.md`, `docs/setup.md`.
+- Capture the emagram fixture first if wanted. Delete `server/`, `express`, `cors`, `setProfilePreset`; dev proxy defaults to :8788; drop `server/index.js` from `exclude:`; update what's left of README, AGENTS.md, `docs/architecture.md`, `docs/setup.md`.
 - **Accept:** no `express`, `child_process` or `python3` outside `docs/`; `npm run dev` serves every view; production fully works.
