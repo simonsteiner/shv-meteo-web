@@ -1,0 +1,7 @@
+# Cloudflare Pages response headers. The script and resource policy is the
+# meta CSP each built page carries (src/scripts/access/csp.ts); a meta tag
+# can't set frame-ancestors, so that one is here.
+/*
+  Content-Security-Policy: frame-ancestors 'none'
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Content-Type-Options: nosniff

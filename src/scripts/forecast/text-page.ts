@@ -2,7 +2,7 @@
 // language, sanitizes upstream's HTML and switches category and region.
 // `?cat=` and `?region=` open a forecast and follow the choice.
 
-import { store } from "../../state.js";
+import { store } from "../state.ts";
 import { ShvApi } from "../api.ts";
 import { must } from "../dom.ts";
 import { page } from "./page.ts";

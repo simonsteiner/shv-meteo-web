@@ -1,0 +1,37 @@
+---
+// The tab bar on narrow screens: real links, the current tab marked at
+// build time. German until src/scripts/shell/header.ts applies the saved
+// language through data-t.
+import { TABS, type Tab } from "../../scripts/app-state.ts";
+import { de } from "../../scripts/i18n/de.ts";
+import { tabCurrent } from "../../scripts/shell/nav.ts";
+import TabIcon from "./TabIcon.astro";
+
+interface Props {
+  view: Tab;
+}
+const { view } = Astro.props;
+---
+
+<nav
+  class="bottom-nav"
+  data-shell
+  aria-label={de.shell.nav}
+  data-t-aria-label="shell.nav"
+>
+  {TABS.map((tab) => (
+    <a
+      class="nav-item"
+      href={`/${tab}/`}
+      data-tab={tab}
+      aria-current={tabCurrent(tab, view, Astro.url.pathname)}
+    >
+      <span class="nav-icon">
+        <TabIcon tab={tab} size={22} />
+      </span>
+      <span class="nav-label" data-t={`tabs.${tab}`}>
+        {de.tabs[tab]}
+      </span>
+    </a>
+  ))}
+</nav>

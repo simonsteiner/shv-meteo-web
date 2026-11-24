@@ -11,3 +11,6 @@ public/data/obstacles/
 .env
 .env.*
 .dev.vars
+__pycache__/
+*.jsonl
+*.flows

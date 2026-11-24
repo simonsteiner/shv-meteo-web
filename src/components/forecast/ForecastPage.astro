@@ -1,7 +1,6 @@
 ---
-// The frame every forecast section shares: the layout, the section links
-// and main.js for the shared header and nav. Each section's component
-// brings its own script.
+// The frame every forecast section shares: the layout and the section
+// links. Each section's component brings its own script.
 import Base from "../../layouts/Base.astro";
 import ForecastNav from "./ForecastNav.astro";
 import TextSection from "./TextSection.astro";
@@ -23,7 +22,4 @@ const { section } = Astro.props;
     {section === "emagram" && <EmagramSection />}
     {section === "isobaren" && <IsobarenSection />}
   </div>
-  <script>
-    import "../../main.js";
-  </script>
 </Base>

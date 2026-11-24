@@ -1,7 +1,7 @@
 ---
 // The safety page: pre-flight check, emergency contacts, DABS, vario
 // simulator and logbook. Static markup; src/scripts/safety/page.ts
-// fills and drives it. main.js still renders the shared header and nav.
+// fills and drives it.
 import Base from "../../layouts/Base.astro";
 import Checklist from "../../components/safety/Checklist.astro";
 import Emergency from "../../components/safety/Emergency.astro";
@@ -19,7 +19,6 @@ import Logbook from "../../components/safety/Logbook.astro";
     <Logbook />
   </div>
   <script>
-    import "../../main.js";
     import "../../scripts/safety/page.ts";
   </script>
 </Base>

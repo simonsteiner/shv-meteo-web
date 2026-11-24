@@ -4,7 +4,7 @@
 // and follows the choice; Interlaken is the default.
 
 import L from "leaflet";
-import { store } from "../../state.js";
+import { store } from "../state.ts";
 import { ShvApi } from "../api.ts";
 import { must } from "../dom.ts";
 import { escapeHtml } from "../escape.ts";

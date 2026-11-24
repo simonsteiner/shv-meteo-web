@@ -3,7 +3,7 @@
 // `?type=` opens a product and follows the choice.
 
 import L from "leaflet";
-import { store } from "../../state.js";
+import { store } from "../state.ts";
 import { ShvApi } from "../api.ts";
 import { must } from "../dom.ts";
 import { applyText, fill } from "../i18n/text.ts";

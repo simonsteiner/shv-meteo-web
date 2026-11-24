@@ -4,7 +4,10 @@
 // degrees, so any view needs a few files of one tier. Files live at
 // /data/obstacles/<tier>/<gx>_<gy>.json; index.json lists the cells that
 // exist, so the client never asks for an empty one. A cell over 2 MB is
-// written as four quarters, named in its file's `parts`.
+// written as four quarters, named in its file's `parts` as `<cell>.<i>`
+// (and `<cell>.<i>.<j>` for a quarter split again), i the quarter: 0 south
+// west, 1 south east, 2 north west, 3 north east (shards.ts), so the client
+// reads only the quarters its view touches.
 import type { Bbox, ObstacleFeature } from "../types.ts";
 import { bboxOf, capFeatures, intersects } from "./lod.ts";
 
@@ -76,6 +79,25 @@ export function cellBox(key: string, tier: Tier): Bbox {
   };
 }
 
+/** The box of a cell or of one of its quarters, from its name: `16_94`,
+ * `16_94.3`, `16_94.3.0`. */
+export function partBox(name: string, tier: Tier): Bbox {
+  const [key, ...quarters] = name.split(".");
+  let box = cellBox(key, tier);
+  for (const q of quarters) {
+    const i = Number(q);
+    const midLon = (box.minLon + box.maxLon) / 2;
+    const midLat = (box.minLat + box.maxLat) / 2;
+    box = {
+      minLon: i % 2 === 0 ? box.minLon : midLon,
+      maxLon: i % 2 === 0 ? midLon : box.maxLon,
+      minLat: i < 2 ? box.minLat : midLat,
+      maxLat: i < 2 ? midLat : box.maxLat,
+    };
+  }
+  return box;
+}
+
 /** index.json: the cells each tier has. */
 export interface ShardIndex {
   generatedAt: string;
@@ -92,9 +114,10 @@ export type FetchJson = (
   signal?: AbortSignal,
 ) => Promise<unknown>;
 
-/** The obstacles a view shows: the tier's cells around `bbox`, deduped by
- * `_uid` (a feature lies in every cell it touches), cut to `bbox` and
- * capped. A cell that fails to load counts as empty, logged. */
+/** The obstacles a view shows: the tier's cells around `bbox`, only the
+ * quarters of a split cell that `bbox` touches, deduped by `_uid` (a
+ * feature lies in every cell it touches), cut to `bbox` and capped. A cell
+ * that fails to load counts as empty, logged. */
 export async function loadObstacles(
   bbox: Bbox,
   zoom: number,
@@ -112,8 +135,12 @@ export async function loadObstacles(
       `${tier.name}/${name}.json`,
       signal,
     )) as ShardFile;
-    if ("parts" in file)
-      return (await Promise.all(file.parts.map(load))).flat();
+    if ("parts" in file) {
+      const touched = file.parts.filter((part) =>
+        intersects(partBox(part, tier), bbox),
+      );
+      return (await Promise.all(touched.map(load))).flat();
+    }
     return file.features ?? [];
   };
   const loaded = await Promise.all(
