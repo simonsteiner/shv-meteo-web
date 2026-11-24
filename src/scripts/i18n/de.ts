@@ -98,6 +98,7 @@ export const de = {
     seriesDew: "Taupunkt (°C)",
     seriesWind: "Wind (km/h)",
     foehnUnavailable: "Föhndaten vorübergehend nicht verfügbar.",
+    retry: "Erneut versuchen",
     noHistory: "Kein Verlauf verfügbar.",
     stationsUnavailable: "Live-Messwerte vorübergehend nicht verfügbar.",
     webcamsUnavailable: "Webcams vorübergehend nicht verfügbar.",

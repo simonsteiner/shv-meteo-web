@@ -98,6 +98,7 @@ export const en: Strings = {
     seriesDew: "Dew point (°C)",
     seriesWind: "Wind (km/h)",
     foehnUnavailable: "Foehn data temporarily unavailable.",
+    retry: "Try again",
     noHistory: "No history available.",
     stationsUnavailable: "Live measurements temporarily unavailable.",
     webcamsUnavailable: "Webcams temporarily unavailable.",

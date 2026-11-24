@@ -101,6 +101,7 @@ export const it: Strings = {
     seriesDew: "Punto di rugiada (°C)",
     seriesWind: "Vento (km/h)",
     foehnUnavailable: "Dati sul favonio temporaneamente non disponibili.",
+    retry: "Riprova",
     noHistory: "Nessuno storico disponibile.",
     stationsUnavailable:
       "Misure in tempo reale temporaneamente non disponibili.",

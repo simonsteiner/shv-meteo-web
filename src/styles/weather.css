@@ -228,6 +228,12 @@
   width: 100%;
 }
 
+/* a switched pair's chart until its report comes (weather/pair-state.ts) */
+.chart-canvas-container.is-pending {
+  opacity: 0.4;
+  transition: opacity 0.2s;
+}
+
 .sec-pair-card {
   background: var(--bg-primary);
   padding: 10px 14px;
@@ -361,6 +367,7 @@
 .provider-filter-pills[hidden],
 .modal-canvas-box[hidden],
 .weather-status[hidden],
+.foehn-retry[hidden],
 .chart-canvas-container canvas[hidden] {
   display: none;
 }
