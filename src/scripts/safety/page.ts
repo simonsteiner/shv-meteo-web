@@ -1,10 +1,10 @@
 // The safety page's behaviour over its static markup
 // (src/components/safety/): words from the dictionaries, the checklist,
-// vario and logbook from the store (src/state.js), every handler
+// vario and logbook from the store (src/scripts/state.ts), every handler
 // attached here rather than inline. Re-renders on each store change, which
 // is how the header's language switch reaches the page.
 
-import { store } from "../../state.js";
+import { store } from "../state.ts";
 import { ShvApi } from "../api.ts";
 import { must } from "../dom.ts";
 import { applyText } from "../i18n/text.ts";
@@ -48,7 +48,7 @@ export function mountSafety(root: HTMLElement): void {
   const addButton = must<HTMLButtonElement>(root, '[data-action="add-flight"]');
 
   let lang: string | null = null;
-  // store.addFlight grows the same array, so its length says when to
+  // the log only grows (store.addFlight), so its length says when to
   // read it again (and log a bad entry once, not on every render)
   let flights: Flight[] = [];
   let flightsRead = -1;

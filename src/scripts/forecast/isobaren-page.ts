@@ -1,7 +1,7 @@
 // The isobar chart section (/forecast/isobaren/): the chart's SVG for the
 // UI language, swapped when the language changes.
 
-import { store } from "../../state.js";
+import { store } from "../state.ts";
 import { isobarenUrl } from "../api.ts";
 import { must } from "../dom.ts";
 import { page } from "./page.ts";

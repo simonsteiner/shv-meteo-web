@@ -1,8 +1,11 @@
 ---
-// The page frame every tab shares: the head from the former index.html and
-// the four mount points the legacy views render into (src/main.js). The
-// page's script loads main.js, which mounts the view <body data-view> names;
-// a ported page puts its view's markup in the `view` slot instead.
+// The page frame every tab shares: the head, the header and bottom nav
+// (src/components/shell/), the page's view in the `view` slot, and the
+// bottom sheet the map fills. The shell script (src/scripts/shell/shell.ts)
+// runs before the page's own script, which comes in the default slot.
+import Header from "../components/shell/Header.astro";
+import BottomNav from "../components/shell/BottomNav.astro";
+import type { Tab } from "../scripts/app-state.ts";
 import "leaflet/dist/leaflet.css";
 // main.css cut at its section banners, in its order, so every rule keeps
 // its place in the cascade
@@ -23,8 +26,8 @@ import "../styles/forecast-outlooks.css";
 import "../styles/forecast-emagram.css";
 
 interface Props {
-  /** The tab this page shows; state.js TABS lists the same four. */
-  view: "map" | "weather" | "forecast" | "safety";
+  /** The tab this page shows (src/scripts/app-state.ts, TABS). */
+  view: Tab;
 }
 const { view } = Astro.props;
 ---
@@ -55,15 +58,22 @@ const { view } = Astro.props;
         console.error("[Base] Cannot read the saved theme:", err);
       }
     </script>
+    <script>
+      import "../scripts/shell/shell.ts";
+    </script>
   </head>
   <body data-view={view}>
     <div id="app">
-      <div id="header-container"></div>
+      <div id="header-container">
+        <Header view={view} />
+      </div>
       <main id="view-container">
         <slot name="view" />
       </main>
       <div id="bottom-sheet-container" class="hidden"></div>
-      <div id="bottom-nav-container"></div>
+      <div id="bottom-nav-container">
+        <BottomNav view={view} />
+      </div>
     </div>
     <slot />
   </body>

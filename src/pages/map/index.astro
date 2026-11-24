@@ -2,7 +2,7 @@
 // The map page: flying sites, airspace, obstacles and live weather on a
 // Leaflet map, with the layers drawer, search and filters. Static markup;
 // src/scripts/maps/page.ts fills and drives it, and renders the bottom
-// sheet. main.js still renders the shared header and nav. Deep links
+// sheet. Deep links
 // (src/scripts/handoff.ts): /map/?site=<siteId>, ?station=<id>,
 // ?webcam=<id>, ?locate, each with an optional &z=<zoom>.
 import Base from "../../layouts/Base.astro";
@@ -21,7 +21,6 @@ import SearchBar from "../../components/map/SearchBar.astro";
     <div class="leaflet-map-element" data-leaflet-map></div>
   </div>
   <script>
-    import "../../main.js";
     import "../../scripts/maps/page.ts";
   </script>
 </Base>

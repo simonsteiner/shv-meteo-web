@@ -6,7 +6,7 @@
 // theme switches reach the page.
 
 import type { Chart } from "chart.js";
-import { store } from "../../state.js";
+import { store } from "../state.ts";
 import { ShvApi } from "../api.ts";
 import { drawChart } from "../charts/draw.ts";
 import { foehnChartConfig } from "../charts/foehn.ts";
@@ -40,7 +40,7 @@ import { filterWebcams } from "./webcams.ts";
 const MAX_STATIONS = 48;
 const MAX_WEBCAMS = 36;
 
-const dictionary = () => store.t as unknown as Dictionary;
+const dictionary = (): Dictionary => store.t;
 const say = (key: string) => sayIn(dictionary(), key);
 
 export function mountWeather(root: HTMLElement): void {

@@ -23,7 +23,7 @@ export type Selection =
 
 export type SelectionKind = Selection["kind"];
 
-/** The selection the store holds (src/state.js), at most one. */
+/** The selection the store holds (src/scripts/state.ts), at most one. */
 export function selectionOf(state: {
   selectedSite: unknown;
   selectedStation: unknown;

@@ -1,6 +1,7 @@
-import { map } from "./map/en.js";
+import type { Strings } from "./de.ts";
+import { map } from "./map/en.ts";
 
-export const en = {
+export const en: Strings = {
   appName: "Swiss Free Flight",
   memberPortal: "SHV member portal",
   appSub: "Soaring Weather & Sites · Source: SHV FSVL",
@@ -11,6 +12,12 @@ export const en = {
     safety: "Safety & Tools",
   },
   map,
+  shell: {
+    nav: "Main navigation",
+    locate: "My location",
+    theme: "Colour scheme",
+    language: "Language",
+  },
   airspace: {
     ctr: "CTR Control Zone",
     tma: "TMA Terminal Control Area",

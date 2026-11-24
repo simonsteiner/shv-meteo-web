@@ -1,6 +1,7 @@
-import { map } from "./map/fr.js";
+import type { Strings } from "./de.ts";
+import { map } from "./map/fr.ts";
 
-export const fr = {
+export const fr: Strings = {
   appName: "Swiss Free Flight",
   memberPortal: "Portail des membres FSVL",
   appSub: "Météo vol libre & sites · Source : FSVL SHV",
@@ -11,6 +12,12 @@ export const fr = {
     safety: "Sécurité & Outils",
   },
   map,
+  shell: {
+    nav: "Navigation principale",
+    locate: "Ma position",
+    theme: "Thème de couleur",
+    language: "Langue",
+  },
   airspace: {
     ctr: "CTR Zone de contrôle",
     tma: "TMA Région terminale",

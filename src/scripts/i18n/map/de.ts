@@ -1,5 +1,5 @@
 // The map page's strings (src/pages/map/, src/scripts/maps/, src/scripts/sheet/),
-// the `map` block of ../de.js, kept in its own file for the token budget.
+// the `map` block of ../de.ts, kept in its own file for the token budget.
 export const map = {
   searchPlaceholder: "Fluggebiet, Startplatz, Ort suchen...",
   clearSearch: "Suche löschen",
@@ -169,3 +169,6 @@ export const map = {
     },
   },
 };
+
+/** The map strings' shape, which the other languages follow. */
+export type MapStrings = typeof map;

@@ -1,0 +1,177 @@
+---
+// The header: brand, the tab links (desktop), the Foehn pill, and the GPS,
+// member portal, theme and language controls. Links work without
+// JavaScript and the current tab is marked at build time; the words are
+// German until src/scripts/shell/header.ts applies the saved language
+// through data-t, and that script wires the controls.
+import { LANGS } from "../../scripts/settings.ts";
+import { TABS, type Tab } from "../../scripts/app-state.ts";
+import { de } from "../../scripts/i18n/de.ts";
+import TabIcon from "./TabIcon.astro";
+
+interface Props {
+  view: Tab;
+}
+const { view } = Astro.props;
+
+/** Where SHV members log in; this site has no member login. */
+const MEMBER_PORTAL_URL = "https://www.shv-fsvl.ch/anmelden/login/";
+
+/** Each language in its own name, so it reads the same in every language. */
+const LANG_NAMES = {
+  de: "Deutsch (DE)",
+  fr: "Français (FR)",
+  it: "Italiano (IT)",
+  en: "English (EN)",
+} as const;
+
+const icon = {
+  width: 20,
+  height: 20,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  "stroke-width": 2,
+  "aria-hidden": "true",
+} as const;
+---
+
+<header class="app-header" data-shell data-shell-header>
+  <div class="header-left">
+    <a class="brand" href="/map/" data-tab="map">
+      <img
+        src="/assets/logo.svg"
+        alt="Swiss Free Flight Logo"
+        class="brand-logo"
+      />
+      <span class="brand-text">
+        <span class="brand-title" data-t="appName">
+          {de.appName}
+        </span>
+        <span class="brand-sub" data-t="appSub">
+          {de.appSub}
+        </span>
+      </span>
+    </a>
+  </div>
+
+  <nav
+    class="header-nav-desktop"
+    aria-label={de.shell.nav}
+    data-t-aria-label="shell.nav"
+  >
+    {TABS.map((tab) => (
+      <a
+        class="header-nav-link"
+        href={`/${tab}/`}
+        data-tab={tab}
+        aria-current={tab === view ? "page" : undefined}
+      >
+        <TabIcon tab={tab} size={18} />
+        <span data-t={`tabs.${tab}`}>{de.tabs[tab]}</span>
+      </a>
+    ))}
+  </nav>
+
+  <div class="header-center">
+    <a class="foehn-pill hidden" href="/weather/" data-foehn-pill>
+      <span class="foehn-dot"></span>
+      <span data-foehn-label></span>
+    </a>
+  </div>
+
+  <div class="header-right">
+    <button
+      type="button"
+      class="icon-btn"
+      data-action="locate"
+      title={de.shell.locate}
+      aria-label={de.shell.locate}
+      data-t-title="shell.locate"
+      data-t-aria-label="shell.locate"
+    >
+      <svg {...icon}>
+        <circle cx="12" cy="12" r="8"></circle>
+        <line x1="12" y1="2" x2="12" y2="4"></line>
+        <line x1="12" y1="20" x2="12" y2="22"></line>
+        <line x1="2" y1="12" x2="4" y2="12"></line>
+        <line x1="20" y1="12" x2="22" y2="12"></line>
+      </svg>
+    </button>
+
+    <a
+      class="icon-btn"
+      href={MEMBER_PORTAL_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={de.memberPortal}
+      aria-label={de.memberPortal}
+      data-t-title="memberPortal"
+      data-t-aria-label="memberPortal"
+    >
+      <svg {...icon}>
+        <rect width="20" height="14" x="2" y="5" rx="2"></rect>
+        <circle cx="8" cy="12" r="2"></circle>
+        <path d="M14 10h4"></path>
+        <path d="M14 14h2"></path>
+      </svg>
+    </a>
+
+    <button
+      type="button"
+      class="icon-btn theme-btn"
+      data-action="theme"
+      title={de.shell.theme}
+      aria-label={de.shell.theme}
+      data-t-title="shell.theme"
+      data-t-aria-label="shell.theme"
+    >
+      <svg {...icon} class="theme-icon-light">
+        <circle cx="12" cy="12" r="5"></circle>
+        <line x1="12" y1="1" x2="12" y2="3"></line>
+        <line x1="12" y1="21" x2="12" y2="23"></line>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+        <line x1="1" y1="12" x2="3" y2="12"></line>
+        <line x1="21" y1="12" x2="23" y2="12"></line>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+      </svg>
+      <svg {...icon} class="theme-icon-dark">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </svg>
+    </button>
+
+    <div class="lang-dropdown">
+      <button
+        type="button"
+        class="lang-btn"
+        data-action="lang"
+        aria-expanded="false"
+        aria-haspopup="true"
+        title={de.shell.language}
+        data-t-title="shell.language"
+      >
+        <span data-lang-label>DE</span>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+      <div class="lang-menu hidden" data-lang-menu>
+        {LANGS.map((lang) => (
+          <button type="button" data-lang={lang}>
+            {LANG_NAMES[lang]}
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+</header>

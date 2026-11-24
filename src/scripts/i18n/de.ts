@@ -1,4 +1,4 @@
-import { map } from "./map/de.js";
+import { map } from "./map/de.ts";
 
 export const de = {
   appName: "Swiss Free Flight",
@@ -11,6 +11,12 @@ export const de = {
     safety: "Sicherheit & Tools",
   },
   map,
+  shell: {
+    nav: "Hauptnavigation",
+    locate: "Mein Standort",
+    theme: "Farbschema",
+    language: "Sprache",
+  },
   airspace: {
     ctr: "CTR Kontrollzone",
     tma: "TMA Nahverkehrsbereich",
@@ -286,3 +292,6 @@ export const de = {
     cancel: "Abbrechen",
   },
 };
+
+/** The shape every language follows: the German dictionary's keys. */
+export type Strings = typeof de;

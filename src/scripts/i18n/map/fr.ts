@@ -1,6 +1,8 @@
 // The map page's strings (src/pages/map/, src/scripts/maps/, src/scripts/sheet/),
-// the `map` block of ../fr.js, kept in its own file for the token budget.
-export const map = {
+// the `map` block of ../fr.ts, kept in its own file for the token budget.
+import type { MapStrings } from "./de.ts";
+
+export const map: MapStrings = {
   searchPlaceholder: "Chercher site de vol, décollage, localité...",
   clearSearch: "Effacer la recherche",
   windPill: "Vent: {dirs}",
