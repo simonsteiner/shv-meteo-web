@@ -55,6 +55,7 @@ export const map: MapStrings = {
     topoColor: "National map",
     topoSatellite: "Aerial image",
     topoOsm: "OpenStreetMap",
+    gliderChart: "Glider chart",
   },
   infoButton: "Information, legend & sources",
   dabsButton: "Skybriefing DABS (Daily Airspace Bulletin)",
@@ -63,7 +64,8 @@ export const map: MapStrings = {
     sources: "Data sources",
     sites:
       "Flying sites & landing circuits: Swiss Hang Gliding Association (SHV FSVL)",
-    baseMap: "Base map & aerial images: swisstopo, OpenStreetMap",
+    baseMap:
+      "Base map, glider chart & aerial images: swisstopo, FOCA, OpenStreetMap",
     obstacles: "Aviation obstacles: FOCA",
     weather: "Weather & measurements: MeteoSwiss & UBimet",
     airspace: "Airspace & DABS: Skyguide",

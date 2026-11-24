@@ -14,6 +14,7 @@ export const BASE_MAPS = [
   "topoColor",
   "topoSatellite",
   "topoOsm",
+  "gliderChart",
 ] as const;
 export const MAP_CATEGORIES = ["METEO", "AIRSPACE", "FLYING_AREAS"] as const;
 export const METEO_MODES = [

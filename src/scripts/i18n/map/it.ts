@@ -55,6 +55,7 @@ export const map: MapStrings = {
     topoColor: "Carta nazionale",
     topoSatellite: "Immagine aerea",
     topoOsm: "OpenStreetMap",
+    gliderChart: "Carta volo a vela",
   },
   infoButton: "Informazioni, legenda & fonti",
   dabsButton: "Skybriefing DABS (bollettino giornaliero dello spazio aereo)",
@@ -63,7 +64,8 @@ export const map: MapStrings = {
     sources: "Fonti dei dati",
     sites:
       "Siti di volo & circuiti di atterraggio: Federazione Svizzera di Volo Libero (SHV FSVL)",
-    baseMap: "Mappa di base & immagini aeree: swisstopo, OpenStreetMap",
+    baseMap:
+      "Mappa di base, carta volo a vela & immagini aeree: swisstopo, UFAC, OpenStreetMap",
     obstacles: "Ostacoli alla navigazione aerea: UFAC",
     weather: "Meteo & misurazioni: MeteoSvizzera & UBimet",
     airspace: "Spazi aerei & DABS: Skyguide",

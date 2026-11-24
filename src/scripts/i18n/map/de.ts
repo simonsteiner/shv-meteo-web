@@ -53,6 +53,7 @@ export const map = {
     topoColor: "Pixelkarte",
     topoSatellite: "Luftbild",
     topoOsm: "OpenStreetMap",
+    gliderChart: "Segelflugkarte",
   },
   infoButton: "Information, Legende & Quellen",
   dabsButton: "Skybriefing DABS (tägliches Luftraumbulletin)",
@@ -61,7 +62,8 @@ export const map = {
     sources: "Datenquellen",
     sites:
       "Fluggebiete & Landevolten: Schweizerischer Hängegleiter-Verband (SHV FSVL)",
-    baseMap: "Basiskarte & Luftbilder: swisstopo, OpenStreetMap",
+    baseMap:
+      "Basiskarte, Segelflugkarte & Luftbilder: swisstopo, BAZL, OpenStreetMap",
     obstacles: "Luftfahrthindernisse: BAZL",
     weather: "Wetter & Messwerte: MeteoSchweiz & UBimet",
     airspace: "Lufträume & DABS: Skyguide",

@@ -38,6 +38,10 @@ _Avoid_: Hindernis (alone), hazard
 A protected area for wildlife (Wildruhezone or Jagdbanngebiet) with a minimum flying height or a seasonal ban.
 _Avoid_: Wildschutz zone, sanctuary
 
+**Glider chart** (Segelflugkarte):
+BAZL's 1:350,000 aeronautical chart for gliding, updated yearly, shown as one of the map's base maps.
+_Avoid_: Soaring map, ICAO chart
+
 **DABS**:
 The Daily Airspace Bulletin Switzerland, listing the day's temporary airspace restrictions.
 _Avoid_: NOTAM bulletin, airspace bulletin

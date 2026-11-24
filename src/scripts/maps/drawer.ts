@@ -28,7 +28,7 @@ const WILDLIFE: DrawerSection = {
 };
 const SWISSTOPO: DrawerSection = {
   kind: "baseMaps",
-  maps: ["topoLight", "topoColor", "topoSatellite"],
+  maps: ["topoLight", "topoColor", "topoSatellite", "gliderChart"],
 };
 
 export const DRAWER_PANES: {
