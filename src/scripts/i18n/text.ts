@@ -1,10 +1,10 @@
 // The language-neutral frame of a ported page is static `.astro` markup;
-// its words come from the `src/i18n/` dictionaries at runtime, so the
+// its words come from the dictionaries in this folder at runtime, so the
 // header's language switch keeps working without a reload. An element names
 // its string by a dotted key: `data-t` for its text, `data-t-<attribute>`
 // for an attribute (placeholder, title, aria-label, alt).
 
-/** A dictionary as `src/i18n/*.js` export it: nested objects of strings. */
+/** A dictionary as `de.ts` and its siblings export it: nested objects of strings. */
 export interface Dictionary {
   [key: string]: string | Dictionary;
 }

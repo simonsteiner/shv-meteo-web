@@ -7,7 +7,7 @@
 // taken out of it at once, so a reload doesn't select again.
 
 import L from "leaflet";
-import { store } from "../../state.js";
+import { store } from "../state.ts";
 import { ShvApi } from "../api.ts";
 import { must } from "../dom.ts";
 import {
@@ -29,7 +29,13 @@ import {
   type Selection,
   type SelectionKind,
 } from "../sheet/render.ts";
-import type { BaseMap, Layers, MapCategory, MeteoMode } from "../settings.ts";
+import type {
+  BaseMap,
+  Compass,
+  Layers,
+  MapCategory,
+  MeteoMode,
+} from "../settings.ts";
 import type {
   FlyingSiteFeature,
   MeasurementFeature,
@@ -52,7 +58,7 @@ import { stationLatLng } from "./stations.ts";
 import { centredIcon, createMap, showLayer } from "./view.ts";
 import type { FoehnReport } from "../foehn/report.ts";
 
-const dictionary = () => store.t as unknown as Dictionary;
+const dictionary = (): Dictionary => store.t;
 const say: Say = (key) => sayIn(dictionary(), key);
 
 function select(kind: SelectionKind | null, value: unknown = null): void {
@@ -286,11 +292,11 @@ export function mountMap(root: HTMLElement): void {
     else if (mapCategory) store.setMapCategory(mapCategory as MapCategory);
     else if (meteoMode) store.setMeteoMode(meteoMode as MeteoMode);
     else if (base) store.setBaseMap(base as BaseMap);
-    else if (wind) store.toggleWindFilter(wind);
+    else if (wind) store.toggleWindFilter(wind as Compass);
   });
   root.addEventListener("change", (event) => {
     const layer = (event.target as HTMLElement).dataset?.layer;
-    if (layer) store.toggleLayer(layer);
+    if (layer) store.toggleLayer(layer as keyof Layers);
   });
   searchInput.addEventListener("input", () =>
     store.setSearchQuery(searchInput.value),

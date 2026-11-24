@@ -16,6 +16,7 @@
 }
 
 .brand {
+  text-decoration: none;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -86,6 +87,12 @@
   transform: translateY(-1px);
 }
 
+/* the theme button shows the current theme's icon */
+:root[data-theme="light"] .theme-icon-dark,
+:root:not([data-theme="light"]) .theme-icon-light {
+  display: none;
+}
+
 .icon-btn.spinning svg {
   animation: spin 1s linear infinite;
 }
@@ -100,6 +107,7 @@
 }
 
 .foehn-pill {
+  text-decoration: none;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -268,6 +276,7 @@
 }
 
 .nav-item {
+  text-decoration: none;
   background: transparent;
   border: none;
   color: var(--text-muted);
@@ -301,10 +310,10 @@
   color: var(--text-primary);
 }
 
-.nav-item.active {
+.nav-item[aria-current] {
   color: var(--shv-red);
 }
 
-.nav-item.active .nav-icon {
+.nav-item[aria-current] .nav-icon {
   transform: translateY(-2px);
 }

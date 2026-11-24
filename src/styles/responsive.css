@@ -36,6 +36,7 @@
   }
 
   .header-nav-link {
+    text-decoration: none;
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -56,7 +57,7 @@
     color: var(--text-primary);
   }
 
-  .header-nav-link.active {
+  .header-nav-link[aria-current] {
     background: rgba(227, 6, 19, 0.12);
     color: var(--shv-red);
     border-color: rgba(227, 6, 19, 0.25);

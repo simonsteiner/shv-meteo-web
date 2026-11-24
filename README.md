@@ -40,41 +40,35 @@ Interactive flight preparation, meteorological observation, and airspace safety 
 
 ## Visual Gallery & Screenshots
 
-Click any image to view in full resolution (2880×1800):
+Taken with `npm run shot` on the built site at 1280×800 (the weather page taller, the last one at phone width), with live data from 2026-11-24. The emagram is missing while upstream's ICON soundings are down; it comes back once they answer again.
 
-### 1. Interactive Map & Flying Sites
+### 1. Live Map
 
-| Live Map Overview (Take-offs, Landings & Landing Circuits) | Take-off Detail Popup |
+| Live Wind Stations | Take-off Detail (`/map/?site=`) |
 | :---: | :---: |
-| [![Live Map Overview](screenshots/01_fluggebiete_overview.png)](screenshots/01_fluggebiete_overview.png) | [![Take-off Detail](screenshots/02_fluggebiete_startplatz_detail.png)](screenshots/02_fluggebiete_startplatz_detail.png) |
-| **Landevolte (Landing Circuit) Trajectory** | **Map Layer Controls Drawer** |
-| [![Landevolte](screenshots/03_landevolte_circuit_detail.png)](screenshots/03_landevolte_circuit_detail.png) | [![Layer Controls](screenshots/04_karten_ebenen_drawer.png)](screenshots/04_karten_ebenen_drawer.png) |
-| **Swisstopo Satellite Aerial Basemap** | **Aviation Obstacles & Controlled Airspaces** |
-| [![Swisstopo Satellite](screenshots/05_swisstopo_satellit_ortho.png)](screenshots/05_swisstopo_satellit_ortho.png) | [![Obstacles & Airspaces](screenshots/06_hindernisse_und_luftraeume.png)](screenshots/06_hindernisse_und_luftraeume.png) |
-| **Live Wind Arrows (Swiss & Alpine Borders)** | **Wind Station Observation Popup** |
-| [![Wind Arrows](screenshots/07_windstationen_schweiz_international.png)](screenshots/07_windstationen_schweiz_international.png) | [![Wind Station Detail](screenshots/08_windstation_messwerte_popup.png)](screenshots/08_windstation_messwerte_popup.png) |
+| [![Live map with wind stations](screenshots/01_map_wind_stations.png)](screenshots/01_map_wind_stations.png) | [![Take-off sheet for Amisbühl](screenshots/02_map_take-off_sheet.png)](screenshots/02_map_take-off_sheet.png) |
+| **Weather Station Detail (`/map/?station=`)** | **Webcam Detail (`/map/?webcam=`)** |
+| [![Station sheet for Pilatus](screenshots/03_map_station_sheet.png)](screenshots/03_map_station_sheet.png) | [![Webcam sheet for Château-d'Oex](screenshots/04_map_webcam_sheet.png)](screenshots/04_map_webcam_sheet.png) |
 
-### 2. Live Weather Observations & Föhn
+### 2. Live Weather & Föhn
 
-| Alpine Föhn & 24h Druckdifferenz Chart | Live Weather Station Observations |
-| :---: | :---: |
-| [![Druckdifferenz & Föhn](screenshots/09_wetter_druckdifferenz_foehn.png)](screenshots/09_wetter_druckdifferenz_foehn.png) | [![Messwerte Stations](screenshots/10_wetter_messwerte_stationen.png)](screenshots/10_wetter_messwerte_stationen.png) |
-
-| Swiss Flying Site Webcams Gallery |
+| Station Pairs, 24h Pressure Difference and Webcams |
 | :---: |
-| [![Webcams Gallery](screenshots/11_wetter_webcams_uebersicht.png)](screenshots/11_wetter_webcams_uebersicht.png) |
+| [![Weather page with the Gotthard pressure difference and the webcams](screenshots/05_weather_foehn_webcams.png)](screenshots/05_weather_foehn_webcams.png) |
 
-### 3. Meteorological Forecasts & Soundings
+### 3. Forecasts
 
-| Alpenwetter Soaring Forecast Bulletins | Aussichten Spatial Map Forecast Overlay |
+| Text Forecasts | Outlooks (`/forecast/outlooks/?type=`) |
 | :---: | :---: |
-| [![Alpenwetter Text](screenshots/12_prognosen_alpenwetter_text.png)](screenshots/12_prognosen_alpenwetter_text.png) | [![Aussichten Map Overlay](screenshots/13_prognosen_aussichten_karte.png)](screenshots/13_prognosen_aussichten_karte.png) |
-| **Sounding Stations Map (Previtemps / ICON-CH1)** | **Thermodynamic Emagramm Sounding Graph (Interlaken)** |
-| [![Sounding Stations Map](screenshots/14_prognosen_emagramm_standorte_karte.png)](screenshots/14_prognosen_emagramm_standorte_karte.png) | [![Emagramm Graph](screenshots/15_prognosen_emagramm_sounding_graph.png)](screenshots/15_prognosen_emagramm_sounding_graph.png) |
+| [![Text forecast](screenshots/06_forecast_text.png)](screenshots/06_forecast_text.png) | [![Light precipitation outlook](screenshots/07_forecast_outlooks.png)](screenshots/07_forecast_outlooks.png) |
+| **Isobar Chart** | **Safety: Checklist, Emergency, DABS, Vario, Logbook** |
+| [![Surface pressure chart](screenshots/08_forecast_isobars.png)](screenshots/08_forecast_isobars.png) | [![Safety page](screenshots/09_safety.png)](screenshots/09_safety.png) |
 
-| Synoptic Surface Pressure Isobar Analysis | Flight Safety & Operations Dashboard |
-| :---: | :---: |
-| [![Isobaren Chart](screenshots/16_prognosen_isobaren_karten.png)](screenshots/16_prognosen_isobaren_karten.png) | [![Safety & Logbook](screenshots/17_sicherheit_dabs_und_flugbuch.png)](screenshots/17_sicherheit_dabs_und_flugbuch.png) |
+### 4. Phone
+
+| Map with the Bottom Navigation |
+| :---: |
+| [![Map at phone width](screenshots/10_mobile_map.png)](screenshots/10_mobile_map.png) |
 
 ---
 
