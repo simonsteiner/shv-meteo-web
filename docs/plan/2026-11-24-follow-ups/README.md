@@ -26,6 +26,11 @@ The [migration plan](../2026-11-23-astro-cloudflare/README.md) has shipped up to
 | member check research | [#39](https://github.com/simonsteiner/shv-meteo-web/pull/39) | how to tell that a visitor is a current SHV member, and why it needs a client from the SHV ([research note](../../research/2026-11-24-member-check.md)); reshaped F10, F15 and F16 |
 | `fix/station-chart-24h` | [#46](https://github.com/simonsteiner/shv-meteo-web/pull/46) | the station dialog's "24h Verlauf" asks upstream for 24 hours, not its default 14 days: KLO 548 KB to 39 KB, a Holfuy station 3.1 MB to 211 KB |
 | `fix/dew-point-fallback` | [#47](https://github.com/simonsteiner/shv-meteo-web/pull/47) | the dialog falls back to `dewPointValue`, so the 118 stations that send only that show their dew point |
+| `docs/readme-current-state` | [#50](https://github.com/simonsteiner/shv-meteo-web/pull/50) | Apache-2.0 as `LICENSE`; the README lists what each tab does as the code does it (no canton filter, no thermal ceilings) and says it is a fork without login |
+| `docs/docs-match-code` | [#51](https://github.com/simonsteiner/shv-meteo-web/pull/51) | `AGENTS.md` and the architecture docs checked against the code; `zero-fake-data.md` folded into `AGENTS.md`; the data flow as a Mermaid diagram in `architecture.md` |
+| `chore/cleanup` | [#52](https://github.com/simonsteiner/shv-meteo-web/pull/52) | a gradient alert on the Geneva-Güttingen or Jura pair no longer reads "CALM, safe conditions"; "Jura Crossing"; 34 unused strings dropped; `allowScripts`; an oxlint rule keeps `fetch` in `ShvApi`; a test keeps `.js` out of `src/` |
+| `fix/foehn-i18n` | [#54](https://github.com/simonsteiner/shv-meteo-web/pull/54) | `/api/foehn` sends status codes only; the pair names, headlines and descriptions come from the dictionaries, so French and Italian no longer fall back to English |
+| `feat/map-legend` | [#55](https://github.com/simonsteiner/shv-meteo-web/pull/55) | the airspace legend in the map's info panel, drawn from the map's own styles; the obstacle sheet shows "In force since" again (the shards grow 2.5% gzipped) |
 
 ## F15 `feat/forecast-animations` (after the owner's decision in F10; after F16 if members only)
 
