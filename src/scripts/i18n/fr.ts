@@ -18,12 +18,6 @@ export const fr: Strings = {
     theme: "Thème de couleur",
     language: "Langue",
   },
-  airspace: {
-    danger: "LS-D Zone dangereuse",
-    restricted: "LS-R Zone réglementée",
-    wildlife: "Tranquillité de la faune (min. 300m sol)",
-    frequency: "Fréquence",
-  },
   weather: {
     foehnTitle: "Différence de pression du Foehn",
     difference: "Différence de pression",

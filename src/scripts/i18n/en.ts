@@ -18,12 +18,6 @@ export const en: Strings = {
     theme: "Colour scheme",
     language: "Language",
   },
-  airspace: {
-    danger: "LS-D Danger Area",
-    restricted: "LS-R Restricted Area",
-    wildlife: "Wildlife Protection (min. 300m AGL)",
-    frequency: "Frequency",
-  },
   weather: {
     foehnTitle: "Pressure Difference (QNH)",
     difference: "Pressure Difference",

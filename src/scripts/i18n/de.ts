@@ -17,12 +17,6 @@ export const de = {
     theme: "Farbschema",
     language: "Sprache",
   },
-  airspace: {
-    danger: "LS-D Gefahrengebiet",
-    restricted: "LS-R Sperrgebiet",
-    wildlife: "Wildruhezone (min. 300m AGL)",
-    frequency: "Frequenz",
-  },
   weather: {
     foehnTitle: "Druckdifferenz (QNH)",
     difference: "Druckdifferenz",

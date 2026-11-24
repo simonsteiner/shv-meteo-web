@@ -333,10 +333,12 @@
   padding: 6px;
 }
 
-/* The info button's sources panel */
+/* The info button's legend and sources panel; it scrolls on a short screen */
 .map-info-panel {
   position: absolute;
   bottom: 54px;
+  max-height: calc(100vh - 240px);
+  overflow-y: auto;
   left: 50%;
   transform: translateX(-50%);
   width: min(420px, calc(100% - 32px));
@@ -369,6 +371,40 @@
   font-weight: 700;
   text-transform: uppercase;
   color: var(--text-muted);
+}
+
+.map-legend {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  color: var(--text-secondary);
+}
+
+.map-legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-swatch {
+  flex: none;
+}
+
+.map-legend-note {
+  margin: 6px 0 2px 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 420px) {
+  .map-legend {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .map-info-list {
