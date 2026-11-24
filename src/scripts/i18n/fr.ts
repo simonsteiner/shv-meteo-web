@@ -94,6 +94,7 @@ export const fr: Strings = {
     seriesUnavailable: "Aucune série disponible",
     viewOnMap: "Afficher sur la carte",
     seriesTemp: "Température (°C)",
+    seriesDew: "Point de rosée (°C)",
     seriesWind: "Vent (km/h)",
     foehnUnavailable: "Données de fœhn momentanément indisponibles.",
     noHistory: "Aucun historique disponible.",

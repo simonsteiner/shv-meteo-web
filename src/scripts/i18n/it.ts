@@ -93,6 +93,7 @@ export const it: Strings = {
     seriesUnavailable: "Nessuna serie disponibile",
     viewOnMap: "Mostra sulla mappa",
     seriesTemp: "Temperatura (°C)",
+    seriesDew: "Punto di rugiada (°C)",
     seriesWind: "Vento (km/h)",
     foehnUnavailable: "Dati sul favonio temporaneamente non disponibili.",
     noHistory: "Nessuno storico disponibile.",

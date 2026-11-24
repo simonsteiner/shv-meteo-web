@@ -90,6 +90,7 @@ export const en: Strings = {
     seriesUnavailable: "No series available",
     viewOnMap: "Show on live map",
     seriesTemp: "Temperature (°C)",
+    seriesDew: "Dew point (°C)",
     seriesWind: "Wind (km/h)",
     foehnUnavailable: "Foehn data temporarily unavailable.",
     noHistory: "No history available.",

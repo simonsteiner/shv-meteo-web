@@ -38,7 +38,7 @@ const MEASUREMENT_PARAMETERS =
 
 /** The series the station chart reads; the client sends no `parameters`. */
 const TIMESERIES_PARAMETERS =
-  "wind_speed,wind_direction,wind_gust,temperature,pressure_msl,relative_humidity";
+  "wind_speed,wind_direction,wind_gust,temperature,dew_point,pressure_msl,relative_humidity";
 
 export type RouteName =
   | "measurements"
