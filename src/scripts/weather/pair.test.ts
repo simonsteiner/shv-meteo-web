@@ -5,33 +5,13 @@ import { PAIR_STATUSES } from "../foehn/report.ts";
 import { de } from "../i18n/de.ts";
 import { lookup } from "../i18n/text.ts";
 import {
-  alertTextClass,
-  bannerClass,
   chartTitleKey,
-  formatDelta,
-  pairLabel,
   pairStatusText,
   sideKeys,
   stationReading,
 } from "./pair.ts";
 
-test("formatDelta signs a positive difference and dashes a missing one", () => {
-  assert.equal(formatDelta(4.2), "+4.2");
-  assert.equal(formatDelta(-4.7), "-4.7");
-  assert.equal(formatDelta(0), "0");
-  assert.equal(formatDelta(null), "\u2013");
-});
-
-test("the alert level picks the banner and text classes", () => {
-  assert.equal(bannerClass("DANGER"), "banner-danger");
-  assert.equal(bannerClass("MODERATE"), "banner-warning");
-  assert.equal(bannerClass("NONE"), "banner-safe");
-  assert.equal(alertTextClass("DANGER"), "text-danger");
-  assert.equal(alertTextClass("NONE"), "");
-});
-
-test("pairLabel and sideKeys name the pair's two sides", () => {
-  assert.equal(pairLabel("KLO_LUG"), "KLO \u2013 LUG");
+test("sideKeys name the pair's two sides", () => {
   assert.deepEqual(sideKeys({ isNorthSouth: true }), {
     first: "weather.sideSouth",
     second: "weather.sideNorth",

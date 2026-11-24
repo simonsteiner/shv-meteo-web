@@ -1,13 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { FoehnReport, StationPair } from "../foehn/report.ts";
-import {
-  alertClass,
-  along,
-  axisColor,
-  foehnAxes,
-  formatDelta,
-} from "./foehn.ts";
+import { along, foehnAxes } from "./foehn.ts";
 
 const say = (key: string) => `[${key}]`;
 
@@ -43,21 +37,6 @@ function pair(overrides: Partial<StationPair> = {}): StationPair {
 }
 
 const report = (pairs: StationPair[]) => ({ pairs }) as unknown as FoehnReport;
-
-test("alert levels pick the line colour and badge class", () => {
-  assert.equal(axisColor("DANGER"), "#EF4444");
-  assert.equal(axisColor("MODERATE"), "#F59E0B");
-  assert.equal(axisColor("NONE"), "#0089CF");
-  assert.equal(alertClass("DANGER"), "badge-danger");
-  assert.equal(alertClass("NONE"), "badge-safe");
-});
-
-test("formatDelta signs the difference and dashes a missing one", () => {
-  assert.equal(formatDelta(4.2, "hPa"), "+4.2 hPa");
-  assert.equal(formatDelta(-1, "°C"), "-1 °C");
-  assert.equal(formatDelta(0, "hPa"), "0 hPa");
-  assert.equal(formatDelta(null, "hPa"), "\u2013");
-});
 
 test("along interpolates between two points", () => {
   assert.deepEqual(along([0, 0], [4, 8], 0.25), [1, 2]);

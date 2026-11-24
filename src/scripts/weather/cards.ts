@@ -5,7 +5,7 @@
 import { escapeHtml } from "../escape.ts";
 import type { StationPair } from "../foehn/report.ts";
 import type { MeasurementFeature, Webcam } from "../types.ts";
-import { alertTextClass, formatDelta, pairLabel } from "./pair.ts";
+import { alertLook, formatDelta, pairLabel } from "../foehn/look.ts";
 import { stationValues, windClass } from "./stations.ts";
 import { webcamImages } from "./webcams.ts";
 
@@ -21,7 +21,7 @@ export function pairPillsHtml(
         p,
       ) => `<button type="button" data-pair-id="${escapeHtml(p.id)}" class="pair-pill-btn${p.id === selected ? " active" : ""}" aria-pressed="${p.id === selected}">
   <span class="pair-pill-id">${escapeHtml(pairLabel(p.id))}</span>
-  <span class="pair-pill-val ${alertTextClass(p.alertLevel)}">${escapeHtml(formatDelta(p.delta))} ${escapeHtml(p.unit)}</span>
+  <span class="pair-pill-val ${alertLook(p.alertLevel).text}">${escapeHtml(formatDelta(p.delta))} ${escapeHtml(p.unit)}</span>
 </button>`,
     )
     .join("");

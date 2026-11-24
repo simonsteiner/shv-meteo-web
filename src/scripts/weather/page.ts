@@ -12,6 +12,7 @@ import { drawChart } from "../charts/draw.ts";
 import { foehnChartConfig } from "../charts/foehn.ts";
 import { chartColors } from "../charts/theme.ts";
 import { must } from "../dom.ts";
+import { alertLook, formatDelta } from "../foehn/look.ts";
 import { DEFAULT_PAIR } from "../foehn/pairs.ts";
 import type { StationPair } from "../foehn/report.ts";
 import { handoffUrl } from "../handoff.ts";
@@ -33,10 +34,7 @@ import {
   shownPair,
 } from "./pair-state.ts";
 import {
-  bannerClass,
-  bannerIcon,
   chartTitleKey,
-  formatDelta,
   pairStatusText,
   sideKeys,
   stationReading,
@@ -119,14 +117,14 @@ export function mountWeather(root: HTMLElement): void {
     foehnRetry.hidden = true;
     foehnBody.hidden = false;
     gauge.hidden = false;
-    const banner = bannerClass(pair.alertLevel);
+    const look = alertLook(pair.alertLevel);
     const delta = formatDelta(pair.delta);
-    gauge.className = `foehn-gauge-pill ${banner}`;
+    gauge.className = `foehn-gauge-pill ${look.banner}`;
     q("[data-pair-delta]").textContent = delta;
     q("[data-pair-unit]").textContent = pair.unit;
     renderPills(pairs.report.pairs, pair.id);
-    q("[data-pair-banner]").className = `foehn-banner ${banner}`;
-    q("[data-pair-icon]").textContent = bannerIcon(pair.alertLevel);
+    q("[data-pair-banner]").className = `foehn-banner ${look.banner}`;
+    q("[data-pair-icon]").textContent = look.icon;
     const status = pairStatusText(pair, say);
     q("[data-pair-status]").textContent = status.title;
     q("[data-pair-description]").textContent = status.text;
