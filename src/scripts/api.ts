@@ -20,7 +20,7 @@ import {
   type SoundingForecast,
 } from "./emagram/sounding.ts";
 import { loadObstacles, type ShardIndex } from "./obstacles/cells.ts";
-import { keepRecent } from "./obstacles/recent.ts";
+import { keepRecent, type Sized } from "./obstacles/recent.ts";
 
 /** The multi-day outlook frames' index; upstream answers with CORS `*`. */
 export const OUTLOOKS_URL =
@@ -134,19 +134,23 @@ const foehnPromises = new Map<string, Promise<FoehnReport | null>>();
 // The obstacle shards (obstacles/cells.ts): the index once per page load,
 // and the last cells read, so panning back costs nothing.
 const OBSTACLES = "/data/obstacles";
-const OBSTACLE_CELLS_KEPT = 64;
+/** The JSON the kept cells may hold, in characters: about a view and a half
+ * of the densest area (Valais at z10 reads 22 MB), against up to 120 MB
+ * when 64 cells of any size were kept. */
+const OBSTACLE_CACHE_BYTES = 32_000_000;
 let obstacleIndexPromise: Promise<ShardIndex> | null = null;
 
 async function fetchObstacleShard(
   path: string,
   signal?: AbortSignal,
-): Promise<unknown> {
+): Promise<Sized<unknown>> {
   const resp = await fetch(`${OBSTACLES}/${path}`, { signal });
   if (!resp.ok) throw new Error(`${path} answered ${resp.status}`);
-  return resp.json();
+  const text = await resp.text();
+  return { value: JSON.parse(text) as unknown, bytes: text.length };
 }
 
-const fetchObstacleCell = keepRecent(OBSTACLE_CELLS_KEPT, fetchObstacleShard);
+const fetchObstacleCell = keepRecent(OBSTACLE_CACHE_BYTES, fetchObstacleShard);
 
 export const ShvApi = {
   getFlyingSites: snapshot(
@@ -171,9 +175,9 @@ export const ShvApi = {
     options: { signal?: AbortSignal } = {},
   ): Promise<FeatureCollection<ObstacleFeature>> {
     try {
-      obstacleIndexPromise ??= fetchObstacleShard(
-        "index.json",
-      ) as Promise<ShardIndex>;
+      obstacleIndexPromise ??= fetchObstacleShard("index.json").then(
+        (shard) => shard.value as ShardIndex,
+      );
       const index = await obstacleIndexPromise;
       const features = await loadObstacles(
         bbox,
