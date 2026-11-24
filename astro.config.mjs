@@ -1,11 +1,15 @@
 // @ts-check
 import { defineConfig } from "astro/config";
+import { csp } from "./src/scripts/access/csp.ts";
 
 // Fully static: one page per tab (src/pages/<tab>/index.astro), served by
 // Cloudflare Pages, with the API as Pages Functions (functions/api/). In dev
 // `astro dev` proxies /api to `wrangler pages dev` on :8788 (scripts/dev.ts).
 export default defineConfig({
   site: "https://shv-meteo.pages.dev",
+  // A hashed meta CSP in every built page (src/scripts/access/csp.ts); the
+  // rest of the headers are in public/_headers.
+  integrations: [csp()],
   vite: {
     server: {
       proxy: {
