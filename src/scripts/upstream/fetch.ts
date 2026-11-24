@@ -13,6 +13,9 @@ function timeout(url: string, timeoutMs: number): DOMException {
   );
 }
 
+/** What a read loses its race to once the signal aborts. */
+const TIMED_OUT = Symbol("timed out");
+
 /** `source` read through, erroring with the signal's reason once it
  * aborts; `settle` runs once the body ends, fails or is cancelled. */
 function timedBody(
@@ -21,32 +24,42 @@ function timedBody(
   settle: () => void,
 ): ReadableStream<Uint8Array> {
   const reader = source.getReader();
-  const aborted = new Promise<never>((_resolve, reject) => {
-    if (signal.aborted) reject(signal.reason);
+  const deadline = new Promise<typeof TIMED_OUT>((resolve) => {
+    if (signal.aborted) resolve(TIMED_OUT);
     else
-      signal.addEventListener("abort", () => reject(signal.reason), {
+      signal.addEventListener("abort", () => resolve(TIMED_OUT), {
         once: true,
       });
   });
-  // a body read to its end never awaits it: no unhandled rejection then
-  aborted.catch(() => {});
+  let cancelled = false;
   return new ReadableStream<Uint8Array>({
     async pull(controller) {
+      let chunk: ReadableStreamReadResult<Uint8Array> | typeof TIMED_OUT;
       try {
-        const chunk = await Promise.race([reader.read(), aborted]);
-        if (chunk.done) {
-          settle();
-          controller.close();
-        } else controller.enqueue(chunk.value);
+        chunk = await Promise.race([reader.read(), deadline]);
       } catch (err) {
+        // the source failed by itself (a dropped connection, or the real
+        // fetch erroring its body on abort): nothing left to cancel
         settle();
-        reader.cancel(err).catch((e: unknown) => {
-          console.error("[upstream] Cannot cancel a timed-out body:", e);
-        });
-        controller.error(err);
+        if (!cancelled) controller.error(err);
+        return;
       }
+      if (cancelled) return;
+      if (chunk === TIMED_OUT) {
+        settle();
+        controller.error(signal.reason);
+        reader.cancel(signal.reason).catch((e: unknown) => {
+          // a source the abort already failed rejects with that same reason
+          if (e !== signal.reason)
+            console.error("[upstream] Cannot cancel a timed-out body:", e);
+        });
+      } else if (chunk.done) {
+        settle();
+        controller.close();
+      } else controller.enqueue(chunk.value);
     },
     cancel(reason) {
+      cancelled = true;
       settle();
       return reader.cancel(reason);
     },
