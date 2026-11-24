@@ -77,14 +77,16 @@ export const ROUTES: Record<RouteName, Route> = {
     errorBody: { error: "Textprognose vorübergehend nicht erreichbar" },
     query: [],
   },
-  // three calls (foehn/fetch.ts), 8 s each; keyed by its pair
+  // four calls (foehn/fetch.ts): two filtered measurements and the pair's
+  // two series, 8 s each; keyed by its pair
   foehn: {
     ttl: 60,
     timeoutMs: 8_000,
     errorBody: { error: "Föhndaten vorübergehend nicht erreichbar" },
     query: ["pair"],
   },
-  // seven calls (emagram/fetch.ts), 8 s each; keyed by station
+  // the runs list, then one call per run tried (emagram/fetch.ts), 8 s
+  // each; keyed by station
   sounding: {
     ttl: 1200,
     timeoutMs: 8_000,

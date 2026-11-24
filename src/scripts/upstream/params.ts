@@ -47,9 +47,13 @@ export function parseParams(
     params.id = id;
   }
   if (route === "textForecast") {
-    // anything else, the UI's `en` included, gets German, as before
-    const lang = (decoded(path.lang) ?? "").toLowerCase();
-    params.lang = TEXT_LANGS.includes(lang) ? lang : "de";
+    // anything else, the UI's `en` included, gets German, as before; a
+    // malformed escape is a 400, as for every other path parameter
+    const lang = decoded(path.lang);
+    if (lang === null) return badRequest("Ungültige Sprache");
+    params.lang = TEXT_LANGS.includes(lang.toLowerCase())
+      ? lang.toLowerCase()
+      : "de";
   }
   if (route === "sounding") {
     // names may hold `/` (Disentis/Mustér); matched case-insensitively, so

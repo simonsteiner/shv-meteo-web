@@ -5,6 +5,7 @@ import { serve } from "../upstream/respond.ts";
 import {
   foehnResponse,
   measurementsUrl,
+  seriesStart,
   seriesUrl,
   stationsByParameter,
 } from "./fetch.ts";
@@ -125,13 +126,21 @@ test("a failed series gives history [] with a 200", async () => {
       .every((u) => u.includes("&parameters=")),
   );
   // the series start 25 hours back, not upstream's default 14 days
-  const since = NOW.getTime() - 25 * 3600 * 1000;
+  const since = seriesStart(NOW.getTime());
+  assert.equal(since, NOW.getTime() - 25 * 3600 * 1000);
   assert.ok(
     calls.includes(seriesUrl("meteo_swiss:GVE", "pressure_msl", since)),
   );
   assert.ok(
     calls.some((u) => u.endsWith(`?parameters=pressure_msl&start=${since}`)),
   );
+});
+
+test("reports within a minute ask for the same series start", () => {
+  const minute = NOW.getTime() - 25 * 3600 * 1000;
+  for (const offset of [0, 1, 30_000, 59_999])
+    assert.equal(seriesStart(NOW.getTime() + offset), minute);
+  assert.equal(seriesStart(NOW.getTime() + 60_000), minute + 60_000);
 });
 
 test("a station missing from its answer leaves out its pair only", async () => {

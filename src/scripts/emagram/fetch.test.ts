@@ -147,9 +147,10 @@ test("a run without one complete level is the route's 503", async () => {
     ),
   );
   assert.equal(res.status, 503);
-  // the runs list, then each of the three runs: none has a complete level,
-  // so each falls back to the one before
-  assert.equal(calls.length, 4);
+  // the runs list, then runs 3 and 2: neither has a complete level, and
+  // run 1 is never asked for
+  assert.equal(calls.length, 3);
+  assert.ok(!calls.some((u) => u.includes("/1/")));
 });
 
 test("a failed point fetch is the route's 503", async () => {
@@ -172,6 +173,8 @@ test("a column that is no atmosphere is the route's 503", async () => {
     ),
   );
   assert.equal(res.status, 503);
-  // every listed run tried before giving up
-  assert.equal(calls.length, 4);
+  // the runs list, then the newest two runs (3 and 2) before giving up;
+  // run 1 is never asked for
+  assert.equal(calls.length, 3);
+  assert.ok(!calls.some((u) => u.includes("/1/")));
 });
