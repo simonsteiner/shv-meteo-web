@@ -4,8 +4,9 @@
 // location (the header's GPS button off the map, which leaves asking for
 // the position to the map, so coordinates never land in the URL or the
 // history). Only one is ever set: the page that navigates writes it. `z`
-// is the zoom to open at, around the handed-over site or station, else
-// around the map's default centre.
+// is the zoom to open at, around the handed-over site, station or webcam,
+// else around the map's default centre. The map turns on the layer the
+// selection is drawn in (src/scripts/maps/handoff-target.ts).
 
 export type Handoff =
   | { station: string }

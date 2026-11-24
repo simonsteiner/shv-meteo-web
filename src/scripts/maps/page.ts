@@ -47,14 +47,17 @@ import {
   PILOT_ZOOM,
   viewFor,
 } from "./basemap.ts";
-import { featureLatLng, type LatLngTuple } from "./centroid.ts";
+import type { LatLngTuple } from "./centroid.ts";
+import {
+  findHandoff,
+  revealFor,
+  type HandoffTarget,
+} from "./handoff-target.ts";
 import { drawFoehn, drawStations, drawWebcams } from "./layer-meteo.ts";
 import { obstacleLayer } from "./layer-obstacles.ts";
 import { siteLayers } from "./layer-sites.ts";
 import { zoneLayers } from "./layer-zones.ts";
 import { locatePilot, type LatLng } from "./locate.ts";
-import { findSite } from "./sites.ts";
-import { stationLatLng } from "./stations.ts";
 import { centredIcon, createMap, showLayer } from "./view.ts";
 import type { FoehnReport } from "../foehn/report.ts";
 import { weatherUrl } from "../weather/query.ts";
@@ -140,6 +143,17 @@ export function mountMap(root: HTMLElement): void {
   function moveTo(at: LatLngTuple | null): void {
     const view = viewFor(at, zoom, map.getZoom());
     if (view) map.setView(view.center, view.zoom);
+  }
+
+  // shows the handed-over selection's layer, selects it and goes there
+  function takeHandoff(target: HandoffTarget | null): void {
+    if (!target) return;
+    const { kind, value } = target.selection;
+    const reveal = revealFor(kind, store.state);
+    if (reveal.meteoMode) store.setMeteoMode(reveal.meteoMode);
+    for (const key of reveal.layers) store.toggleLayer(key);
+    select(kind, value);
+    moveTo(target.at);
   }
 
   function renderControls(): void {
@@ -331,15 +345,7 @@ export function mountMap(root: HTMLElement): void {
       const features = (data.features ?? []) as FlyingSiteFeature[];
       sites.setData(features);
       sitesKey = "";
-      if (handoff && "site" in handoff) {
-        const site = findSite(features, handoff.site);
-        if (!site)
-          console.error(`[maps] Handed-over site not found: ${handoff.site}`);
-        else {
-          select("site", site);
-          moveTo(featureLatLng(site));
-        }
-      }
+      takeHandoff(findHandoff(handoff, { kind: "site", items: features }));
       render();
     })
     .catch((err: unknown) =>
@@ -360,17 +366,7 @@ export function mountMap(root: HTMLElement): void {
       stations = data?.features ?? [];
       stationsMode = null;
       redrawStations();
-      if (handoff && "station" in handoff) {
-        const st = stations.find((f) => f.id === handoff.station);
-        if (!st)
-          console.error(
-            `[maps] Handed-over station not found: ${handoff.station}`,
-          );
-        else {
-          select("station", st);
-          moveTo(stationLatLng(st));
-        }
-      }
+      takeHandoff(findHandoff(handoff, { kind: "station", items: stations }));
     })
     .catch((err: unknown) =>
       console.error("[maps] Cannot load the measurements:", err),
@@ -387,14 +383,7 @@ export function mountMap(root: HTMLElement): void {
     .then((data) => {
       webcams = data?.webcams ?? [];
       drawWebcams(webcamsLayer, webcams, (w) => select("webcam", w));
-      if (handoff && "webcam" in handoff) {
-        const cam = webcams.find((w) => w.identifier === handoff.webcam);
-        if (cam) select("webcam", cam);
-        else
-          console.error(
-            `[maps] Handed-over webcam not found: ${handoff.webcam}`,
-          );
-      }
+      takeHandoff(findHandoff(handoff, { kind: "webcam", items: webcams }));
     })
     .catch((err: unknown) =>
       console.error("[maps] Cannot load the webcams:", err),
