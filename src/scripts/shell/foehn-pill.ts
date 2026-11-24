@@ -9,8 +9,6 @@ export interface FoehnPill {
   badge: "badge-safe" | "badge-warning" | "badge-danger";
   /** "Föhn: +4.2 hPa". */
   label: string;
-  /** The pair's name, for the title. */
-  title: string;
 }
 
 const BADGES = {
@@ -28,6 +26,5 @@ export function foehnPill(report: FoehnReport | null): FoehnPill | null {
   return {
     badge: BADGES[pair.alertLevel] ?? "badge-safe",
     label: `Föhn: ${diff > 0 ? "+" : ""}${diff} hPa`,
-    title: pair.name,
   };
 }

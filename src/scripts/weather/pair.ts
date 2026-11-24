@@ -3,7 +3,12 @@
 
 import { signed } from "../charts/theme.ts";
 import { PAIRS } from "../foehn/pairs.ts";
-import type { StationPair, PairStation } from "../foehn/report.ts";
+import {
+  PAIR_STATUSES,
+  type PairStation,
+  type StationPair,
+} from "../foehn/report.ts";
+import { fill, type Say } from "../i18n/text.ts";
 
 export type Banner = "banner-danger" | "banner-warning" | "banner-safe";
 
@@ -64,11 +69,21 @@ export function chartTitleKey(id: string): string {
     : "weather.chartDefault";
 }
 
-/** The pair's description in the UI language; the report
- * (foehn/report.ts) words it in German and English only. */
-export function pairDescription(
-  pair: Pick<StationPair, "descriptionDe" | "descriptionEn">,
-  lang: string,
-): string {
-  return lang === "de" ? pair.descriptionDe : pair.descriptionEn;
+/** A pair's status headline and description in the UI language, with its
+ * difference filled in; the report sends only the status code. A code the
+ * dictionaries don't know (a stale edge-cache copy, say) shows as itself,
+ * without a description. */
+export function pairStatusText(
+  pair: Pick<StationPair, "status" | "delta">,
+  say: Say,
+): { title: string; text: string } {
+  const status: string = pair.status;
+  if (!(PAIR_STATUSES as readonly string[]).includes(status))
+    return { title: status, text: "" };
+  return {
+    title: say(`weather.foehnStatus.${status}`),
+    text: fill(say(`weather.foehnText.${status}`), {
+      delta: formatDelta(pair.delta),
+    }),
+  };
 }

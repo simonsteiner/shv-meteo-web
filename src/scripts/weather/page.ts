@@ -24,7 +24,7 @@ import {
   bannerIcon,
   chartTitleKey,
   formatDelta,
-  pairDescription,
+  pairStatusText,
   sideKeys,
   stationReading,
 } from "./pair.ts";
@@ -110,11 +110,9 @@ export function mountWeather(root: HTMLElement): void {
     q("[data-pair-pills]").innerHTML = pairPillsHtml(pairs, pair.id);
     q("[data-pair-banner]").className = `foehn-banner ${banner}`;
     q("[data-pair-icon]").textContent = bannerIcon(pair.alertLevel);
-    q("[data-pair-status]").textContent = pair.status || "NORMAL";
-    q("[data-pair-description]").textContent = pairDescription(
-      pair,
-      store.state.lang,
-    );
+    const status = pairStatusText(pair, say);
+    q("[data-pair-status]").textContent = status.title;
+    q("[data-pair-description]").textContent = status.text;
     const sides = sideKeys(pair);
     q('[data-side="first"]').textContent = say(sides.first);
     q('[data-side="second"]').textContent = say(sides.second);

@@ -3,7 +3,9 @@
 // names at the ends and the difference on a badge along the line.
 
 import { escapeHtml } from "../escape.ts";
+import { pairNameKey } from "../foehn/pairs.ts";
 import type { FoehnReport, StationPair } from "../foehn/report.ts";
+import type { Say } from "../i18n/text.ts";
 import type { LatLngTuple } from "./centroid.ts";
 
 const DASH = "\u2013";
@@ -63,18 +65,14 @@ function endpointHtml(pair: StationPair, st: StationPair["station1"]): string {
 }
 
 /** The axes to draw for `report`: the pairs whose two stations both have a
- * position. `lang` picks the pair's German or English name for the badge's
- * tooltip. */
-export function foehnAxes(
-  report: FoehnReport | null,
-  lang: string,
-): FoehnAxis[] {
+ * position, each badge titled with the pair's name in the UI language. */
+export function foehnAxes(report: FoehnReport | null, say: Say): FoehnAxis[] {
   const out: FoehnAxis[] = [];
   for (const pair of report?.pairs ?? []) {
     const from = latLng(pair.station1?.coordinates);
     const to = latLng(pair.station2?.coordinates);
     if (!from || !to) continue;
-    const name = lang === "de" ? pair.nameDe : pair.nameEn;
+    const name = say(pairNameKey(pair.id));
     const label = pair.id.replace("_", ` ${DASH} `);
     out.push({
       id: pair.id,

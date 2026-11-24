@@ -50,6 +50,36 @@ export const fr: Strings = {
     chart_DEM_GRE:
       "Évolution de la différence de pression à travers le Jura (Granges \u2013 Delémont, 24h)",
     chartDefault: "Évolution de la différence de pression (24h)",
+    pairName: {
+      KLO_LUG: "Axe du Gothard (Zurich/Kloten \u2013 Lugano)",
+      GVE_GUT: "Gradient est-ouest / bise (Genève \u2013 Güttingen)",
+      PIL_MTR: "Température de la crête alpine (Pilatus \u2013 Matro)",
+      DEM_GRE: "Traversée du Jura (Delémont \u2013 Granges)",
+    },
+    foehnStatus: {
+      CALM: "Calme",
+      MODERATE_SOUTH_FOEHN: "Fœhn du sud modéré",
+      SEVERE_SOUTH_FOEHN: "Fort fœhn du sud",
+      MODERATE_NORTH_FOEHN: "Fœhn du nord modéré",
+      SEVERE_NORTH_FOEHN: "Fort fœhn du nord",
+      MODERATE_GRADIENT: "Gradient modéré",
+      STRONG_GRADIENT: "Fort gradient de pression",
+    },
+    foehnText: {
+      CALM: "Pression normale. Conditions de vol sûres.",
+      MODERATE_SOUTH_FOEHN:
+        "Fœhn du sud modéré ({delta} hPa). Turbulence croissante et risque de percée du fœhn dans les vallées alpines.",
+      SEVERE_SOUTH_FOEHN:
+        "Fort fœhn du sud ({delta} hPa) ! Danger de mort dans les vallées à fœhn (forts rotors, violentes rafales). Cessez de voler !",
+      MODERATE_NORTH_FOEHN:
+        "Fœhn du nord modéré ({delta} hPa). Rafales et turbulences au Tessin.",
+      SEVERE_NORTH_FOEHN:
+        "Fort fœhn du nord ({delta} hPa) ! Turbulences dangereuses et rotors sous le vent sur le versant sud des Alpes (Tessin).",
+      MODERATE_GRADIENT:
+        "Gradient modéré ({delta} hPa). Courant de compensation sensible.",
+      STRONG_GRADIENT:
+        "Fort gradient de pression ({delta} hPa). Vent fort et turbulences entre les deux stations.",
+    },
     differenceLabel: "Différence",
     tabStations: "Stations de mesure alpines",
     tabWebcams: "Webcams",

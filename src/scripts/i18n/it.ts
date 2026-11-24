@@ -49,6 +49,36 @@ export const it: Strings = {
     chart_DEM_GRE:
       "Andamento differenza di pressione attraverso il Giura (Grenchen \u2013 Delémont, 24h)",
     chartDefault: "Andamento differenza di pressione (24h)",
+    pairName: {
+      KLO_LUG: "Asse del Gottardo (Zurigo/Kloten \u2013 Lugano)",
+      GVE_GUT: "Gradiente est-ovest / bisa (Ginevra \u2013 Güttingen)",
+      PIL_MTR: "Temperatura sulla cresta alpina (Pilatus \u2013 Matro)",
+      DEM_GRE: "Attraversamento del Giura (Delémont \u2013 Grenchen)",
+    },
+    foehnStatus: {
+      CALM: "Calmo",
+      MODERATE_SOUTH_FOEHN: "Favonio da sud moderato",
+      SEVERE_SOUTH_FOEHN: "Forte favonio da sud",
+      MODERATE_NORTH_FOEHN: "Favonio da nord moderato",
+      SEVERE_NORTH_FOEHN: "Forte favonio da nord",
+      MODERATE_GRADIENT: "Gradiente moderato",
+      STRONG_GRADIENT: "Forte gradiente di pressione",
+    },
+    foehnText: {
+      CALM: "Pressione normale. Condizioni di volo sicure.",
+      MODERATE_SOUTH_FOEHN:
+        "Favonio da sud moderato ({delta} hPa). Turbolenza crescente e rischio che il favonio irrompa nelle valli alpine.",
+      SEVERE_SOUTH_FOEHN:
+        "Forte favonio da sud ({delta} hPa)! Pericolo di morte nelle valli del favonio (forti rotori, violente raffiche). Sospendere i voli!",
+      MODERATE_NORTH_FOEHN:
+        "Favonio da nord moderato ({delta} hPa). Raffiche e turbolenza in Ticino.",
+      SEVERE_NORTH_FOEHN:
+        "Forte favonio da nord ({delta} hPa)! Turbolenza pericolosa e rotori sottovento sul versante sud delle Alpi (Ticino).",
+      MODERATE_GRADIENT:
+        "Gradiente moderato ({delta} hPa). Sensibile corrente di compensazione.",
+      STRONG_GRADIENT:
+        "Forte gradiente di pressione ({delta} hPa). Vento forte e turbolenza tra le due stazioni.",
+    },
     differenceLabel: "Differenza",
     tabStations: "Stazioni di misura alpine",
     tabWebcams: "Webcam",

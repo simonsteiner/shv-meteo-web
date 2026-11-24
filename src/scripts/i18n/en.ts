@@ -46,6 +46,36 @@ export const en: Strings = {
     chart_DEM_GRE:
       "Jura crossing pressure difference (Grenchen \u2013 Delémont, 24h)",
     chartDefault: "Pressure difference (24h)",
+    pairName: {
+      KLO_LUG: "Gotthard axis (Zurich/Kloten \u2013 Lugano)",
+      GVE_GUT: "East-west gradient / bise (Geneva \u2013 Güttingen)",
+      PIL_MTR: "Alpine crest temperature (Pilatus \u2013 Matro)",
+      DEM_GRE: "Jura crossing (Delémont \u2013 Grenchen)",
+    },
+    foehnStatus: {
+      CALM: "Calm",
+      MODERATE_SOUTH_FOEHN: "Moderate south föhn",
+      SEVERE_SOUTH_FOEHN: "Severe south föhn",
+      MODERATE_NORTH_FOEHN: "Moderate north föhn",
+      SEVERE_NORTH_FOEHN: "Severe north föhn",
+      MODERATE_GRADIENT: "Moderate gradient",
+      STRONG_GRADIENT: "Strong pressure gradient",
+    },
+    foehnText: {
+      CALM: "Normal pressure conditions. Safe flying conditions.",
+      MODERATE_SOUTH_FOEHN:
+        "Moderate south föhn ({delta} hPa). Increasing turbulence and risk of a föhn breakthrough in the alpine valleys.",
+      SEVERE_SOUTH_FOEHN:
+        "Severe south föhn ({delta} hPa)! Extreme hazard in the föhn valleys (severe rotors, storm gusts). Cease flying!",
+      MODERATE_NORTH_FOEHN:
+        "Moderate north föhn ({delta} hPa). Gusty and turbulent in Ticino.",
+      SEVERE_NORTH_FOEHN:
+        "Severe north föhn ({delta} hPa)! Dangerous turbulence and lee rotors on the south side of the Alps (Ticino).",
+      MODERATE_GRADIENT:
+        "Moderate gradient ({delta} hPa). Noticeable compensating flow.",
+      STRONG_GRADIENT:
+        "Strong pressure gradient ({delta} hPa). Strong wind and turbulence between the two stations.",
+    },
     differenceLabel: "Difference",
     tabStations: "Alpine weather stations",
     tabWebcams: "Webcams",

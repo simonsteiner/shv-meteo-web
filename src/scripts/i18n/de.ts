@@ -46,6 +46,36 @@ export const de = {
     chart_DEM_GRE:
       "Verlauf Jura-Querung Druckdifferenz (Grenchen \u2013 Delémont, 24h)",
     chartDefault: "Verlauf Druckdifferenz (24h)",
+    pairName: {
+      KLO_LUG: "Gotthard-Achse (Zürich/Kloten \u2013 Lugano)",
+      GVE_GUT: "Ost-West-Gradient / Bise (Genf \u2013 Güttingen)",
+      PIL_MTR: "Alpenkamm-Temperatur (Pilatus \u2013 Matro)",
+      DEM_GRE: "Jura-Querung (Delémont \u2013 Grenchen)",
+    },
+    foehnStatus: {
+      CALM: "Ruhig",
+      MODERATE_SOUTH_FOEHN: "Mässiger Südföhn",
+      SEVERE_SOUTH_FOEHN: "Starker Südföhn",
+      MODERATE_NORTH_FOEHN: "Mässiger Nordföhn",
+      SEVERE_NORTH_FOEHN: "Starker Nordföhn",
+      MODERATE_GRADIENT: "Mässiger Gradient",
+      STRONG_GRADIENT: "Starker Druckgradient",
+    },
+    foehnText: {
+      CALM: "Normale Druckverhältnisse. Sichere Bedingungen.",
+      MODERATE_SOUTH_FOEHN:
+        "Mässiger Südföhn ({delta} hPa). Zunehmende Turbulenz und Gefahr des Föhndurchbruchs in den Alpentälern.",
+      SEVERE_SOUTH_FOEHN:
+        "Starker Südföhn ({delta} hPa)! Akute Lebensgefahr in den Föhntälern (starke Rotoren, schwere Sturmböen). Flugbetrieb einstellen!",
+      MODERATE_NORTH_FOEHN:
+        "Mässiger Nordföhn ({delta} hPa). Böig und turbulent im Tessin.",
+      SEVERE_NORTH_FOEHN:
+        "Starker Nordföhn ({delta} hPa)! Gefährliche Turbulenzen und Lee-Rotoren auf der Alpensüdseite (Tessin).",
+      MODERATE_GRADIENT:
+        "Mässiger Gradient ({delta} hPa). Merkliche Ausgleichsströmung.",
+      STRONG_GRADIENT:
+        "Starker Druckgradient ({delta} hPa). Starkwind und Turbulenzen zwischen den beiden Stationen.",
+    },
     differenceLabel: "Differenz",
     tabStations: "Alpine Messstationen",
     tabWebcams: "Webcams",

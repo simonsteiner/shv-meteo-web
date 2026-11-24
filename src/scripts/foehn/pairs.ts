@@ -15,9 +15,12 @@ export interface PairConfig {
   midpointPosition: number;
   startId: string;
   endId: string;
-  nameDe: string;
-  nameEn: string;
   unit: "hPa" | "°C";
+}
+
+/** The dictionary key of a pair's name, e.g. `weather.pairName.KLO_LUG`. */
+export function pairNameKey(id: string): string {
+  return `weather.pairName.${id}`;
 }
 
 export const PAIRS: PairConfig[] = [
@@ -29,8 +32,6 @@ export const PAIRS: PairConfig[] = [
     midpointPosition: 0.25,
     startId: "meteo_swiss:KLO",
     endId: "meteo_swiss:LUG",
-    nameDe: "Gotthard-Achse (Zürich/Kloten \u2013 Lugano)",
-    nameEn: "Gotthard Axis (Zurich/Kloten \u2013 Lugano)",
     unit: "hPa",
   },
   {
@@ -41,8 +42,6 @@ export const PAIRS: PairConfig[] = [
     midpointPosition: 0.5,
     startId: "meteo_swiss:GVE",
     endId: "meteo_swiss:GUT",
-    nameDe: "Ost-West Gradient / Bise (Genf \u2013 Güttingen)",
-    nameEn: "East-West Gradient / Bise (Geneva \u2013 Guettingen)",
     unit: "hPa",
   },
   {
@@ -53,8 +52,6 @@ export const PAIRS: PairConfig[] = [
     midpointPosition: 0.4,
     startId: "meteo_swiss:PIL",
     endId: "meteo_swiss:MTR",
-    nameDe: "Alpenkamm Temperatur (Pilatus 2105m \u2013 Matro 2171m)",
-    nameEn: "Alpine Crest Temperature (Pilatus \u2013 Matro)",
     unit: "°C",
   },
   {
@@ -65,8 +62,6 @@ export const PAIRS: PairConfig[] = [
     midpointPosition: 0.5,
     startId: "meteo_swiss:DEM",
     endId: "meteo_swiss:GRE",
-    nameDe: "Jura-Querung (Delémont \u2013 Grenchen)",
-    nameEn: "Jura Crossing (Delemont \u2013 Grenchen)",
     unit: "hPa",
   },
 ];
