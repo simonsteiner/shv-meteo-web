@@ -1,6 +1,7 @@
 // The answer a proxied route gives, the same for every route: upstream's
-// body streamed unparsed with its Content-Type and our Cache-Control, and on
-// any failure a 503 with the route's German error that no cache keeps.
+// body streamed unparsed with its Content-Type and our Cache-Control (cut
+// off at the route's deadline if it stalls), and on a failure before that a
+// 503 with the route's German error that no cache keeps.
 // Functions keep no memory between requests, so Express's "last good copy"
 // lives in the edge cache: each 200 is stored for a day, a copy younger than
 // the route's TTL is served without calling upstream, an older one is

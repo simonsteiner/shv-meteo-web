@@ -18,8 +18,8 @@ const stations = JSON.parse(
 ) as SoundingStation[];
 const tiles = new Map<string, Promise<unknown>>();
 
-/** Each tile's whole download, body included: fetchUpstream times only the
- * headers, so a stalled body would hang the script. */
+/** Each tile's whole download, body included, so a stalled body can't hang
+ * the script. */
 const TILE_TIMEOUT_MS = 30_000;
 
 function tile(url: string): Promise<unknown> {
