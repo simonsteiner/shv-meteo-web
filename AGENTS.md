@@ -43,7 +43,7 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 ## Hard constraints
 
 - **Never add mock, sample or synthesized data.** No fake profiles, placeholder ratings, simulated measurements or generated trend curves; show an empty or error state when real data is missing.
-- **Never accept or store SHV passwords, and never send tokens to the browser.** The site has no member login (it reused the official app's Keycloak client; the header links to the SHV member portal instead). If login returns, it follows the cookie design in the migration plan (`target.md`, "Auth").
+- **Never accept or store SHV passwords, and never send tokens to the browser.** The site has no member login (it reused the official app's Keycloak client; the header links to the SHV member portal instead). If login returns, it follows the cookie design in the migration plan (`target.md`, "Auth"); how to check membership, and what to ask the SHV for, is in `docs/research/2026-11-24-member-check.md`.
 - **Never bypass the git hooks** (`--no-verify`, `LEFTHOOK=0`). lefthook (`lefthook.yml`, installed by `npm install`) blocks staged files over 5,000 tokens and any em or en dash. Split an oversized file along its seams; write a dash a user must see as a JavaScript unicode escape, as the views already do.
 
 ## Gotchas
@@ -64,7 +64,7 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 - `docs/setup.md`: local setup, screenshots tool, Chrome DevTools MCP, troubleshooting.
 - `docs/deployment.md`: Cloudflare Pages, deploying by hand, rollback, state and secrets.
 - `docs/architecture.md`: index of `docs/architecture/`: data sources, which calls go through a Function and why, every `/api` route, how the code is organised. Read `data-queries.md` before adding or changing an endpoint.
-- `docs/research/`: dated research notes with the measurements behind a decision (upstream sources, CPU on Pages, the official app's calls).
+- `docs/research/`: dated research notes with the measurements behind a decision (upstream sources, CPU on Pages, the official app's calls, the obstacle tiles).
 - `docs/reference/shv-native-app.md`: reverse-engineered notes on the official app, Keycloak and the member web service. Read before bringing back login or member data.
 - `docs/reference/shv-app-emulator.md`: installing the official app from a phone onto an Android emulator and driving it with `adb`, from WSL too.
 - `docs/reference/shv-app-traffic-capture.md`: capturing the official app's HTTPS calls on the emulator with mitmproxy, redacted when logged in; the calls it found are in `docs/research/2026-11-24-shv-app-network-calls.md`.

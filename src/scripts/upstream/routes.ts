@@ -27,9 +27,18 @@ export const WEATHER = "https://weather-ws-prod.ubmeteo.io/v1";
  * caller sends another. */
 const ALPS_BBOX = "minLat=43.5&minLon=4.0&maxLat=49.5&maxLon=16.0";
 
+/** The current values the map and the weather page read (maps/stations.ts,
+ * weather/stations.ts). Upstream's `temperature`, `relative_humidity` and
+ * `dew_point` include their 2 m variants (`temperature2mValue`, ...), while
+ * `dew_point_2m` is a 400. A station reporting none of these drops out: on
+ * 2026-11-24, 425 of 4,179, none with a value we read (precipitation,
+ * pollen, radiation, snow depth). */
+const MEASUREMENT_PARAMETERS =
+  "wind_speed,wind_direction,wind_gust,temperature,dew_point,relative_humidity,pressure_msl,pressure_standard_msl,pressure_surface";
+
 /** The series the station chart reads; the client sends no `parameters`. */
 const TIMESERIES_PARAMETERS =
-  "wind_speed,wind_direction,wind_gust,temperature,pressure_msl,relative_humidity";
+  "wind_speed,wind_direction,wind_gust,temperature,dew_point,pressure_msl,relative_humidity";
 
 export type RouteName =
   | "measurements"
@@ -41,7 +50,8 @@ export type RouteName =
 
 export const ROUTES: Record<RouteName, Route> = {
   measurements: {
-    url: () => `${WEATHER}/measurements/current?${ALPS_BBOX}`,
+    url: () =>
+      `${WEATHER}/measurements/current?${ALPS_BBOX}&parameters=${MEASUREMENT_PARAMETERS}`,
     ttl: 60,
     timeoutMs: 12_000,
     errorBody: {

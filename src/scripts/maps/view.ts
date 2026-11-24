@@ -43,6 +43,8 @@ export function createMap(
       layer = L.tileLayer(spec.url, {
         attribution: spec.attribution,
         maxZoom: spec.maxZoom,
+        maxNativeZoom: spec.maxNativeZoom,
+        bounds: spec.bounds,
       });
       layers.set(k, layer);
     }

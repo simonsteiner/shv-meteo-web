@@ -90,6 +90,7 @@ export const de = {
     seriesUnavailable: "Keine Zeitreihe verfügbar",
     viewOnMap: "Auf Live-Karte anzeigen",
     seriesTemp: "Temperatur (°C)",
+    seriesDew: "Taupunkt (°C)",
     seriesWind: "Wind (km/h)",
     foehnUnavailable: "Föhndaten vorübergehend nicht verfügbar.",
     noHistory: "Kein Verlauf verfügbar.",

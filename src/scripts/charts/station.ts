@@ -1,6 +1,7 @@
-// A station's recent temperature and wind as a two-axis Chart.js line. The
-// two series are joined on their timestamps, so a gap in one doesn't shift
-// the other.
+// A station's recent temperature, dew point and wind as a two-axis Chart.js
+// line. The series are joined on their timestamps, so a gap in one doesn't
+// shift the others. The gap between temperature and dew point gives a rough
+// cloud base; a station that reports no dew point gets no dew point line.
 
 import type { ChartConfiguration } from "chart.js";
 import type { TimeseriesResponse } from "../types.ts";
@@ -11,6 +12,8 @@ export interface StationSeries {
   /** HH:MM in the browser's time zone. */
   labels: string[];
   tempC: (number | null)[];
+  /** All null when the station sends no dew point. */
+  dewC: (number | null)[];
   windKmh: (number | null)[];
 }
 
@@ -20,8 +23,9 @@ function hhmm(ms: number): string {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-/** The temperature (°C) and wind (km/h) series on one time axis; null
- * where a series has no value. Empty when the station sends neither. */
+/** The temperature and dew point (°C) and wind (km/h) series on one time
+ * axis; null where a series has no value. Empty when the station sends
+ * none of them. */
 export function stationSeries(ts: TimeseriesResponse | null): StationSeries {
   const values = (parameter: string, convert: (v: number) => number | null) => {
     const byTime = new Map<number, number | null>();
@@ -33,22 +37,42 @@ export function stationSeries(ts: TimeseriesResponse | null): StationSeries {
     return byTime;
   };
   const temp = values("temperature", toCelsius);
+  const dew = values("dew_point", toCelsius);
   const wind = values("wind_speed", (v) => v);
-  const times = Array.from(new Set([...temp.keys(), ...wind.keys()])).sort(
-    (a, b) => a - b,
-  );
+  const times = Array.from(
+    new Set([...temp.keys(), ...dew.keys(), ...wind.keys()]),
+  ).sort((a, b) => a - b);
   return {
     labels: times.map(hhmm),
     tempC: times.map((t) => temp.get(t) ?? null),
+    dewC: times.map((t) => dew.get(t) ?? null),
     windKmh: times.map((t) => wind.get(t) ?? null),
   };
 }
 
+/** The chart's config; the dew point line, dashed on the temperature axis,
+ * only when the station reports a dew point. Gaps stay gaps (Chart.js
+ * leaves `spanGaps` off). */
 export function stationChartConfig(
   series: StationSeries,
   colors: ChartColors,
-  labels: { temp: string; wind: string },
+  labels: { temp: string; dew: string; wind: string },
 ): ChartConfiguration<"line", (number | null)[], string> {
+  const dew = series.dewC.some((v) => v !== null)
+    ? [
+        {
+          label: labels.dew,
+          data: series.dewC,
+          borderColor: "#10B981",
+          backgroundColor: "transparent",
+          borderWidth: 2,
+          borderDash: [5, 4],
+          tension: 0.3,
+          yAxisID: "yTemp",
+          pointRadius: 0,
+        },
+      ]
+    : [];
   return {
     type: "line",
     data: {
@@ -64,6 +88,7 @@ export function stationChartConfig(
           yAxisID: "yTemp",
           pointRadius: 1.5,
         },
+        ...dew,
         {
           label: labels.wind,
           data: series.windKmh,

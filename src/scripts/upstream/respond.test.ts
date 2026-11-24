@@ -316,7 +316,7 @@ async function fallBackTo(body: string) {
   }
 }
 
-// above the 200 KB parse limit, as measurements' 3 MB copy is
+// above the 200 KB parse limit, as measurements' 2 MB copy is
 const big = `{"features": [${"1,".repeat(150_000)}1]}\n`;
 
 test("a large stale copy with matching brackets is served unparsed", async () => {

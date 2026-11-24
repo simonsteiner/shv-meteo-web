@@ -91,6 +91,7 @@ export function stationModal(
       canvas,
       stationChartConfig(data, chartColors(theme()), {
         temp: say("weather.seriesTemp"),
+        dew: say("weather.seriesDew"),
         wind: say("weather.seriesWind"),
       }),
       chart,

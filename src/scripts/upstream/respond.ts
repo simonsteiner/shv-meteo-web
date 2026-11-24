@@ -18,7 +18,7 @@ const FETCHED_AT = "x-fetched-at";
 /** How long the edge keeps a copy to fall back on. */
 const KEEP_SECONDS = 24 * 60 * 60;
 /** The largest stale copy parsed in full; a larger one (measurements is
- * about 3 MB) only has its outer brackets checked, since target.md keeps
+ * about 2 MB) only has its outer brackets checked, since target.md keeps
  * every Function under about 200 KB of parsing and 10 ms of CPU. */
 const PARSE_LIMIT = 200 * 1024;
 

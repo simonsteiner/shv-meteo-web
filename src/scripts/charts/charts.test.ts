@@ -37,7 +37,7 @@ test("foehnChartConfig plots the history in the pair's unit and colour", () => {
   assert.equal(temp.data.datasets[0].borderColor, "#A855F7");
 });
 
-test("stationSeries joins temperature and wind on their timestamps", () => {
+test("stationSeries joins temperature, dew point and wind on their timestamps", () => {
   const t0 = new Date(2026, 10, 23, 9, 0).getTime();
   const t1 = t0 + 600_000;
   const series = stationSeries({
@@ -50,6 +50,7 @@ test("stationSeries joins temperature and wind on their timestamps", () => {
           { time: t0, value: 6.04 },
         ],
       },
+      { parameter: "dew_point", measurements: [{ time: t1, value: 270.15 }] },
       { parameter: "wind_speed", measurements: [{ time: t1, value: 12.34 }] },
       { parameter: "pressure_msl", measurements: [{ time: t0, value: 1020 }] },
     ],
@@ -57,18 +58,51 @@ test("stationSeries joins temperature and wind on their timestamps", () => {
   assert.deepEqual(series, {
     labels: ["09:00", "09:10"],
     tempC: [6, 6.5],
+    dewC: [null, -3],
     windKmh: [null, 12.3],
   });
-  assert.deepEqual(stationSeries(null), { labels: [], tempC: [], windKmh: [] });
+  assert.deepEqual(stationSeries(null), {
+    labels: [],
+    tempC: [],
+    dewC: [],
+    windKmh: [],
+  });
 });
 
-test("stationChartConfig puts temperature left and wind right", () => {
+const labels = {
+  temp: "Temperatur (°C)",
+  dew: "Taupunkt (°C)",
+  wind: "Wind (km/h)",
+};
+
+test("stationChartConfig puts temperature and dew point left, wind right", () => {
   const config = stationChartConfig(
-    { labels: ["09:00"], tempC: [6], windKmh: [12] },
+    {
+      labels: ["09:00", "09:10"],
+      tempC: [6, 7],
+      dewC: [-3, null],
+      windKmh: [12, 9],
+    },
     colors,
-    { temp: "Temperatur (°C)", wind: "Wind (km/h)" },
+    labels,
   );
-  assert.equal(config.data.datasets[0].yAxisID, "yTemp");
-  assert.equal(config.data.datasets[1].yAxisID, "yWind");
-  assert.equal(config.data.datasets[1].label, "Wind (km/h)");
+  const [temp, dew, wind] = config.data.datasets;
+  assert.equal(temp.yAxisID, "yTemp");
+  assert.equal(dew.yAxisID, "yTemp");
+  assert.equal(dew.label, "Taupunkt (°C)");
+  assert.deepEqual(dew.data, [-3, null]);
+  assert.equal(wind.yAxisID, "yWind");
+  assert.equal(wind.label, "Wind (km/h)");
+});
+
+test("stationChartConfig draws no dew point line for a station without one", () => {
+  const config = stationChartConfig(
+    { labels: ["09:00"], tempC: [6], dewC: [null], windKmh: [12] },
+    colors,
+    labels,
+  );
+  assert.deepEqual(
+    config.data.datasets.map((d) => d.label),
+    ["Temperatur (°C)", "Wind (km/h)"],
+  );
 });

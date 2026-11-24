@@ -16,6 +16,11 @@ export interface BaseLayerSpec {
   url: string;
   attribution: string;
   maxZoom: number;
+  /** The highest zoom upstream has tiles for; Leaflet scales them up above
+   * it. Absent when that is `maxZoom`. */
+  maxNativeZoom?: number;
+  /** [[south, west], [north, east]]: no tile is asked for outside it. */
+  bounds?: [LatLngTuple, LatLngTuple];
 }
 
 const LINK = (href: string, text: string) =>
@@ -45,6 +50,19 @@ export const BASE_LAYERS: Record<BaseMap, BaseLayerSpec> = {
     attribution: `&copy; ${LINK("https://www.openstreetmap.org/copyright", "OpenStreetMap")}${SHV}`,
     maxZoom: 19,
   },
+  // BAZL's glider chart (1:350,000, updated yearly): tiles up to z12 in the
+  // 3857 grid (z13 answers 400), within the box its WMTS capabilities give;
+  // geo.admin.ch's layer config names swisstopo as its attribution
+  gliderChart: {
+    url: "https://wmts.geo.admin.ch/1.0.0/ch.bazl.segelflugkarte/default/current/3857/{z}/{x}/{y}.png",
+    attribution: `&copy; ${LINK("https://www.swisstopo.admin.ch", "swisstopo")} (${LINK("https://www.bazl.admin.ch", "BAZL")})${SHV}`,
+    maxZoom: 18,
+    maxNativeZoom: 12,
+    bounds: [
+      [45.398181, 5.140242],
+      [48.230651, 11.47757],
+    ],
+  },
 };
 
 /** The preview image of each base map's card in the drawer; OpenStreetMap
@@ -54,6 +72,7 @@ export const BASE_MAP_IMAGES: Record<BaseMap, string | null> = {
   topoColor: "/assets/ic_topo_raster.png",
   topoSatellite: "/assets/ic_topo_imagery.png",
   topoOsm: null,
+  gliderChart: "/assets/ic_segelflugkarte.png",
 };
 
 /** `key` when it names a base map, else the colour pixel map. */

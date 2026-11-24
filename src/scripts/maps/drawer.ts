@@ -26,9 +26,9 @@ const WILDLIFE: DrawerSection = {
   title: "wildlife",
   layers: ["wildschutz"],
 };
-const SWISSTOPO: DrawerSection = {
+const SWISS_BASE_MAPS: DrawerSection = {
   kind: "baseMaps",
-  maps: ["topoLight", "topoColor", "topoSatellite"],
+  maps: ["topoLight", "topoColor", "topoSatellite", "gliderChart"],
 };
 
 export const DRAWER_PANES: {
@@ -50,7 +50,7 @@ export const DRAWER_PANES: {
       { kind: "layers", title: "dangers", layers: ["obstacles", "airspace"] },
       WILDLIFE,
       SITES,
-      SWISSTOPO,
+      SWISS_BASE_MAPS,
     ],
   },
   {
@@ -60,7 +60,7 @@ export const DRAWER_PANES: {
       { kind: "compass" },
       { kind: "layers", title: "dangers", layers: ["obstacles"] },
       WILDLIFE,
-      SWISSTOPO,
+      SWISS_BASE_MAPS,
     ],
   },
 ];
