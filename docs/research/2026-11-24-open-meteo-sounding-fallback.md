@@ -4,7 +4,7 @@ Date: 2026-11-24. Live calls ran from 20:28 to 20:40 UTC with `curl` and Python'
 
 ## Verdict
 
-**Don't build it.** Open-Meteo's ICON-D2 columns are sane, fresh, browser-callable and free for this site, but in the emagram's range (ground to 600 hPa) they hold only six real model levels at fixed pressures (1000, 975, 950, 850, 700, 600 hPa), of which a valley sounding station gets three or four above its ground and Samedan two. ICON-CH1 has about 40 levels over the same range. An emagram from ICON-D2 can't show where an inversion lies, how high thermals reach or where the cloud base is, which is what a pilot opens it for; showing it as a fallback would look like a sounding without being usable as one.
+**Don't build it.** Open-Meteo's ICON-D2 columns are sane, fresh, browser-callable and free for this site, but in the emagram's range (ground to 600 hPa) they hold only six real model levels at fixed pressures (1000, 975, 950, 850, 700, 600 hPa), of which a sounding station gets two to five above its ground (Bellinzona five, Samedan two). ICON-CH1 has about 40 levels over the same range. An emagram from ICON-D2 can't show where an inversion lies, how high thermals reach or where the cloud base is, which is what a pilot opens it for; showing it as a fallback would look like a sounding without being usable as one.
 
 Revisit when Open-Meteo serves MeteoSwiss ICON-CH1/CH2 on levels (still a `TODO` in its downloader, below), or try Météo-France AROME through Open-Meteo, which has 50 hPa steps (untested beyond a level count, below). No plan item.
 
@@ -32,6 +32,8 @@ At 20:28 UTC `meteo_swiss:icon_ch1/runs` listed 18Z first. For Tuttlingen, Buoch
 | Le Sentier | 1013 m | 1064 m | 1038 m | 1000 to 900 |
 | Zermatt | 1620 m | 1878 m | 1737 m | 1000 to 850 |
 | Samedan | 1707 m | 1943 m | 1803 m | 1000 to 850 |
+
+The levels under the cell's ground move with the surface pressure, and the hour of this column wasn't recorded. At 2026-11-25 12:00 UTC, the hour section 2 counts, Samedan's 800 hPa is under its cell too, which leaves it 700 and 600 hPa.
 
 A fallback would have to drop every level whose geopotential height is not above the cell's height (or whose pressure exceeds `surface_pressure`; both rules picked the same levels at 12Z tomorrow) and add the ground from `temperature_2m`, `dew_point_2m`, `surface_pressure` and the 10 m wind.
 
