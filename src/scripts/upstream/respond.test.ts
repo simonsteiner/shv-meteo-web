@@ -3,7 +3,7 @@ import { test } from "node:test";
 import type { Context } from "../types.ts";
 import { fetchUpstream } from "./fetch.ts";
 import { proxy, respond } from "./respond.ts";
-import { ROUTES } from "./routes.ts";
+import { ROUTES, startBefore } from "./routes.ts";
 
 const route = ROUTES.measurements;
 const KEY = "/api/_cache/measurements?";
@@ -193,6 +193,55 @@ test("proxy keys the copy by the checked parameters", async () => {
     [...store.keys()],
     ["https://shv-meteo.pages.dev/api/_cache/textForecast?lang=de"],
   );
+});
+
+test("the timeseries route asks for the last 24 hours, its copy keyed by station alone", async () => {
+  const { cache, store } = fakeCache();
+  const { ctx, settled } = context(
+    "https://shv-meteo.pages.dev/api/measurements/timeseries/meteo_swiss%3AKLO",
+  );
+  const asked: string[] = [];
+  const real = globalThis.fetch;
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    asked.push(String(input instanceof Request ? input.url : input));
+    return Response.json({ timeseries: [] });
+  }) as typeof fetch;
+  const before = Date.now();
+  try {
+    await proxy(
+      "timeseries",
+      { ...ctx, params: { id: "meteo_swiss%3AKLO" } },
+      cache,
+    );
+  } finally {
+    globalThis.fetch = real;
+  }
+  const after = Date.now();
+  await settled();
+  const start = Number(new URL(asked[0]).searchParams.get("start"));
+  assert.equal(start % 60_000, 0);
+  // proxy reads its own clock between the two, so a minute may turn there
+  const day = 24 * 3600_000;
+  assert.ok(
+    startBefore(before, day) <= start && start <= startBefore(after, day),
+    `${start}`,
+  );
+  assert.deepEqual(
+    [...store.keys()],
+    ["https://shv-meteo.pages.dev/api/_cache/timeseries?id=meteo_swiss%3AKLO"],
+  );
+});
+
+test("the timeseries start moves only once a minute", () => {
+  const url = (now: number) =>
+    new URL(ROUTES.timeseries.url!({ id: "meteo_swiss:KLO" }, now));
+  const minute = Date.UTC(2026, 10, 24, 12, 0);
+  assert.equal(
+    url(minute).searchParams.get("start"),
+    String(minute - 86_400_000),
+  );
+  assert.equal(url(minute + 59_999).search, url(minute).search);
+  assert.notEqual(url(minute + 60_000).search, url(minute).search);
 });
 
 test("proxy answers a bad id with a 400 before going upstream", async () => {

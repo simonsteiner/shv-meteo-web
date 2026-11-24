@@ -236,7 +236,7 @@ export function proxy(
   return serve(
     name,
     ctx,
-    (params) => fetchUpstream(url(params), route.timeoutMs),
+    (params) => fetchUpstream(url(params, Date.now()), route.timeoutMs),
     { cache },
   );
 }

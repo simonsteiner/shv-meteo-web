@@ -58,7 +58,7 @@ export function stationValues(st: MeasurementFeature): StationValues {
     tempC: rounded(
       toCelsius(num(p.temperature2mValue) ?? num(p.temperatureValue)),
     ),
-    dewC: rounded(toCelsius(num(p.dewPoint2mValue))),
+    dewC: rounded(toCelsius(num(p.dewPoint2mValue) ?? num(p.dewPointValue))),
     humidity: humidity === null ? null : Math.round(humidity),
     qnhHpa: qnh === null ? null : Math.round(qnh),
     surfaceHpa: surface === null ? null : Math.round(surface),

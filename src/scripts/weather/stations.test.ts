@@ -59,6 +59,21 @@ test("stationValues keeps 0 and falls back to the other fields", () => {
   assert.equal(v.dewC, null);
 });
 
+test("stationValues falls back from the 2 m dew point to the plain one", () => {
+  // Bantiger and the Windline stations send only `dewPointValue`
+  const plain = stationValues(
+    station("meteo_swiss:BAN", { dewPointValue: 273.15 }),
+  );
+  assert.equal(plain.dewC, 0);
+  const both = stationValues(
+    station("meteo_swiss:KLO", {
+      dewPoint2mValue: 271.15,
+      dewPointValue: 273.15,
+    }),
+  );
+  assert.equal(both.dewC, -2);
+});
+
 test("windClass warns from 20 km/h and alarms from 30", () => {
   assert.equal(windClass(null), "");
   assert.equal(windClass(19.9), "");
