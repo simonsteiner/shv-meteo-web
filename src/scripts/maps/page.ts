@@ -9,6 +9,7 @@
 import L from "leaflet";
 import { store } from "../state.ts";
 import { ShvApi } from "../api.ts";
+import { settled } from "../settled.ts";
 import { must } from "../dom.ts";
 import {
   readHandoff,
@@ -324,71 +325,62 @@ export function mountMap(root: HTMLElement): void {
   });
 
   // Each data set loads on its own, so a slow or failed one holds up none
-  // of the others; a failure leaves its layer empty and says so while the
-  // layer is shown.
+  // of the others; a failure (null from settled, logged) leaves its layer
+  // empty and says so while the layer is shown.
   function fail(dataset: Dataset): void {
     failed.add(dataset);
     render();
   }
 
-  ShvApi.getFlyingSites()
-    .then((data) => {
-      const features = (data.features ?? []) as FlyingSiteFeature[];
-      sites.setData(features);
-      sitesKey = "";
-      takeHandoff(findHandoff(handoff, { kind: "site", items: features }));
-      render();
-    })
-    .catch((err: unknown) => {
-      console.error("[maps] Cannot load the flying sites:", err);
-      fail("sites");
-    });
-  ShvApi.getAirspaces()
-    .then((data) => zones.airspace.addData(data as GeoJSON.FeatureCollection))
-    .catch((err: unknown) => {
-      console.error("[maps] Cannot load the airspaces:", err);
-      fail("airspaces");
-    });
-  ShvApi.getWildschutz()
-    .then((data) => zones.wildlife.addData(data as GeoJSON.FeatureCollection))
-    .catch((err: unknown) => {
-      console.error("[maps] Cannot load the wildlife zones:", err);
-      fail("wildlife");
-    });
-  ShvApi.getMeasurements()
-    .then((data) => {
-      // getJson has logged a failed call
-      if (!data) return fail("measurements");
-      stations = data.features ?? [];
-      stationsMode = null;
-      redrawStations();
-      takeHandoff(findHandoff(handoff, { kind: "station", items: stations }));
-    })
-    .catch((err: unknown) => {
-      console.error("[maps] Cannot load the measurements:", err);
-      fail("measurements");
-    });
-  ShvApi.getFoehn()
-    .then((report) => {
+  void settled(
+    ShvApi.getFlyingSites(),
+    "[maps] Cannot load the flying sites:",
+  ).then((data) => {
+    if (!data) return fail("sites");
+    const features = (data.features ?? []) as FlyingSiteFeature[];
+    sites.setData(features);
+    sitesKey = "";
+    takeHandoff(findHandoff(handoff, { kind: "site", items: features }));
+    render();
+  });
+  void settled(ShvApi.getAirspaces(), "[maps] Cannot load the airspaces:").then(
+    (data) => {
+      if (!data) return fail("airspaces");
+      zones.airspace.addData(data as GeoJSON.FeatureCollection);
+    },
+  );
+  void settled(
+    ShvApi.getWildschutz(),
+    "[maps] Cannot load the wildlife reserves:",
+  ).then((data) => {
+    if (!data) return fail("wildlife");
+    zones.wildlife.addData(data as GeoJSON.FeatureCollection);
+  });
+  void settled(
+    ShvApi.getMeasurements(),
+    "[maps] Cannot load the measurements:",
+  ).then((data) => {
+    if (!data) return fail("measurements");
+    stations = data.features ?? [];
+    stationsMode = null;
+    redrawStations();
+    takeHandoff(findHandoff(handoff, { kind: "station", items: stations }));
+  });
+  void settled(ShvApi.getFoehn(), "[maps] Cannot load the Foehn report:").then(
+    (report) => {
       if (!report) return fail("foehn");
       foehn = report;
       drawFoehn(foehnLayer, foehn, say, openWeather);
-    })
-    .catch((err: unknown) => {
-      console.error("[maps] Cannot load the Foehn report:", err);
-      fail("foehn");
-    });
-  ShvApi.getWebcams()
-    .then((data) => {
+    },
+  );
+  void settled(ShvApi.getWebcams(), "[maps] Cannot load the webcams:").then(
+    (data) => {
       if (!data) return fail("webcams");
       const webcams = data.webcams ?? [];
       drawWebcams(webcamsLayer, webcams, (w) => store.select("webcam", w));
       takeHandoff(findHandoff(handoff, { kind: "webcam", items: webcams }));
-    })
-    .catch((err: unknown) => {
-      console.error("[maps] Cannot load the webcams:", err);
-      fail("webcams");
-    });
+    },
+  );
   if (handoff && "locate" in handoff)
     void locatePilot().then((at) => {
       if (at) store.setPilotLocation(at);

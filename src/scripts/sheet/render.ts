@@ -3,6 +3,7 @@
 // button, its scrim or Escape, and swaps the webcam's image (thumbnail on
 // error, time-lapse on demand) without any inline handler.
 
+import { useFallback } from "../dom.ts";
 import type { Say } from "../i18n/text.ts";
 import type {
   FlyingSiteFeature,
@@ -109,11 +110,7 @@ export function mountSheet(
         return;
       }
       if (!img.hasAttribute("data-webcam-img")) return;
-      const fallback = img.dataset.fallback;
-      if (fallback && img.src !== fallback) {
-        img.src = fallback;
-        return;
-      }
+      if (useFallback(img)) return;
       console.error("[sheet] The webcam has no image to show:", img.src);
       img.parentElement?.insertAdjacentHTML("beforebegin", noImageHtml(say));
       img.parentElement?.remove();

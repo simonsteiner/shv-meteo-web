@@ -11,7 +11,8 @@ import { ShvApi } from "../api.ts";
 import { drawChart } from "../charts/draw.ts";
 import { foehnChartConfig } from "../charts/foehn.ts";
 import { chartColors } from "../charts/theme.ts";
-import { must } from "../dom.ts";
+import { must, useFallback } from "../dom.ts";
+import { settled } from "../settled.ts";
 import { alertLook, formatDelta } from "../foehn/look.ts";
 import { DEFAULT_PAIR } from "../foehn/pairs.ts";
 import type { StationPair } from "../foehn/report.ts";
@@ -253,16 +254,13 @@ export function mountWeather(root: HTMLElement): void {
   }
 
   function loadPair(id: string): void {
-    ShvApi.getFoehn(id)
-      .catch((err: unknown) => {
-        console.error("[weather] Cannot load the pair's report:", err);
-        return null;
-      })
-      .then((report) => {
-        // getJson has logged a failed call (null)
-        pairs = reportCame(pairs, id, report);
-        render();
-      });
+    void settled(
+      ShvApi.getFoehn(id),
+      "[weather] Cannot load the pair's report:",
+    ).then((report) => {
+      pairs = reportCame(pairs, id, report);
+      render();
+    });
   }
 
   function selectPair(id: string): void {
@@ -328,34 +326,25 @@ export function mountWeather(root: HTMLElement): void {
     "error",
     (event) => {
       const img = event.target;
-      if (!(img instanceof HTMLImageElement) || !img.dataset.fallback) return;
-      img.src = img.dataset.fallback;
-      delete img.dataset.fallback;
+      if (img instanceof HTMLImageElement) useFallback(img);
     },
     true,
   );
 
-  const settle = <T>(
-    label: string,
-    p: Promise<T | null>,
-    set: (v: T | null) => void,
-  ) =>
-    p
-      .catch((err: unknown) => {
-        console.error(`[weather] Cannot load the ${label}:`, err);
-        return null;
-      })
-      .then((v) => {
-        set(v);
-        render();
-      });
   loadPair(pairs.pairId);
-  settle(
-    "measurements",
+  void settled(
     ShvApi.getMeasurements(),
-    (v) => (stations = v?.features ?? null),
+    "[weather] Cannot load the measurements:",
+  ).then((v) => {
+    stations = v?.features ?? null;
+    render();
+  });
+  void settled(ShvApi.getWebcams(), "[weather] Cannot load the webcams:").then(
+    (v) => {
+      webcams = v?.webcams ?? null;
+      render();
+    },
   );
-  settle("webcams", ShvApi.getWebcams(), (v) => (webcams = v?.webcams ?? null));
 
   store.subscribe(render);
   render();
