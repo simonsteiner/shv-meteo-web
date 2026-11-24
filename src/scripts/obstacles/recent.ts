@@ -60,29 +60,48 @@ export function keepRecent<T>(
       waiting: 0,
       done: load(key, controller.signal).then(
         (sized) => {
-          loading.delete(key);
+          forget(key, entry);
           keep(key, sized);
           return sized.value;
         },
         (err: unknown) => {
-          loading.delete(key);
+          forget(key, entry);
           throw err;
         },
       ),
     };
-    // a cancelled load nobody waits for must not be an unhandled rejection
-    entry.done.catch(() => {});
+    // runs before the readers' handlers, so `waiting` still counts the
+    // views that will report the failure; with none, it is reported here
+    // (a cancel is not a failure)
+    entry.done.catch((err: unknown) => {
+      if (
+        entry.waiting > 0 ||
+        (err as { name?: string })?.name === "AbortError"
+      )
+        return;
+      console.error(`[obstacles] Cell ${key} failed, no view waits:`, err);
+    });
     loading.set(key, entry);
     return entry;
   }
 
+  /** Drops `entry` from the loads under way, unless a newer load of `key`
+   * has taken its place. */
+  function forget(key: string, entry: Loading<T>): void {
+    if (loading.get(key) === entry) loading.delete(key);
+  }
+
   /** One fewer view waits on `entry`; with none left by the next task (a
-   * new view attaches within the same task as the pan), it is cancelled. */
-  function leave(entry: Loading<T>): void {
+   * new view attaches within the same task as the pan), it is cancelled
+   * and dropped at once, so a later view starts a load of its own rather
+   * than attach to one that is dying. */
+  function leave(key: string, entry: Loading<T>): void {
     entry.waiting--;
     if (entry.waiting > 0) return;
     setTimeout(() => {
-      if (entry.waiting === 0) entry.controller.abort(abortError());
+      if (entry.waiting !== 0) return;
+      forget(key, entry);
+      entry.controller.abort(abortError());
     }, 0);
   }
 
@@ -101,7 +120,7 @@ export function keepRecent<T>(
       const onAbort = () => {
         if (settled) return;
         settled = true;
-        leave(entry);
+        leave(key, entry);
         reject(abortError());
       };
       signal?.addEventListener("abort", onAbort, { once: true });

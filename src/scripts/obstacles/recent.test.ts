@@ -137,3 +137,78 @@ test("an already aborted view loads nothing", async () => {
   await assert.rejects(read("a", view.signal), { name: "AbortError" });
   assert.equal(calls(), 0);
 });
+
+test("a view after the cancel starts a load of its own, even before the old one rejects", async () => {
+  let calls = 0;
+  // the first load reacts to its abort 20 ms late, as a body being read does
+  const read = keepRecent(10, (key: string, signal: AbortSignal) => {
+    calls++;
+    if (calls > 1) return Promise.resolve({ value: `cell ${key}`, bytes: 1 });
+    return new Promise<Sized<string>>((_, reject) => {
+      signal.addEventListener("abort", () =>
+        setTimeout(() => reject(signal.reason), 20),
+      );
+    });
+  });
+  const view = new AbortController();
+  const got = read("a", view.signal);
+  view.abort();
+  await assert.rejects(got, { name: "AbortError" });
+  await nextTask();
+  assert.equal(await read("a", new AbortController().signal), "cell a");
+  assert.equal(calls, 2);
+  // the old load's late rejection leaves the new value kept
+  await new Promise((r) => setTimeout(r, 30));
+  assert.equal(await read("a"), "cell a");
+  assert.equal(calls, 2);
+});
+
+/** Runs `body` with console.error recorded instead of printed. */
+async function logged(body: () => Promise<void>): Promise<unknown[][]> {
+  const errors: unknown[][] = [];
+  const quiet = console.error;
+  console.error = (...args: unknown[]) => errors.push(args);
+  try {
+    await body();
+  } finally {
+    console.error = quiet;
+  }
+  return errors;
+}
+
+test("a load that fails after every view left is logged, a cancel is not", async () => {
+  const fails: Array<() => void> = [];
+  const read = keepRecent(
+    10,
+    (key: string, signal: AbortSignal) =>
+      new Promise<Sized<string>>((_, reject) => {
+        signal.addEventListener("abort", () => reject(signal.reason));
+        fails.push(() => reject(new Error(`${key} answered 503`)));
+      }),
+  );
+  const errors = await logged(async () => {
+    const left = new AbortController();
+    const failed = read("a", left.signal);
+    left.abort();
+    fails[0]();
+    await assert.rejects(failed, { name: "AbortError" });
+    const cancelled = new AbortController();
+    const gone = read("b", cancelled.signal);
+    cancelled.abort();
+    await assert.rejects(gone, { name: "AbortError" });
+    await nextTask();
+  });
+  assert.equal(errors.length, 1);
+  assert.match(String(errors[0][0]), /^\[obstacles\] Cell a failed/);
+  assert.match(String(errors[0][1]), /503/);
+});
+
+test("a failure a view waits for is left to that view to report", async () => {
+  const read = keepRecent(10, async (key: string) => {
+    throw new Error(`${key} answered 503`);
+  });
+  const errors = await logged(async () => {
+    await assert.rejects(read("a", new AbortController().signal), /503/);
+  });
+  assert.equal(errors.length, 0);
+});
