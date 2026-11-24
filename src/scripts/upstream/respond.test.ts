@@ -23,6 +23,9 @@ function context(url = "https://shv-meteo.pages.dev/api/measurements") {
 function fakeCache() {
   const store = new Map<string, { body: string; headers: Headers }>();
   const cache = {
+    async delete(req: RequestInfo | URL) {
+      return store.delete(new Request(req).url);
+    },
     async match(req: RequestInfo | URL) {
       const hit = store.get(new Request(req).url);
       return hit && new Response(hit.body, { headers: hit.headers });
@@ -129,7 +132,7 @@ test("a fresh copy is served without upstream", async () => {
 test("a stale copy is refetched, and served when the refetch fails", async () => {
   const { cache } = fakeCache();
   const first = context();
-  await respond(route, KEY, upstream("v1"), first.ctx, cache, 0);
+  await respond(route, KEY, upstream('"v1"'), first.ctx, cache, 0);
   await first.settled();
 
   const failed = context();
@@ -144,7 +147,7 @@ test("a stale copy is refetched, and served when the refetch fails", async () =>
     ),
   );
   assert.equal(res.status, 200);
-  assert.equal(await res.text(), "v1");
+  assert.equal(await res.text(), '"v1"');
   assert.equal(res.headers.get("x-cache"), "stale");
   assert.equal(res.headers.get("Cache-Control"), "no-store");
 
@@ -212,4 +215,47 @@ test("a 200 that isn't JSON is an upstream failure: a 503, nothing kept", async 
   await settled();
   assert.equal(res.status, 503);
   assert.equal(store.size, 0);
+});
+
+test("a stale copy that isn't JSON is dropped, and the route answers 503", async () => {
+  const { cache, store } = fakeCache();
+  const first = context();
+  // upstream's body is stored unchecked: a truncated answer gets in
+  await respond(
+    route,
+    KEY,
+    upstream('{"features": [1, 2'),
+    first.ctx,
+    cache,
+    0,
+  );
+  await first.settled();
+  assert.equal(store.size, 1);
+
+  const logged: unknown[][] = [];
+  const original = console.error;
+  console.error = (...args: unknown[]) => void logged.push(args);
+  const failed = context();
+  try {
+    const res = await respond(
+      route,
+      KEY,
+      upstream("", { status: 502 }),
+      failed.ctx,
+      cache,
+      61_000,
+    );
+    await failed.settled();
+    assert.equal(res.status, 503);
+    assert.equal(res.headers.get("Cache-Control"), "no-store");
+    assert.deepEqual(await res.json(), route.errorBody);
+  } finally {
+    console.error = original;
+  }
+  assert.equal(store.size, 0);
+  assert.ok(
+    logged.some((args) =>
+      String(args[0]).startsWith("[respond] The cached copy"),
+    ),
+  );
 });

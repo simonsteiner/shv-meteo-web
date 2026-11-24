@@ -4,7 +4,8 @@
 // Functions keep no memory between requests, so Express's "last good copy"
 // lives in the edge cache: each 200 is stored for a day, a copy younger than
 // the route's TTL is served without calling upstream, an older one is
-// refetched and still served when the refetch fails.
+// refetched and still served when the refetch fails, if it still parses as
+// JSON (the stored body is upstream's, never checked on the way in).
 import type { Context } from "../types.ts";
 import { fetchUpstream } from "./fetch.ts";
 import { parseParams } from "./params.ts";
@@ -40,6 +41,29 @@ function fromCache(
       "x-cache": state,
     },
   });
+}
+
+/** The stale copy as the fallback answer when its body parses as JSON;
+ * else null, after logging and dropping the copy, so the route answers its
+ * 503 rather than a broken body. Parsed only here, when upstream has
+ * already failed, so a fresh hit costs no parse. */
+async function fallback(
+  stale: { copy: Response; ageMs: number },
+  route: Route,
+  key: string,
+  drop: () => void,
+): Promise<Response | null> {
+  let text: string;
+  try {
+    text = await stale.copy.text();
+    JSON.parse(text);
+  } catch (err) {
+    console.error(`[respond] The cached copy of ${key} is not JSON:`, err);
+    drop();
+    return null;
+  }
+  const copy = new Response(text, { headers: stale.copy.headers });
+  return fromCache(copy, route, stale.ageMs, "stale");
 }
 
 /** Answers from the cache when fresh, else from `fetcher`, falling back to
@@ -84,9 +108,16 @@ export async function respond(
     }
   } catch (err) {
     console.error(`[respond] ${key}:`, err);
-    return stale
-      ? fromCache(stale.copy, route, stale.ageMs, "stale")
-      : unavailable(route);
+    const answer =
+      stale &&
+      (await fallback(stale, route, key, () =>
+        ctx.waitUntil(
+          Promise.resolve(cache?.delete(cacheKey)).catch((e: unknown) => {
+            console.error(`[respond] Cache delete failed for ${key}:`, e);
+          }),
+        ),
+      ));
+    return answer ?? unavailable(route);
   }
 
   await stale?.copy.body?.cancel();
