@@ -7,6 +7,7 @@
 import { LANGS } from "../../scripts/settings.ts";
 import { TABS, type Tab } from "../../scripts/app-state.ts";
 import { de } from "../../scripts/i18n/de.ts";
+import { tabCurrent } from "../../scripts/shell/nav.ts";
 import TabIcon from "./TabIcon.astro";
 
 interface Props {
@@ -65,7 +66,7 @@ const icon = {
         class="header-nav-link"
         href={`/${tab}/`}
         data-tab={tab}
-        aria-current={tab === view ? "page" : undefined}
+        aria-current={tabCurrent(tab, view, Astro.url.pathname)}
       >
         <TabIcon tab={tab} size={18} />
         <span data-t={`tabs.${tab}`}>{de.tabs[tab]}</span>
@@ -148,7 +149,7 @@ const icon = {
         class="lang-btn"
         data-action="lang"
         aria-expanded="false"
-        aria-haspopup="true"
+        aria-controls="lang-menu"
         title={de.shell.language}
         data-t-title="shell.language"
       >
@@ -165,7 +166,7 @@ const icon = {
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
       </button>
-      <div class="lang-menu hidden" data-lang-menu>
+      <div class="lang-menu hidden" id="lang-menu" data-lang-menu>
         {LANGS.map((lang) => (
           <button type="button" data-lang={lang}>
             {LANG_NAMES[lang]}

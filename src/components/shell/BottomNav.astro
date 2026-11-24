@@ -4,6 +4,7 @@
 // language through data-t.
 import { TABS, type Tab } from "../../scripts/app-state.ts";
 import { de } from "../../scripts/i18n/de.ts";
+import { tabCurrent } from "../../scripts/shell/nav.ts";
 import TabIcon from "./TabIcon.astro";
 
 interface Props {
@@ -23,7 +24,7 @@ const { view } = Astro.props;
       class="nav-item"
       href={`/${tab}/`}
       data-tab={tab}
-      aria-current={tab === view ? "page" : undefined}
+      aria-current={tabCurrent(tab, view, Astro.url.pathname)}
     >
       <span class="nav-icon">
         <TabIcon tab={tab} size={22} />

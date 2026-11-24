@@ -310,10 +310,10 @@
   color: var(--text-primary);
 }
 
-.nav-item[aria-current="page"] {
+.nav-item[aria-current] {
   color: var(--shv-red);
 }
 
-.nav-item[aria-current="page"] .nav-icon {
+.nav-item[aria-current] .nav-icon {
   transform: translateY(-2px);
 }

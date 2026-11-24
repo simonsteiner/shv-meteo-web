@@ -1,7 +1,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { AppState, isTab } from "./app-state.ts";
-import type { KeyValueStorage } from "./settings.ts";
+import {
+  MAP_CATEGORIES,
+  METEO_MODES,
+  type KeyValueStorage,
+  type Layers,
+  type MapCategory,
+  type MeteoMode,
+} from "./settings.ts";
 
 /** A Storage over a Map, as localStorage and sessionStorage behave. */
 function memory(entries: Record<string, string> = {}) {
@@ -65,29 +72,73 @@ test("subscribers hear every change; a throwing one doesn't stop the rest", () =
   assert.equal(errors.length, 2);
 });
 
-test("a map category shows its layers and hides the rest", () => {
-  const { store, local } = make();
-  store.setMapCategory("FLYING_AREAS");
-  const on = Object.entries(store.state.layers).filter(([, v]) => v);
-  assert.deepEqual(on.map(([k]) => k).sort(), [
-    "landingPatterns",
-    "landings",
-    "launches",
-  ]);
-  assert.equal(local.get("shv_mapCategory"), "FLYING_AREAS");
-  assert.equal(JSON.parse(local.get("shv_layers") ?? "{}").launches, true);
+// The layers the old if chains in src/state.js set, per category and mode.
+const CATEGORY_SHOWS: Record<MapCategory, (keyof Layers)[]> = {
+  METEO: ["stations"],
+  AIRSPACE: ["airspace", "wildschutz"],
+  FLYING_AREAS: ["launches", "landings", "landingPatterns"],
+};
+const MODE_SHOWS: Record<MeteoMode, (keyof Layers)[]> = {
+  WIND: ["stations"],
+  TEMPERATURE: ["stations"],
+  PRESSURE_DIFFERENCE: ["foehnAxis"],
+  WEBCAM: ["webcams"],
+  NONE: [],
+};
+const MODE_SWITCHES: (keyof Layers)[] = ["stations", "webcams", "foehnAxis"];
+
+/** Every layer set to `on`, saved so the store starts from it. */
+function allLayers(on: boolean): Record<string, string> {
+  const { store } = make();
+  const layers = Object.fromEntries(
+    Object.keys(store.state.layers).map((k) => [k, on]),
+  );
+  return { shv_layers: JSON.stringify(layers) };
+}
+
+function shown(layers: Layers): string[] {
+  return Object.entries(layers)
+    .filter(([, v]) => v)
+    .map(([k]) => k)
+    .sort();
+}
+
+test("the tables below cover every map category and meteo mode", () => {
+  assert.deepEqual(
+    Object.keys(CATEGORY_SHOWS).sort(),
+    [...MAP_CATEGORIES].sort(),
+  );
+  assert.deepEqual(Object.keys(MODE_SHOWS).sort(), [...METEO_MODES].sort());
 });
 
-test("a meteo mode switches only the live-weather layers", () => {
-  const { store } = make();
-  store.toggleLayer("airspace");
-  store.setMeteoMode("WEBCAM");
-  const { stations, webcams, foehnAxis, airspace } = store.state.layers;
-  assert.deepEqual(
-    { stations, webcams, foehnAxis, airspace },
-    { stations: false, webcams: true, foehnAxis: false, airspace: true },
-  );
-});
+for (const category of MAP_CATEGORIES)
+  for (const before of [true, false])
+    test(`${category} shows its layers and hides the rest (all ${before ? "on" : "off"} before)`, () => {
+      const { store, local } = make(allLayers(before));
+      store.setMapCategory(category);
+      const want = [...CATEGORY_SHOWS[category]].sort();
+      assert.deepEqual(shown(store.state.layers), want);
+      assert.equal(local.get("shv_mapCategory"), category);
+      assert.deepEqual(
+        shown(JSON.parse(local.get("shv_layers") ?? "{}")),
+        want,
+      );
+    });
+
+for (const mode of METEO_MODES)
+  for (const before of [true, false])
+    test(`${mode} switches only the live-weather layers (all ${before ? "on" : "off"} before)`, () => {
+      const { store, local } = make(allLayers(before));
+      store.setMeteoMode(mode);
+      for (const [key, value] of Object.entries(store.state.layers)) {
+        const layer = key as keyof Layers;
+        const want = MODE_SWITCHES.includes(layer)
+          ? MODE_SHOWS[mode].includes(layer)
+          : before;
+        assert.equal(value, want, `${mode}: ${key}`);
+      }
+      assert.equal(local.get("shv_meteoMode"), mode);
+    });
 
 test("the wind filter toggles a direction and clears", () => {
   const { store, local } = make();
