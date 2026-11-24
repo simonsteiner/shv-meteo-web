@@ -50,6 +50,7 @@ import {
 } from "./handoff-target.ts";
 import { drawFoehn, drawStations, drawWebcams } from "./layer-meteo.ts";
 import { obstacleLayer } from "./layer-obstacles.ts";
+import { failedShown, loadStatusText, type Dataset } from "./load-status.ts";
 import { siteLayers } from "./layer-sites.ts";
 import { zoneLayers } from "./layer-zones.ts";
 import { locatePilot } from "./locate.ts";
@@ -116,6 +117,7 @@ export function mountMap(root: HTMLElement): void {
   let foehn: FoehnReport | null = null;
   let pilotMarker: L.Marker | null = null;
   let pilotFix = 0;
+  const failed = new Set<Dataset>();
   // what was drawn last, so a store change redraws only what it touched
   let lang: string | null = null;
   let sitesKey = "";
@@ -205,6 +207,9 @@ export function mountMap(root: HTMLElement): void {
       "hidden",
       mapCategory !== "AIRSPACE",
     );
+    const status = q("[data-map-status]");
+    status.textContent = loadStatusText(failedShown(failed, layers), say);
+    status.classList.toggle("hidden", !status.textContent);
   }
 
   function renderPilot(): void {
@@ -336,7 +341,13 @@ export function mountMap(root: HTMLElement): void {
   });
 
   // Each data set loads on its own, so a slow or failed one holds up none
-  // of the others; a failure leaves its layer empty.
+  // of the others; a failure leaves its layer empty and says so while the
+  // layer is shown.
+  function fail(dataset: Dataset): void {
+    failed.add(dataset);
+    render();
+  }
+
   ShvApi.getFlyingSites()
     .then((data) => {
       const features = (data.features ?? []) as FlyingSiteFeature[];
@@ -345,46 +356,56 @@ export function mountMap(root: HTMLElement): void {
       takeHandoff(findHandoff(handoff, { kind: "site", items: features }));
       render();
     })
-    .catch((err: unknown) =>
-      console.error("[maps] Cannot load the flying sites:", err),
-    );
+    .catch((err: unknown) => {
+      console.error("[maps] Cannot load the flying sites:", err);
+      fail("sites");
+    });
   ShvApi.getAirspaces()
     .then((data) => zones.airspace.addData(data as GeoJSON.FeatureCollection))
-    .catch((err: unknown) =>
-      console.error("[maps] Cannot load the airspaces:", err),
-    );
+    .catch((err: unknown) => {
+      console.error("[maps] Cannot load the airspaces:", err);
+      fail("airspaces");
+    });
   ShvApi.getWildschutz()
     .then((data) => zones.wildlife.addData(data as GeoJSON.FeatureCollection))
-    .catch((err: unknown) =>
-      console.error("[maps] Cannot load the wildlife zones:", err),
-    );
+    .catch((err: unknown) => {
+      console.error("[maps] Cannot load the wildlife zones:", err);
+      fail("wildlife");
+    });
   ShvApi.getMeasurements()
     .then((data) => {
-      stations = data?.features ?? [];
+      // getJson has logged a failed call
+      if (!data) return fail("measurements");
+      stations = data.features ?? [];
       stationsMode = null;
       redrawStations();
       takeHandoff(findHandoff(handoff, { kind: "station", items: stations }));
     })
-    .catch((err: unknown) =>
-      console.error("[maps] Cannot load the measurements:", err),
-    );
+    .catch((err: unknown) => {
+      console.error("[maps] Cannot load the measurements:", err);
+      fail("measurements");
+    });
   ShvApi.getFoehn()
     .then((report) => {
+      if (!report) return fail("foehn");
       foehn = report;
       drawFoehn(foehnLayer, foehn, say, openWeather);
     })
-    .catch((err: unknown) =>
-      console.error("[maps] Cannot load the Foehn report:", err),
-    );
+    .catch((err: unknown) => {
+      console.error("[maps] Cannot load the Foehn report:", err);
+      fail("foehn");
+    });
   ShvApi.getWebcams()
     .then((data) => {
-      webcams = data?.webcams ?? [];
+      if (!data) return fail("webcams");
+      webcams = data.webcams ?? [];
       drawWebcams(webcamsLayer, webcams, (w) => select("webcam", w));
       takeHandoff(findHandoff(handoff, { kind: "webcam", items: webcams }));
     })
-    .catch((err: unknown) =>
-      console.error("[maps] Cannot load the webcams:", err),
-    );
+    .catch((err: unknown) => {
+      console.error("[maps] Cannot load the webcams:", err);
+      fail("webcams");
+    });
   if (handoff && "locate" in handoff)
     void locatePilot().then((at) => {
       if (at) store.setPilotLocation(at);

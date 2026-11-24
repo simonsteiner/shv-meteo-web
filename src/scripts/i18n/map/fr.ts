@@ -12,6 +12,15 @@ export const map: MapStrings = {
   centerButton: "Centrer la Suisse",
   layersTitle: "Couches de carte",
   close: "Fermer",
+  loadFailed: "Non chargé : {names}",
+  dataset: {
+    sites: "Sites de vol",
+    airspaces: "Espaces aériens",
+    wildlife: "Zones de protection de la faune",
+    measurements: "Mesures",
+    foehn: "Paires de stations du fœhn",
+    webcams: "Webcams",
+  },
   category: {
     METEO: "Météo",
     AIRSPACE: "Espace aérien",

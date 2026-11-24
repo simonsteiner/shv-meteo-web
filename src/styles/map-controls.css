@@ -143,6 +143,27 @@
   color: var(--shv-red);
 }
 
+/* The data sets a shown layer lacks (src/scripts/maps/load-status.ts) */
+.map-load-status {
+  align-self: center;
+  margin: 0;
+  background: var(--bg-elevated);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  border-radius: 16px;
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #f59e0b;
+  box-shadow: var(--shadow-sm);
+  pointer-events: auto;
+}
+
+.map-load-status.hidden {
+  display: none;
+}
+
 .pill-wind {
   border-color: rgba(16, 185, 129, 0.4);
   background: rgba(16, 185, 129, 0.15);

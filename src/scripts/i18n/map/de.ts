@@ -10,6 +10,15 @@ export const map = {
   centerButton: "Schweiz zentrieren",
   layersTitle: "Karten-Ebenen",
   close: "Schliessen",
+  loadFailed: "Nicht geladen: {names}",
+  dataset: {
+    sites: "Fluggebiete",
+    airspaces: "Lufträume",
+    wildlife: "Wildschutzgebiete",
+    measurements: "Messwerte",
+    foehn: "Föhn-Stationspaare",
+    webcams: "Webcams",
+  },
   category: {
     METEO: "Meteo",
     AIRSPACE: "Luftraum",
