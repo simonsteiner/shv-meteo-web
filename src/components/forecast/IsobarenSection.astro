@@ -1,0 +1,28 @@
+---
+// The isobar chart, an SVG upstream draws per language (German for
+// English); src/scripts/forecast/isobaren-page.ts sets its source.
+---
+
+<div class="forecast-content-card" data-forecast-isobaren>
+  <div class="section-header-row">
+    <div>
+      <span class="badge-tag">MeteoSchweiz / DWD</span>
+      <h2 class="section-heading" data-t="forecast.isobarenTitle"></h2>
+      <p class="section-sub" data-t="forecast.isobarenSub"></p>
+    </div>
+  </div>
+
+  <div class="isobaren-map-container">
+    <img
+      class="isobaren-img"
+      data-isobaren-img
+      data-t-alt="forecast.isobarenAlt"
+      loading="eager"
+      alt=""
+    />
+  </div>
+</div>
+
+<script>
+  import "../../scripts/forecast/isobaren-page.ts";
+</script>

@@ -98,6 +98,17 @@ async function measurements(
  * Without `start` upstream sends 14 days (about 76 KB rather than 6 KB). */
 const SERIES_SPAN_MS = 25 * 3600 * 1000;
 
+/** `start` is rounded down to the minute, so every report within a minute
+ * asks upstream for the same URL and its cache can answer; a start in
+ * milliseconds made each URL new. */
+const SERIES_START_STEP_MS = 60 * 1000;
+
+/** When a series asked for at `at` (epoch ms) starts. */
+export function seriesStart(at: number): number {
+  const since = at - SERIES_SPAN_MS;
+  return since - (since % SERIES_START_STEP_MS);
+}
+
 /** `stationId`'s series of `parameter` since `since` (epoch ms). */
 export function seriesUrl(
   stationId: string,
@@ -136,7 +147,7 @@ export async function foehnResponse(
   const cfg = pairConfig(pairId);
   const parameter = historyParameter(cfg);
   const at = now();
-  const since = at.getTime() - SERIES_SPAN_MS;
+  const since = seriesStart(at.getTime());
   const [stations, start, end] = await Promise.all([
     measurements(fetchFn),
     series(cfg.startId, parameter, since, fetchFn),

@@ -52,10 +52,10 @@ There is no `.env` file and nothing loads one: the Functions have no bindings an
 [scripts/shot.ts](../scripts/shot.ts) takes a PNG of one page against a running `npm run dev` or `npm run preview`:
 
 ```bash
-npm run shot -- http://localhost:4321/map/ /tmp/map.png [--size 1280x800] [--wait 3000]
+npm run shot -- http://localhost:4321/map/ /tmp/map.png [--size 1280x800] [--wait 3000] [--no-sandbox]
 ```
 
-It launches a headless Chromium (`$CHROME`, else Playwright's newest under `~/.cache/ms-playwright`, else `chromium` on `PATH`; that lookup is Linux-only, so on macOS or Windows set `$CHROME` to the browser binary), waits for the load event plus `--wait` ms so the map tiles arrive, and prints the page's exceptions and console errors. The refactor PRs attach before/after shots taken with it. The gallery in `screenshots/` predates it and is regenerated once the views are ported.
+It launches a headless Chromium (`$CHROME`, else Playwright's newest under `~/.cache/ms-playwright`, else `chromium` on `PATH`; that lookup is Linux-only, so on macOS or Windows set `$CHROME` to the browser binary), waits for the load event plus `--wait` ms so the map tiles arrive, and prints the page's exceptions and console errors. `--no-sandbox` is for a container running as root, where Chromium's sandbox won't start. The refactor PRs attach before/after shots taken with it. The gallery in `screenshots/` predates it and is regenerated once the views are ported.
 
 ## Chrome DevTools MCP
 

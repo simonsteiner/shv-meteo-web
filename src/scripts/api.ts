@@ -20,6 +20,7 @@ import {
   type SoundingForecast,
 } from "./emagram/sounding.ts";
 import { loadObstacles, type ShardIndex } from "./obstacles/cells.ts";
+import { keepRecent } from "./obstacles/recent.ts";
 
 /** The multi-day outlook frames' index; upstream answers with CORS `*`. */
 export const OUTLOOKS_URL =
@@ -135,7 +136,6 @@ const foehnPromises = new Map<string, Promise<FoehnReport | null>>();
 const OBSTACLES = "/data/obstacles";
 const OBSTACLE_CELLS_KEPT = 64;
 let obstacleIndexPromise: Promise<ShardIndex> | null = null;
-const obstacleCells = new Map<string, unknown>();
 
 async function fetchObstacleShard(
   path: string,
@@ -146,25 +146,7 @@ async function fetchObstacleShard(
   return resp.json();
 }
 
-async function fetchObstacleCell(
-  path: string,
-  signal?: AbortSignal,
-): Promise<unknown> {
-  if (obstacleCells.has(path)) {
-    // move it to the end, so eviction drops the cell read longest ago
-    const kept = obstacleCells.get(path);
-    obstacleCells.delete(path);
-    obstacleCells.set(path, kept);
-    return kept;
-  }
-  const cell = await fetchObstacleShard(path, signal);
-  obstacleCells.set(path, cell);
-  if (obstacleCells.size > OBSTACLE_CELLS_KEPT) {
-    const oldest = obstacleCells.keys().next().value;
-    if (oldest !== undefined) obstacleCells.delete(oldest);
-  }
-  return cell;
-}
+const fetchObstacleCell = keepRecent(OBSTACLE_CELLS_KEPT, fetchObstacleShard);
 
 export const ShvApi = {
   getFlyingSites: snapshot(

@@ -1,5 +1,5 @@
 // A screenshot of a page as a visitor sees it, tiles and all:
-//   npm run shot -- URL OUT.png [--size 1280x800] [--wait MS]
+//   npm run shot -- URL OUT.png [--size 1280x800] [--wait MS] [--no-sandbox]
 // Launches a headless Chromium ($CHROME, else Playwright's newest under
 // ~/.cache/ms-playwright, else `chromium` on PATH), opens URL over the
 // DevTools protocol, waits for its load event plus --wait ms (default 3000)
@@ -8,6 +8,8 @@
 // event, and that flag's --virtual-time-budget waits in virtual time, which
 // doesn't reliably wait for them. The page's exceptions and console errors
 // are printed. Against a running `npm run dev` or `npm run preview`.
+// --no-sandbox is for a container running as root, where Chromium's sandbox
+// refuses to start; leave it off elsewhere.
 import { spawn } from "node:child_process";
 import {
   existsSync,
@@ -25,13 +27,16 @@ const { values, positionals } = parseArgs({
   options: {
     size: { type: "string", default: "1280x800" },
     wait: { type: "string", default: "3000" },
+    "no-sandbox": { type: "boolean", default: false },
   },
 });
 const [url, out] = positionals;
 const [width, height] = values.size.split("x").map(Number);
 const wait = Number(values.wait);
 if (!url || !out || !width || !height || !Number.isFinite(wait)) {
-  console.error("usage: npm run shot -- URL OUT.png [--size WxH] [--wait MS]");
+  console.error(
+    "usage: npm run shot -- URL OUT.png [--size WxH] [--wait MS] [--no-sandbox]",
+  );
   process.exit(2);
 }
 
@@ -66,6 +71,7 @@ function launch(profile: string) {
       "--no-default-browser-check",
       "--hide-scrollbars",
       `--window-size=${width},${height}`,
+      ...(values["no-sandbox"] ? ["--no-sandbox"] : []),
       "about:blank",
     ],
     { stdio: ["ignore", "ignore", "pipe"] },
@@ -168,12 +174,15 @@ try {
   });
 
   const loaded = new Promise<void>((resolve) => {
-    page.on("Page.loadEventFired", () => resolve());
-    // unref: a pending fallback must not keep Node alive after the shot
-    setTimeout(() => {
+    // cleared on the load event, so a long --wait never prints it falsely
+    const fallback = setTimeout(() => {
       console.error("[shot] No load event after 30 s, taking the shot anyway");
       resolve();
-    }, 30_000).unref();
+    }, 30_000);
+    page.on("Page.loadEventFired", () => {
+      clearTimeout(fallback);
+      resolve();
+    });
   });
   const nav = await page.send<{ errorText?: string }>("Page.navigate", {
     url,
@@ -190,7 +199,18 @@ try {
   console.log(`wrote ${out}`);
   page.close();
 } finally {
+  // Chromium writes to its profile until it has exited, so the profile is
+  // removed only then (or after 5 s): removed earlier, files it writes
+  // later leave the temp dir behind
+  const exited = new Promise((resolve) => {
+    if (chrome.exitCode !== null || chrome.signalCode !== null) resolve(null);
+    else chrome.once("exit", resolve);
+  });
   chrome.kill();
-  await sleep(200);
-  rmSync(profile, { recursive: true, force: true });
+  await Promise.race([exited, new Promise((r) => setTimeout(r, 5000).unref())]);
+  try {
+    rmSync(profile, { recursive: true, force: true, maxRetries: 3 });
+  } catch (err) {
+    console.error(`[shot] Could not remove ${profile}:`, err);
+  }
 }

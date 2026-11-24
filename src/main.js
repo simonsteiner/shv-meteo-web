@@ -1,11 +1,6 @@
 import { store } from "./state.js";
 import { renderHeader } from "./components/Header.js";
 import { renderBottomNav } from "./components/BottomNav.js";
-import { renderBottomSheet } from "./components/BottomSheet.js";
-import { MapView } from "./views/MapView.js";
-import { WeatherView } from "./views/WeatherView.js";
-import { ForecastView } from "./views/ForecastView.js";
-import { SafetyView } from "./views/SafetyView.js";
 import { ShvApi } from "./scripts/api.ts";
 
 export const storeInstance = store;
@@ -30,9 +25,6 @@ class App {
   constructor() {
     this.headerContainer = document.getElementById("header-container");
     this.viewContainer = document.getElementById("view-container");
-    this.bottomSheetContainer = document.getElementById(
-      "bottom-sheet-container",
-    );
     this.bottomNavContainer = document.getElementById("bottom-nav-container");
 
     this.currentViewInstance = null;
@@ -42,7 +34,8 @@ class App {
 
   async init() {
     // 1. Render UI immediately so app is instantly interactive. The page
-    // names its view (<body data-view>, src/layouts/Base.astro).
+    // names its view (<body data-view>, src/layouts/Base.astro); a ported
+    // page brings its view in the markup and mounts it itself.
     this.renderShell();
     this.mountView(store.state.activeTab);
 
@@ -65,9 +58,6 @@ class App {
       if (state.lang !== this.lang || state.theme !== this.theme) {
         this.renderShell();
       }
-
-      // Re-render bottom sheet
-      renderBottomSheet(this.bottomSheetContainer);
     });
   }
 
@@ -81,31 +71,21 @@ class App {
 
     renderHeader(this.headerContainer);
     renderBottomNav(this.bottomNavContainer);
-    renderBottomSheet(this.bottomSheetContainer);
   }
 
   mountView(tab) {
     try {
       switch (tab) {
         case "map":
-          this.currentViewInstance = new MapView(this.viewContainer);
-          this.currentViewInstance.mount();
-          break;
-        case "weather":
-          this.currentViewInstance = new WeatherView(this.viewContainer);
-          this.currentViewInstance.mount();
-          break;
         case "forecast":
-          this.currentViewInstance = new ForecastView(this.viewContainer);
-          this.currentViewInstance.mount();
-          break;
+        case "weather":
         case "safety":
-          this.currentViewInstance = new SafetyView(this.viewContainer);
-          this.currentViewInstance.mount();
+          // Ported pages: their markup is built in and their own script
+          // drives it, the map's bottom sheet included
+          // (src/pages/<tab>/index.astro).
           break;
         default:
-          this.currentViewInstance = new MapView(this.viewContainer);
-          this.currentViewInstance.mount();
+          console.error(`[App.mountView] Unknown view "${tab}"`);
           break;
       }
     } catch (err) {

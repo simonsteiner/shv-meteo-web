@@ -1,5 +1,6 @@
 import { store } from "../state.js";
 import { handoffUrl } from "../scripts/handoff.ts";
+import { locatePilot } from "../scripts/maps/locate.ts";
 
 /** Where SHV members log in; this site has no member login. */
 const MEMBER_PORTAL_URL = "https://www.shv-fsvl.ch/anmelden/login/";
@@ -183,24 +184,13 @@ export function renderHeader(container) {
         location.assign(handoffUrl({ locate: true }));
         return;
       }
-      if ("geolocation" in navigator) {
-        btnGps.classList.add("spinning");
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            btnGps.classList.remove("spinning");
-            store.setPilotLocation({
-              lat: pos.coords.latitude,
-              lng: pos.coords.longitude,
-            });
-          },
-          (err) => {
-            btnGps.classList.remove("spinning");
-            // no made-up position: the map stays as it is, with no marker
-            console.error("[Header] Geolocation error:", err);
-          },
-          { enableHighAccuracy: true, timeout: 6000 },
-        );
-      }
+      // no made-up position on failure: the map stays as it is, with no
+      // marker (locatePilot logs why)
+      btnGps.classList.add("spinning");
+      locatePilot().then((at) => {
+        btnGps.classList.remove("spinning");
+        if (at) store.setPilotLocation(at);
+      });
     });
   }
 

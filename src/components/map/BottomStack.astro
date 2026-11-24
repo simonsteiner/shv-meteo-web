@@ -1,0 +1,74 @@
+---
+// The info button with its sources panel, and the DABS link while the
+// airspace tab is chosen.
+const SOURCES = ["sites", "baseMap", "obstacles", "weather", "airspace"];
+---
+
+<div class="map-bottom-stack">
+  <div
+    id="map-info-panel"
+    class="map-info-panel hidden"
+    role="dialog"
+    aria-labelledby="map-info-title"
+    data-info-panel
+  >
+    <div class="map-info-head">
+      <h3
+        id="map-info-title"
+        class="map-info-title"
+        data-t="map.info.title"
+      ></h3>
+      <button
+        type="button"
+        class="layers-flyout-close"
+        data-action="close-info"
+        data-t-title="map.close"
+        data-t-aria-label="map.close"
+      >
+        &times;
+      </button>
+    </div>
+    <p class="map-info-sub" data-t="map.info.sources"></p>
+    <ul class="map-info-list">
+      {SOURCES.map((key) => (
+        <li data-t={`map.info.${key}`} />
+      ))}
+    </ul>
+  </div>
+  <div class="map-bottom-floating-row">
+    <button
+      type="button"
+      class="map-floating-info"
+      data-action="toggle-info"
+      aria-controls="map-info-panel"
+      aria-expanded="false"
+      data-t-title="map.infoButton"
+      data-t-aria-label="map.infoButton"
+    >
+      <span aria-hidden="true">i</span>
+    </button>
+    <a
+      href="https://www.skybriefing.com/de/dabs"
+      target="_blank"
+      rel="noopener"
+      class="map-floating-dabs hidden"
+      data-dabs-link
+      data-t-title="map.dabsButton"
+    >
+      <span>DABS</span>
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.2"
+        aria-hidden="true"
+      >
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+        <polyline points="15 3 21 3 21 9"></polyline>
+        <line x1="10" y1="14" x2="21" y2="3"></line>
+      </svg>
+    </a>
+  </div>
+</div>

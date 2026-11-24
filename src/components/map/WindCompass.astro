@@ -1,0 +1,29 @@
+---
+// The wind filter: the take-offs facing the chosen directions stay.
+import { COMPASS } from "../../scripts/settings.ts";
+---
+
+<div class="drawer-section">
+  <h4 class="drawer-subtitle" data-t="map.section.compass"></h4>
+  <p class="drawer-hint" data-t="map.compassHint"></p>
+  <div class="compass-rose-grid">
+    {COMPASS.map((dir) => (
+      <button
+        type="button"
+        class="compass-btn"
+        data-wind={dir}
+        aria-pressed="false"
+      >
+        {dir}
+      </button>
+    ))}
+  </div>
+  <div class="wind-reset-row hidden" data-wind-reset>
+    <button
+      type="button"
+      class="btn-secondary btn-wind-reset"
+      data-action="clear-wind"
+      data-wind-reset-label
+    ></button>
+  </div>
+</div>

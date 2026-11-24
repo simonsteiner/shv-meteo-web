@@ -212,29 +212,14 @@ class AppState {
     this.notify();
   }
 
-  selectSite(site) {
-    this.state.selectedSite = site;
-    this.notify();
-  }
-
-  selectStation(st) {
-    this.state.selectedStation = st;
-    this.notify();
-  }
-
-  selectWebcam(wc) {
-    this.state.selectedWebcam = wc;
-    if (wc) this.state.selectedObstacle = null;
-    this.notify();
-  }
-
-  selectObstacle(obs) {
-    this.state.selectedObstacle = obs;
-    if (obs) {
-      this.state.selectedSite = null;
-      this.state.selectedStation = null;
-      this.state.selectedWebcam = null;
-    }
+  // The map's one selection, shown in its bottom sheet: kind is "site",
+  // "station", "webcam" or "obstacle"; null clears it.
+  /** @param {string | null} kind @param {unknown} [value] */
+  select(kind, value = null) {
+    this.state.selectedSite = kind === "site" ? value : null;
+    this.state.selectedStation = kind === "station" ? value : null;
+    this.state.selectedWebcam = kind === "webcam" ? value : null;
+    this.state.selectedObstacle = kind === "obstacle" ? value : null;
     this.notify();
   }
 
