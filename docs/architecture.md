@@ -12,10 +12,10 @@ flowchart LR
     fn["Functions /api/*<br/>measurements, timeseries, webcams,<br/>text-forecast, foehn, previtemps forecast"]
     cache[("edge cache:<br/>last good answer")]
   end
-  subgraph direct["Upstreams with CORS"]
+  subgraph direct["Upstreams the browser loads directly"]
     tiles["wmts.geo.admin.ch (swisstopo, glider chart),<br/>tile.openstreetmap.org"]
     outlooks["static-prod.ubmeteo.io: outlook frames"]
-    isobars["shv-app-ws-prod.shv-app.ch: isobar SVG"]
+    isobars["shv-app-ws-prod.shv-app.ch: isobar SVG, as an img"]
   end
   subgraph proxied["Upstreams a browser can't call"]
     weather["weather-ws-prod.ubmeteo.io:<br/>measurements, timeseries, ICON point data"]
@@ -33,7 +33,7 @@ flowchart LR
   cdn -. "npm run obstacles, at deploy" .-> static
 ```
 
-Each arrow and the reason for it is a row in [data-queries.md](architecture/data-queries.md).
+Each upstream in the diagram has a row in [data-queries.md](architecture/data-queries.md), with the reason for its path.
 
 - [architecture/data-queries.md](architecture/data-queries.md): every upstream, which calls go straight from the browser and which through a Function in `functions/api/`, the rules every Function keeps, and the edge-cache, CPU and vector-tile spikes. Read it before adding or changing an endpoint.
 - [architecture/data-pipeline.md](architecture/data-pipeline.md): what the data holds and how the app reads it: the GIS snapshots, flying sites, station pairs, measurement units, map controls, forecasts, soundings and BAZL obstacles.
