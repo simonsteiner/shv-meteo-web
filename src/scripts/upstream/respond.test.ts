@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Context } from "../types.ts";
+import { fetchUpstream } from "./fetch.ts";
 import { proxy, respond } from "./respond.ts";
 import { ROUTES } from "./routes.ts";
 
@@ -211,5 +212,33 @@ test("a 200 that isn't JSON is an upstream failure: a 503, nothing kept", async 
   );
   await settled();
   assert.equal(res.status, 503);
+  assert.equal(store.size, 0);
+});
+
+test("a proxied body that stalls errors for the client and is never kept", async () => {
+  const { cache, store } = fakeCache();
+  const { ctx, settled } = context();
+  const stall = (async () =>
+    new Response(
+      new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode('{"features": ['));
+        },
+      }),
+      { headers: { "Content-Type": "application/json" } },
+    )) as typeof fetch;
+  const res = await quietly(async () => {
+    const answer = await respond(
+      route,
+      KEY,
+      () => fetchUpstream("https://upstream.test/x", 50, stall),
+      ctx,
+      cache,
+    );
+    await assert.rejects(answer.text(), { name: "TimeoutError" });
+    await settled();
+    return answer;
+  });
+  assert.equal(res.status, 200);
   assert.equal(store.size, 0);
 });
