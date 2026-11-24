@@ -4,9 +4,11 @@
 // (respond.ts); the rules live here and in params.ts, where the tests run.
 
 export interface Route {
-  /** The upstream URL for the parsed parameters; absent for the routes that
-   * make several calls (foehn, sounding). */
-  url?(params: Record<string, string>): string;
+  /** The upstream URL for the parsed parameters at `now` (epoch ms); absent
+   * for the routes that make several calls (foehn, sounding). The cache key
+   * is built from the parameters alone (`serve` in respond.ts), so a URL
+   * that moves with the clock still keeps one copy per request. */
+  url?(params: Record<string, string>, now: number): string;
   /** Seconds a 200 is fresh: its browser max-age and its edge-cache TTL. */
   ttl: number;
   timeoutMs: number;
@@ -40,6 +42,24 @@ const MEASUREMENT_PARAMETERS =
 const TIMESERIES_PARAMETERS =
   "wind_speed,wind_direction,wind_gust,temperature,dew_point,pressure_msl,relative_humidity";
 
+/** How far back the station chart reaches: its "24h" heading. Without
+ * `start` upstream sends 14 days (KLO: 548 KB and 2,012 points per series
+ * at 10 minutes; a Holfuy station 3 MB at one minute). Exactly 24 hours, so
+ * no HH:MM label on the chart's axis appears twice. */
+const CHART_SPAN_MS = 24 * 3600 * 1000;
+
+/** `start` is rounded down to the minute. */
+const START_STEP_MS = 60 * 1000;
+
+/** The `start` (epoch ms) of a series reaching `spanMs` back from `at`,
+ * rounded down to the minute, so every call within a minute asks upstream
+ * for the same URL and its cache can answer; a start in milliseconds made
+ * each URL new. */
+export function startBefore(at: number, spanMs: number): number {
+  const since = at - spanMs;
+  return since - (since % START_STEP_MS);
+}
+
 export type RouteName =
   | "measurements"
   | "timeseries"
@@ -61,8 +81,8 @@ export const ROUTES: Record<RouteName, Route> = {
     query: [],
   },
   timeseries: {
-    url: ({ id }) =>
-      `${WEATHER}/measurements/timeseries/${encodeURIComponent(id)}?parameters=${TIMESERIES_PARAMETERS}`,
+    url: ({ id }, now) =>
+      `${WEATHER}/measurements/timeseries/${encodeURIComponent(id)}?parameters=${TIMESERIES_PARAMETERS}&start=${startBefore(now, CHART_SPAN_MS)}`,
     ttl: 180,
     timeoutMs: 8_000,
     errorBody: { error: "Stations-Zeitreihe vorübergehend nicht erreichbar" },

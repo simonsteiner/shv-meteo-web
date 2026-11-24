@@ -195,6 +195,50 @@ test("proxy keys the copy by the checked parameters", async () => {
   );
 });
 
+test("the timeseries route asks for the last 24 hours, its copy keyed by station alone", async () => {
+  const { cache, store } = fakeCache();
+  const { ctx, settled } = context(
+    "https://shv-meteo.pages.dev/api/measurements/timeseries/meteo_swiss%3AKLO",
+  );
+  const asked: string[] = [];
+  const real = globalThis.fetch;
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    asked.push(String(input instanceof Request ? input.url : input));
+    return Response.json({ timeseries: [] });
+  }) as typeof fetch;
+  const before = Date.now();
+  try {
+    await proxy(
+      "timeseries",
+      { ...ctx, params: { id: "meteo_swiss%3AKLO" } },
+      cache,
+    );
+  } finally {
+    globalThis.fetch = real;
+  }
+  await settled();
+  const start = Number(new URL(asked[0]).searchParams.get("start"));
+  assert.equal(start % 60_000, 0);
+  const span = before - start;
+  assert.ok(span >= 24 * 3600_000 && span < 24 * 3600_000 + 60_000, `${span}`);
+  assert.deepEqual(
+    [...store.keys()],
+    ["https://shv-meteo.pages.dev/api/_cache/timeseries?id=meteo_swiss%3AKLO"],
+  );
+});
+
+test("the timeseries start moves only once a minute", () => {
+  const url = (now: number) =>
+    new URL(ROUTES.timeseries.url!({ id: "meteo_swiss:KLO" }, now));
+  const minute = Date.UTC(2026, 10, 24, 12, 0);
+  assert.equal(
+    url(minute).searchParams.get("start"),
+    String(minute - 86_400_000),
+  );
+  assert.equal(url(minute + 59_999).search, url(minute).search);
+  assert.notEqual(url(minute + 60_000).search, url(minute).search);
+});
+
 test("proxy answers a bad id with a 400 before going upstream", async () => {
   const { ctx } = context();
   const res = await proxy("timeseries", { ...ctx, params: { id: "a/b" } });

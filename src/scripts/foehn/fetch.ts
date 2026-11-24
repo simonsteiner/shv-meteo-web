@@ -9,7 +9,7 @@
 // route (its 503); a failed series only empties the history.
 import type { MeasurementFeature, TimeseriesResponse } from "../types.ts";
 import { fetchUpstream } from "../upstream/fetch.ts";
-import { ROUTES, WEATHER } from "../upstream/routes.ts";
+import { ROUTES, startBefore, WEATHER } from "../upstream/routes.ts";
 import {
   historyParameter,
   PAIRS,
@@ -98,15 +98,10 @@ async function measurements(
  * Without `start` upstream sends 14 days (about 76 KB rather than 6 KB). */
 const SERIES_SPAN_MS = 25 * 3600 * 1000;
 
-/** `start` is rounded down to the minute, so every report within a minute
- * asks upstream for the same URL and its cache can answer; a start in
- * milliseconds made each URL new. */
-const SERIES_START_STEP_MS = 60 * 1000;
-
-/** When a series asked for at `at` (epoch ms) starts. */
+/** When a series asked for at `at` (epoch ms) starts, rounded down to the
+ * minute (`startBefore`). */
 export function seriesStart(at: number): number {
-  const since = at - SERIES_SPAN_MS;
-  return since - (since % SERIES_START_STEP_MS);
+  return startBefore(at, SERIES_SPAN_MS);
 }
 
 /** `stationId`'s series of `parameter` since `since` (epoch ms). */
