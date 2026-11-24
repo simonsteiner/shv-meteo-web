@@ -41,11 +41,12 @@ test("other pressure pairs grade the absolute gradient", () => {
   assert.equal(assess(pairConfig("PIL_MTR"), 10).alertLevel, "NONE");
 });
 
-test("a gradient alert says so in English too, not the calm text", () => {
+test("a gradient alert says so in its status and in English, not the calm text", () => {
   const calm = assess(pairConfig("GVE_GUT"), 0).descriptionEn;
   for (const d of [-3, 6]) {
     const a = assess(pairConfig("DEM_GRE"), d);
     assert.notEqual(a.descriptionEn, calm);
+    assert.notEqual(a.status, "CALM");
     assert.match(a.descriptionEn, new RegExp(`${d > 0 ? "\\+" : ""}${d} hPa`));
   }
 });

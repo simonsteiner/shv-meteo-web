@@ -125,14 +125,14 @@ export function assess(
   const signed = `${delta > 0 ? "+" : ""}${delta}`;
   if (Math.abs(delta) >= 6)
     return {
-      ...calm,
+      status: "STRONG_GRADIENT",
       alertLevel: "DANGER",
       descriptionDe: `Starker Druckgradient (${signed} hPa). Starkwind und Turbulenzen zwischen den beiden Stationen.`,
       descriptionEn: `Strong pressure gradient (${signed} hPa). Strong wind and turbulence between the two stations.`,
     };
   if (Math.abs(delta) >= 3)
     return {
-      ...calm,
+      status: "MODERATE_GRADIENT",
       alertLevel: "MODERATE",
       descriptionDe: `Mässiger Gradient (${signed} hPa). Merkliche Ausgleichsströmung.`,
       descriptionEn: `Moderate gradient (${signed} hPa). Noticeable compensating flow.`,
