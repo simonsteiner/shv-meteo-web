@@ -259,3 +259,95 @@ test("a stale copy that isn't JSON is dropped, and the route answers 503", async
     ),
   );
 });
+
+/** Stores `body` as the copy, then answers with upstream failing once it is
+ * stale, collecting what was logged. */
+async function fallBackTo(body: string) {
+  const { cache, store } = fakeCache();
+  const first = context();
+  await respond(route, KEY, upstream(body), first.ctx, cache, 0);
+  await first.settled();
+  const logged: unknown[][] = [];
+  const original = console.error;
+  console.error = (...args: unknown[]) => void logged.push(args);
+  const failed = context();
+  try {
+    const res = await respond(
+      route,
+      KEY,
+      upstream("", { status: 502 }),
+      failed.ctx,
+      cache,
+      61_000,
+    );
+    await failed.settled();
+    return { res, store, logged };
+  } finally {
+    console.error = original;
+  }
+}
+
+// above the 200 KB parse limit, as measurements' 3 MB copy is
+const big = `{"features": [${"1,".repeat(150_000)}1]}\n`;
+
+test("a large stale copy with matching brackets is served unparsed", async () => {
+  const { res, store } = await fallBackTo(big);
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get("x-cache"), "stale");
+  assert.equal(await res.text(), big);
+  assert.equal(store.size, 1);
+});
+
+test("a large truncated stale copy is dropped, and the route answers 503", async () => {
+  const { res, store, logged } = await fallBackTo(big.slice(0, -3));
+  assert.equal(res.status, 503);
+  assert.equal(store.size, 0);
+  assert.ok(
+    logged.some((args) =>
+      String(args[0]).startsWith("[respond] The cached copy"),
+    ),
+  );
+});
+
+test("a stale copy that fails to read answers 503 and is kept", async () => {
+  let deleted = false;
+  const cache = {
+    async delete() {
+      deleted = true;
+      return true;
+    },
+    async match() {
+      const body = new ReadableStream({
+        pull(controller) {
+          controller.error(new Error("cache stream broke"));
+        },
+      });
+      return new Response(body, { headers: { "x-fetched-at": "0" } });
+    },
+    async put() {},
+  } as unknown as Cache;
+  const logged: unknown[][] = [];
+  const original = console.error;
+  console.error = (...args: unknown[]) => void logged.push(args);
+  const { ctx, settled } = context();
+  try {
+    const res = await respond(
+      route,
+      KEY,
+      upstream("", { status: 502 }),
+      ctx,
+      cache,
+      61_000,
+    );
+    await settled();
+    assert.equal(res.status, 503);
+  } finally {
+    console.error = original;
+  }
+  assert.equal(deleted, false);
+  assert.ok(
+    logged.some((args) =>
+      String(args[0]).startsWith("[respond] Cache read failed for"),
+    ),
+  );
+});
