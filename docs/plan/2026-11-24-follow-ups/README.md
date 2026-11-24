@@ -39,6 +39,7 @@ One stack against `main`, so the owner can merge it in one go: the two fixes, th
 ## Later, or never
 
 - **The federal environment layers' vector tiles** (floodplains, game reserves, moorland landscapes, wildlife rest areas). We already show the rest areas and reserves from `wildschutz.geojson`; first check what the tiles add beyond it, then weigh the vector-tile plugin (shared with F7).
+- **An Open-Meteo sounding fallback while upstream's ICON-CH1 is broken:** spiked on 2026-11-24 and dropped. ICON-D2 through Open-Meteo is free for this site, browser-callable and sane, but it has two to five real levels between a sounding station's ground and 600 hPa against ICON-CH1's 40, too few to read inversions, thermals or cloud base ([research note](../../research/2026-11-24-open-meteo-sounding-fallback.md)). Revisit when Open-Meteo serves MeteoSwiss ICON on levels, or spike AROME France's 50 hPa levels if the outage lasts.
 - **Skip:** Ubique's and swisstopo's vector base maps, hillshade and elevation tiles (a vector renderer for what the swisstopo raster maps already cover), the provider and product catalogues (nothing to show, 403 to an `Origin`), the home map's `country=ch` variant, app config, usage events and Sentry.
 
 ## F8 Sounding on production (a check, not a PR)
