@@ -23,7 +23,7 @@ The implementation PRs start at PR5.
 
 ## Status (2026-11-24)
 
-PR5 to PR20 have merged, with five follow-ups that the stack's reviews and its first deploys called for, and production runs on `https://shv-meteo.pages.dev`. PR21 and PR22 remain; they and the work left for later are planned in [../2026-11-24-follow-ups/](../2026-11-24-follow-ups/README.md). Where the merged code differs from these files, [data-queries.md](../../architecture/data-queries.md) records what shipped and why, and the plan files say so where it matters.
+PR5 to PR20 have merged, with five follow-ups that the stack's reviews and its first deploys called for, and production runs on `https://shv-meteo.pages.dev`. PR21 and PR22 shipped as the follow-up plan's F1 and F2 ([#29](https://github.com/simonsteiner/shv-meteo-web/pull/29), [#30](https://github.com/simonsteiner/shv-meteo-web/pull/30)), so this plan is done; the work left is in [../2026-11-24-follow-ups/](../2026-11-24-follow-ups/README.md). Where the merged code differs from these files, [data-queries.md](../../architecture/data-queries.md) records what shipped and why, and the plan files say so where it matters.
 
 | Plan | PR | Branch | Notes |
 | --- | --- | --- | --- |
@@ -47,7 +47,7 @@ PR5 to PR20 have merged, with five follow-ups that the stack's reviews and its f
 | PR19 | [#25](https://github.com/simonsteiner/shv-meteo-web/pull/25) | `refactor/forecast-page` | the emagram shows its empty state while upstream's ICON columns are broken |
 | PR20 | [#26](https://github.com/simonsteiner/shv-meteo-web/pull/26) | `refactor/map-page` | also took the geolocation code and emptied the file-tokens `exclude:` list |
 
-PR18 to PR20 branched off PR16 side by side and merged one after another, each merging `main` in first. Next: the [follow-up plan](../2026-11-24-follow-ups/README.md), whose first two PRs are this plan's PR21 and PR22, delivered as one `gh stack`.
+PR18 to PR20 branched off PR16 side by side and merged one after another, each merging `main` in first. The [follow-up plan](../2026-11-24-follow-ups/README.md) delivered this plan's PR21 and PR22 as its F1 and F2.
 
 ## Contents
 

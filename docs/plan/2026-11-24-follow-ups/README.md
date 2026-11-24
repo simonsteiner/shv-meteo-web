@@ -4,7 +4,7 @@ The [migration plan](../2026-11-23-astro-cloudflare/README.md) has shipped up to
 
 ## Delivery
 
-- A stack is a line, so items that don't depend on each other go up as separate PRs off `main`, unless the owner wants them merged in one go, as with the stack in review below.
+- A stack is a line, so items that don't depend on each other go up as separate PRs off `main`, unless the owner wants them merged in one go, as with the two station dialog fixes (#46, #47).
 - Each PR passes `npm run lint`, `npm run typecheck`, `npm test` and `npm run build`, and is used in the browser on `npm run dev` (and on `npm run build && npm run preview` when it loads something from a new origin, for the CSP); a PR that changes a page attaches before and after shots from `npm run shot`.
 - The owner reviews and merges.
 
@@ -24,13 +24,8 @@ The [migration plan](../2026-11-23-astro-cloudflare/README.md) has shipped up to
 | F14 `feat/segelflugkarte` | [#42](https://github.com/simonsteiner/shv-meteo-web/pull/42) | BAZL's glider chart as a base map, the choice kept in `shv_*` |
 | F7 `perf/obstacle-tiles` (research only) | [#43](https://github.com/simonsteiner/shv-meteo-web/pull/43) | the shards stay: upstream's tiles are 99.9% complete, but a z9 tile carries z11 detail, so a z9 view would read about 3 times the bytes and only z12 and z13 views get lighter ([research note](../../research/2026-11-24-obstacle-vector-tiles.md)); revisit if the shards near a Pages limit or upstream cuts tiles per zoom |
 | member check research | [#39](https://github.com/simonsteiner/shv-meteo-web/pull/39) | how to tell that a visitor is a current SHV member, and why it needs a client from the SHV ([research note](../../research/2026-11-24-member-check.md)); reshaped F10, F15 and F16 |
-
-## In review: two station dialog fixes
-
-One stack against `main`, so the owner can merge it in one go: the two fixes, then this update of the plan.
-
-- **`fix/station-chart-24h`:** the dialog's chart is headed "24h Verlauf", but `/api/measurements/timeseries/:id` passed upstream's default of 14 days (KLO: 548 KB, 2,012 points per series; a Holfuy station 3.1 MB at one-minute values). The route now sends `start=` 24 hours back, rounded down to the minute as for Foehn; the edge-cache copy stays keyed by station. KLO comes down to 39 KB and 1,001 points, the Holfuy station to 211 KB and 5,576.
-- **`fix/dew-point-fallback`:** `stationValues` read only `dewPoint2mValue`, so the 118 stations that send only `dewPointValue` (Bantiger, five Windline stations, the aviation reports) showed a dash; it now falls back to the plain value, as the temperature does.
+| `fix/station-chart-24h` | [#46](https://github.com/simonsteiner/shv-meteo-web/pull/46) | the station dialog's "24h Verlauf" asks upstream for 24 hours, not its default 14 days: KLO 548 KB to 39 KB, a Holfuy station 3.1 MB to 211 KB |
+| `fix/dew-point-fallback` | [#47](https://github.com/simonsteiner/shv-meteo-web/pull/47) | the dialog falls back to `dewPointValue`, so the 118 stations that send only that show their dew point |
 
 ## F15 `feat/forecast-animations` (after the owner's decision in F10; after F16 if members only)
 
@@ -74,7 +69,6 @@ Port `analyze_sounding` (`e1e5525:server/emagram_calc.py:56-201`) to TypeScript:
 ## Order
 
 ```text
-fix/station-chart-24h, fix/dew-point-fallback                in review, one stack on main
 F10 send the SHV the client request -> F16 acceptance spike -> F16 member check
 F10 members-only decision (-> F16 if members only) -> F15 forecast animations
 F8 when upstream recovers -> F11
