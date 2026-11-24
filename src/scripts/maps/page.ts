@@ -17,7 +17,7 @@ import {
   withoutHandoff,
   type Handoff,
 } from "../handoff.ts";
-import { applyText, fill } from "../i18n/text.ts";
+import { applyText } from "../i18n/text.ts";
 import { mountSheet, selectionOf, type Selection } from "../sheet/render.ts";
 import type {
   BaseMap,
@@ -41,10 +41,19 @@ import { siteLayers } from "./layer-sites.ts";
 import { zoneLayers } from "./layer-zones.ts";
 import { locatePilot } from "./locate.ts";
 import { centredIcon, createMap, showLayer } from "./view.ts";
+import { controlsView, pressed, type Control } from "./controls.ts";
 import type { FoehnReport } from "../foehn/report.ts";
 import { weatherUrl } from "../weather/query.ts";
 
 const { say } = store;
+
+/** The drawer's toggle buttons, each by its data attribute. */
+const CONTROL_SELECTORS: [Control, string][] = [
+  ["wind", "[data-wind]"],
+  ["meteoMode", "[data-meteo-mode]"],
+  ["base", "[data-base]"],
+  ["mapCategory", "[data-map-category]"],
+];
 
 export function mountMap(root: HTMLElement): void {
   const handoff: Handoff | null = readHandoff(location.search);
@@ -135,64 +144,40 @@ export function mountMap(root: HTMLElement): void {
   }
 
   function renderControls(): void {
-    const {
-      searchQuery: search,
-      windFilter: wind,
-      layers,
-      meteoMode,
-      baseMap,
-      mapCategory,
-    } = store.state;
-    if (searchInput.value !== search) searchInput.value = search;
-    q('.clear-btn[data-action="clear-search"]').classList.toggle(
-      "hidden",
-      !search,
-    );
-    q("[data-filter-pills]").classList.toggle(
-      "hidden",
-      !search && wind.length === 0,
-    );
-    q('[data-pill="wind"]').classList.toggle("hidden", wind.length === 0);
-    q('[data-pill="search"]').classList.toggle("hidden", !search);
-    const dirs = wind.join(", ");
-    q('[data-pill-text="wind"]').textContent = fill(say("map.windPill"), {
-      dirs,
-    });
-    q('[data-pill-text="search"]').textContent = `"${search}"`;
-    const badge = q("[data-wind-count]");
-    badge.classList.toggle("hidden", wind.length === 0);
-    badge.textContent = String(wind.length);
-    q("[data-wind-reset]").classList.toggle("hidden", wind.length === 0);
-    q("[data-wind-reset-label]").textContent = fill(say("map.resetWind"), {
-      dirs,
-    });
+    const state = store.state;
+    const view = controlsView(state, say);
+    if (searchInput.value !== view.search) searchInput.value = view.search;
+    const show = (selector: string, on: boolean) =>
+      q(selector).classList.toggle("hidden", !on);
+    show('.clear-btn[data-action="clear-search"]', view.searchShown);
+    show("[data-filter-pills]", view.pillsShown);
+    show('[data-pill="wind"]', view.windShown);
+    show('[data-pill="search"]', view.searchShown);
+    show("[data-wind-count]", view.windShown);
+    show("[data-wind-reset]", view.windShown);
+    show("[data-dabs-link]", view.dabsShown);
+    q('[data-pill-text="wind"]').textContent = view.windPillText;
+    q('[data-pill-text="search"]').textContent = view.searchPillText;
+    q("[data-wind-count]").textContent = String(view.windCount);
+    q("[data-wind-reset-label]").textContent = view.windResetLabel;
 
-    const press = (el: HTMLElement, on: boolean) => {
-      el.classList.toggle("active", on);
-      el.setAttribute("aria-pressed", String(on));
-    };
-    for (const b of all("[data-wind]"))
-      press(b, (wind as readonly string[]).includes(b.dataset.wind ?? ""));
-    for (const b of all("[data-meteo-mode]"))
-      press(b, b.dataset.meteoMode === meteoMode);
-    for (const b of all("[data-base]")) press(b, b.dataset.base === baseMap);
-    for (const b of all("[data-map-category]"))
-      press(b, b.dataset.mapCategory === mapCategory);
+    for (const [control, selector] of CONTROL_SELECTORS)
+      for (const b of all(selector)) {
+        const on = pressed(state, control, b.dataset[control]);
+        b.classList.toggle("active", on);
+        b.setAttribute("aria-pressed", String(on));
+      }
     for (const pane of all("[data-pane]")) {
-      const on = pane.dataset.pane === mapCategory;
+      const on = pane.dataset.pane === state.mapCategory;
       pane.classList.toggle("active", on);
       pane.classList.toggle("hidden", !on);
     }
     for (const box of all<HTMLInputElement>("input[data-layer]")) {
       const key = box.dataset.layer as keyof Layers;
-      box.checked = layers[key] === true;
+      box.checked = state.layers[key] === true;
     }
-    q("[data-dabs-link]").classList.toggle(
-      "hidden",
-      mapCategory !== "AIRSPACE",
-    );
     const status = q("[data-map-status]");
-    status.textContent = loadStatusText(failedShown(failed, layers), say);
+    status.textContent = loadStatusText(failedShown(failed, state.layers), say);
     status.classList.toggle("hidden", !status.textContent);
   }
 
