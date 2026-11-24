@@ -208,3 +208,11 @@ Once authenticated, the app queries the member web service:
   ]
 }
 ```
+
+### Field names from the old profile code
+
+Notes kept from the Profile tab this site had before the Astro migration; nothing in the code reads these fields now, and they were never checked against a live payload. They disagree with the example above (`firstName` and `lastName`, `cardLevel` and `title`), so check a real `v1/wms/person` answer before relying on either:
+
+- **Names**: `vorname` holds the first name and `name` the last name.
+- **`LocalizedString`** (`q64` in the decompile): multilingual values such as `mitgliedkategorie.name`, `insurance.name`, `insurance.beschreibung` and the brevet categories arrive as `{ "de": "Aktivmitglied", "fr": "Membre actif", "it": "Membro attivo", "en": "Active member" }`; the Kotlin serialised properties map to `{ a: de, b: fr, c: it, d: en }`.
+- **Card levels**: a brevet (`ShvBrevet`, `b`) holds its ratings in `cardLevels` (`ShvCardLevel`, `c`: `level`, `date`, `remarks`).

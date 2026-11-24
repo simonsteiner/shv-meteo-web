@@ -1,187 +1,74 @@
-# Spatial and weather data pipeline
+# Spatial and weather data
 
-The app integrates live telemetry and static GIS layers across Switzerland:
+What the upstream data holds and how the app reads it. Which upstream each resource comes from, and whether the browser calls it directly or through a Function, is the table in [data-queries.md](data-queries.md). Terms follow [GLOSSARY.md](../../GLOSSARY.md).
 
-```text
-[Spatial / Weather Sources]
-  ├── GeoJSON CDN (shv-app-static-prod.ubmeteo.io)
-  │     ├── /v1/flyingsites.geojson   -> 1,341 take-offs, landings and other site features
-  │     ├── /v1/airspaces/shv.geojson -> 353 airspace polygons
-  │     └── /v1/wildschutz/shv.geojson-> 51 wildlife protection zones
-  ├── Live Weather (weather-ws-prod.ubmeteo.io)
-  │     └── /v1/measurements/current  -> 620+ stations (wind, gust, temp, QNH)
-  ├── Mountain Webcams (webcam-prod.ubmeteo.io)
-  │     └── /v1/webcams/overview      -> Panomax, Roundshot, Swiss alpine cams
-  └── Swisstopo GeoAdmin WMTS
-        ├── ch.swisstopo.pixelkarte-farbe  -> Swiss National Topo Map
-        ├── ch.swisstopo.swissimage        -> High-res aerial imagery
-        └── ch.swisstopo.pixelkarte-grau   -> Grey / relief basemap
-```
+## Static GIS snapshots
 
-## Flying Sites Data Model & Layer Separation
+`public/data/` holds snapshots of the SHV CDN datasets (`shv-app-static-prod.ubmeteo.io`); `ShvApi` loads them first and falls back to the CDN ([src/scripts/api.ts](../../src/scripts/api.ts)). Counts as of the current snapshots:
 
-The SHV flying sites spatial dataset (`public/data/flyingsites.geojson`) contains 1,341 total features representing take-offs, landings, perimeter boundaries, and auxiliary facilities:
+- `flyingsites.geojson`: 1,341 features (358 take-offs, 199 landings, 111 landing circuits, and the auxiliary areas below).
+- `airspaces.geojson`: 353 airspaces.
+- `wildschutz.geojson`: 51 wildlife reserves.
+- `previtemps_stations.json`: the 107 sounding stations.
 
-- **Interactive Map Pins**: Strictly filtered to `type === 'launch'` (358 take-offs) and `type === 'landing'` (199 landings). Perimeter boundaries (`launcharea`, `landingarea`, `landingpattern`, `access`, `parking`) are preserved in spatial indexing but excluded from generating redundant point markers, ensuring 100% of clickable pins possess valid, official `siteName` values and eliminating generic `"Unbenannter Flugplatz"` placeholders.
-- **Parent Site Resolution (`siteId`)**: Auxiliary features (parking, obstacles, landing patterns) link to their primary site via `siteId`. A feature without a name takes its site's from `siteNames()` ([src/scripts/maps/sites.ts](../../src/scripts/maps/sites.ts)); a landing pattern's popup names its landing that way.
-- **Geometry**: Many features are `Polygon`, `MultiPolygon` or `LineString`, not `Point`. Marker and sheet positions come from `featureLatLng()` ([src/scripts/maps/centroid.ts](../../src/scripts/maps/centroid.ts)).
-- **Fees & Payment Integration**:
-  - `fees`: Official landing and take-off fee policies (e.g. Unterleimbach Fr. 5.- Tageskarte / Fr. 40.- Jahreskarte).
-  - `feePaymentLink`: Deep link to online digital payment providers (e.g. RaiseNow / Twint).
-  - `feeQrCodeUrl`: Official Swiss Twint payment QR code rendered for immediate on-site scanning.
-- **Operational Badges**: Renders flight suitability (`paraglider`, `hangglider`, `speedflyer`, `toplanding`, `hikeAndFly`, `soaring`, `crossCountry`), access mode (`accessibleByCar`, `publicTransport`), difficulty level (`easy`, `moderate`, `difficult`), and opening status (`open`, `closed` / shooting range warnings).
+## Flying sites
 
-## Alpine Pressure & Temperature Station Pairs
+- **Pins**: only `type` `launch` (take-off) and `landing` get a marker ([src/scripts/maps/sites.ts](../../src/scripts/maps/sites.ts), `visibleSites`), filtered by the search and, for take-offs, the wind compass. Landing circuits (`landingpattern`) are drawn as lines with a popup ([src/scripts/maps/layer-sites.ts](../../src/scripts/maps/layer-sites.ts)). The other types (`launcharea`, `landingarea`, `access`, `parking`, `packingarea`, `obstacle`, `attention`, `restrictedarea`, `roadclosed`) are not drawn.
+- **Site names**: features link to their flying site by `siteId`. A feature without a `siteName` takes its site's from `siteNames()`, else its `description`, else a generic "Startplatz" or "Landeplatz" ([src/scripts/sheet/site.ts](../../src/scripts/sheet/site.ts)).
+- **Geometry**: many features are `Polygon`, `MultiPolygon` or `LineString`, not `Point`; positions come from `featureLatLng()` ([src/scripts/maps/centroid.ts](../../src/scripts/maps/centroid.ts)).
+- **Site fees**: `fees` (text), `feePaymentLink` (a payment button) and `feeQrCodeUrl` (a QR code image), shown in the site's sheet.
+- **Badges**: what the site suits (`paraglider`, `hangglider`, `speedflyer`, `toplanding`, `soaring`, `crossCountry`, `hikeAndFly`, `groundhandling`), how to reach it (`accessibleByCar`, `publicTransport`), `difficulty` (`easy`, `moderate`, `difficult`) and `openingStatus` (only `closed` occurs).
 
-The native app computes exactly four official station pairs across Switzerland (`PressureDifferenceGeoJsonTransformer.c`):
+## Station pairs
 
-1. **Gotthard Föhn Axis (`KLO_LUG`)** - `PRESSURE_NORTH_SOUTH` (midpoint 0.25):
-   - **North**: Zürich / Kloten (`meteo_swiss:KLO`, 426m AMSL)
-   - **South**: Lugano (`meteo_swiss:LUG`, 273m AMSL)
-   - **Calculation**: $\Delta p = p_{\text{Lugano}} - p_{\text{Kloten}}$ (reduced to sea level QNH).
-     - $\Delta p \ge +4.0\text{ hPa}$: Moderate South Föhn (*Mässiger Südföhn*)
-     - $\Delta p \ge +8.0\text{ hPa}$: Severe South Föhn (*Starker Südföhn - Lebensgefahr*)
-     - $\Delta p \le -4.0\text{ hPa}$: Moderate North Föhn (*Mässiger Nordföhn / Tessin*)
-     - $\Delta p \le -8.0\text{ hPa}$: Severe North Föhn (*Starker Nordföhn*)
-2. **East-West Pressure Gradient (`GVE_GUT`)** - `PRESSURE_EAST_WEST` (midpoint 0.5):
-   - **West**: Geneva / Cointrin (`meteo_swiss:GVE`, 411m AMSL)
-   - **East**: Güttingen (`meteo_swiss:GUT`, 440m AMSL)
-   - **Calculation**: $\Delta p = p_{\text{Geneva}} - p_{\text{Güttingen}}$ (Bise / Westwind gradient indicator).
-3. **Alpine Crest Temperature Pair (`PIL_MTR`)** - `TEMPERATURE_NORTH_SOUTH` (midpoint 0.4):
-   - **North**: Pilatus (`meteo_swiss:PIL`, 2105m AMSL)
-   - **South**: Matro (`meteo_swiss:MTR`, 2171m AMSL)
-   - **Calculation**: $\Delta T = T_{\text{Pilatus}} - T_{\text{Matro}}$ in °C (thermal inversion / alpine ridge stability).
-4. **Jura Pressure Pair (`DEM_GRE`)** - `PRESSURE_NORTH_SOUTH` (midpoint 0.5):
-   - **North**: Delémont (`meteo_swiss:DEM`, 439m AMSL)
-   - **South**: Grenchen (`meteo_swiss:GRE`, 428m AMSL)
-   - **Calculation**: $\Delta p = p_{\text{Grenchen}} - p_{\text{Delémont}}$ in hPa (cross-Jura pressure gradient).
+The four pairs of the official app (its `PressureDifferenceGeoJsonTransformer`), in [src/scripts/foehn/pairs.ts](../../src/scripts/foehn/pairs.ts); the alert levels are in `assess()` in [src/scripts/foehn/report.ts](../../src/scripts/foehn/report.ts):
 
-## Telemetry Units & Data Normalization Standards
+1. **Gotthard (`KLO_LUG`)**, `PRESSURE_NORTH_SOUTH`: Lugano minus Zürich/Kloten (`meteo_swiss:LUG`, `meteo_swiss:KLO`), sea-level pressure in hPa. +4 hPa or more is moderate south föhn, +8 severe; -4 or less moderate north föhn, -8 severe.
+2. **East-west (`GVE_GUT`)**, `PRESSURE_EAST_WEST`: Geneva minus Güttingen (`meteo_swiss:GVE`, `meteo_swiss:GUT`), the bise indicator.
+3. **Alpine crest temperature (`PIL_MTR`)**, `TEMPERATURE_NORTH_SOUTH`: Pilatus minus Matro (`meteo_swiss:PIL`, `meteo_swiss:MTR`) in °C, for stability across the ridge. It raises no alert.
+4. **Jura (`DEM_GRE`)**, `PRESSURE_NORTH_SOUTH`: Grenchen minus Delémont (`meteo_swiss:GRE`, `meteo_swiss:DEM`) in hPa.
 
-Ubique Fluid Meteo Services (`weather-ws-prod.ubmeteo.io`) delivers real-time weather observations with specific unit standards verified against the Android APK decompression (`apk_analysis/unpacked/assets/map/layers/measurement_wind/style.json`):
+For the two other pressure pairs a difference of 3 hPa either way is moderate and 6 hPa a danger. An unknown `?pair=` gets `KLO_LUG`.
 
-- **Wind Speed (`windSpeedValue`) & Gusts (`windGustValue`)**: Values are natively in **km/h** (not m/s). Do **not** multiply by 3.6. Multiplying causes massive over-reporting (e.g. Uetliberg 40.3 km/h showing as 145 km/h).
-- **Temperatures (`temperatureValue`, `temperature2mValue`, `dewPoint2mValue`)**: If raw value $> 200$, it is expressed in Kelvin and must be converted via $T(^\circ\text{C}) = T(\text{K}) - 273.15$. Values $\le 200$ are natively in Celsius.
-- **Atmospheric Pressure (`pressureMslValue`, `pressureStandardMslValue`)**: Scaled in raw tenths or Pa in some sensors. If raw value $> 5000$, divide by 10 to obtain standard hectopascals (hPa / QNH).
+## Measurement units
 
-The `/api/measurements` Function passes the body through unparsed; these conversions happen in the browser, through [src/scripts/units.ts](../../src/scripts/units.ts): on the weather page in [src/scripts/weather/stations.ts](../../src/scripts/weather/stations.ts), on the map page and its sheets in [src/scripts/maps/stations.ts](../../src/scripts/maps/stations.ts).
+Ubique's weather service (`weather-ws-prod.ubmeteo.io`) uses these units, as the official app's map style reads them:
 
-## Live Map Meteo Modes (`LiveMapMeteoType`)
+- **Wind and gusts** (`windSpeedValue`, `windGustValue`): already km/h. Never multiply by 3.6 (Uetliberg's 40.3 km/h would show as 145).
+- **Temperatures** (`temperatureValue`, `temperature2mValue`, `dewPointValue`, `dewPoint2mValue`): a value above 200 is Kelvin.
+- **Pressure** (`pressureMslValue`, `pressureStandardMslValue`): a value above 5000 is in tenths of hPa.
 
-The official application organizes real-time meteo into 5 distinct modes (`LiveMapMeteoType`):
+The Functions pass the bodies through unparsed; the browser converts through `toCelsius` and `toHpa` in [src/scripts/units.ts](../../src/scripts/units.ts), on the weather page in [src/scripts/weather/stations.ts](../../src/scripts/weather/stations.ts) and on the map in [src/scripts/maps/stations.ts](../../src/scripts/maps/stations.ts).
 
-- `WIND`: Displays station wind vectors with direction arrows, speed, and gust tags colored by wind intensity.
-- `TEMPERATURE`: Displays thermal gradient overlay with temperature badges (°C) mapped to cold-to-hot chromatic palettes.
-- `PRESSURE_DIFFERENCE`: Renders the 4 official transect vectors across Switzerland with dynamic $\Delta p$ / $\Delta T$ mid-point badges.
-- `WEBCAM`: Displays alpine live webcams from `webcam-prod.ubmeteo.io/v1/webcams/overview` with high-resolution imagery and timelapses.
-- `NONE`: Meteo overlay deactivated.
+## Map controls
 
-## Member Data Model & LocalizedString Serialization
+The meteo modes are the official app's `LiveMapMeteoType`: `WIND`, `TEMPERATURE`, `PRESSURE_DIFFERENCE` (the station pairs), `WEBCAM` and `NONE` (`METEO_MODES` in [src/scripts/settings.ts](../../src/scripts/settings.ts)). The layers drawer has three tabs, `METEO`, `AIRSPACE` and `FLYING_AREAS`; which layer switches, base maps and the wind compass each tab shows is `DRAWER_PANES` in [src/scripts/maps/drawer.ts](../../src/scripts/maps/drawer.ts). On a first visit only the stations layer is on (`defaultSettings()`).
 
-The SHV WMS API (`v1/wms/person`) and Kotlin models use specialized naming conventions and localized object structures:
+Base maps ([src/scripts/maps/basemap.ts](../../src/scripts/maps/basemap.ts)): swisstopo `pixelkarte-grau` (`topoLight`, the default), `pixelkarte-farbe` (`topoColor`), `swissimage` (`topoSatellite`), OpenStreetMap (`topoOsm`) and BAZL's glider chart (`gliderChart`, `ch.bazl.segelflugkarte`). While the airspace tab is open, a floating link opens the Skybriefing DABS.
 
-- **Pilot Names**: `vorname` holds the pilot's first name, while `name` holds the pilot's last name. The former Profile tab combined both (`vorname + ' ' + name`) to prevent missing first names.
+## Text forecasts
 
-- **`LocalizedString` Model (`q64`)**: Multilingual strings are delivered as serialized objects:
+`/api/meteo/text-forecast/:lang` passes `shv-app-ws-prod.shv-app.ch/v1/text/forecast/{lang}.json` through; [src/scripts/forecast/text.ts](../../src/scripts/forecast/text.ts) reads it:
 
-  ```json
-  { "de": "Aktivmitglied", "fr": "Membre actif", "it": "Membro attivo", "en": "Active member" }
-  ```
+- **Regional** (`forecast`): keys `0` (Deutschschweiz and Graubünden), `1` (Alpensüdseite and Engadin), `2` (Westschweiz and Wallis).
+- **Paragliding** (`gleitschirmForecast`, else `flugwetterForecast`), **soaring** (`segelflugForecast`) and the **general situation** (`generalForecast`).
 
-  Ktor/kotlinx serialized properties map to `{ a: de, b: fr, c: it, d: en }`.
+The isobar chart is upstream's SVG (`v1/text/isobaren/{lang}.svg` on the same host) in an `<img>`.
 
-- **Nested Objects**: Membership categories (`mitgliedkategorie.name`), insurance descriptions (`insurance.beschreibung`, `insurance.name`), and brevet categories are resolved dynamically using `resolveLocalizedString(val, lang)` to eliminate `[object Object]` stringification bugs across all views.
+## Outlooks
 
-- **Card Levels**: Brevets (`ShvBrevet` `b`) store ratings in `cardLevels` (`ShvCardLevel` `c`: `level`, `date`, `remarks`).
+`static-prod.ubmeteo.io/v1/animation/switzerland/days_overview.json` lists the frames of three products: `RELATIVE_SUNSHINE`, `PRECIPITATION_PROBABILITY_WEAK` and `PRECIPITATION_PROBABILITY_STRONG`. The frames are greyscale WebP rasters whose green channel holds a percentage; [src/scripts/forecast/outlooks.ts](../../src/scripts/forecast/outlooks.ts) colours them through the official app's palettes in a canvas, laid over a swisstopo map with a player ([outlooks-page.ts](../../src/scripts/forecast/outlooks-page.ts)).
 
-## Text Forecasts, Soaring Prognoses & Synoptic Weather Charts
+## Soundings
 
-The application integrates official MeteoSchweiz and SHV daily text prognoses directly from Verband infrastructure (`v1/text/forecast/{lang}.json`):
+- **Grid points**: `npm run grid` ([scripts/previtemps-grid.ts](../../scripts/previtemps-grid.ts)) maps each sounding station to its nearest ICON-CH1 grid point, else ICON-CH2, from upstream's zoom-10 grid tiles (`static-prod.ubmeteo.io/v1/products/grid/10/{x}/{y}.json`, with `x = floor((180 + lon) / 0.3515625)` and `y = floor((90 - lat) / 0.17578125)`, [src/scripts/emagram/gridpoint.ts](../../src/scripts/emagram/gridpoint.ts)), and writes `src/data/previtemps_grid.json`.
+- **Point data**: the Function asks the grid point's model for its runs and tries the newest two; each run's six series (`temperature`, `pressure`, `specific_humidity`, `height_half_level`, `wind_u`, `wind_v`) come in one call ([src/scripts/emagram/fetch.ts](../../src/scripts/emagram/fetch.ts)).
+- **Levels**: the browser builds them from the ground up to 550 hPa ([src/scripts/emagram/levels.ts](../../src/scripts/emagram/levels.ts)): dew point by Magnus-Tetens from the vapour pressure `e = q p / (0.622 + 0.378 q)`, wind speed in km/h and direction from `u` and `v`, and the lapse rate in °C per 100 m.
+- **Chart** ([src/scripts/forecast/emagram.ts](../../src/scripts/forecast/emagram.ts)): temperature and dashed dew point over log pressure from 1000 to 600 hPa, the temperature coloured by lapse rate (`lapseColor`: yellow from 0 up, inversion; light green to -0.3; green to -0.6; blue to -0.8; red to -1; purple below, superadiabatic), a wind column from 0 to 45 km/h, and a time ruler with a player ([emagram-card.ts](../../src/scripts/forecast/emagram-card.ts)). The station picker is a Leaflet map on swisstopo `pixelkarte-farbe` ([emagram-page.ts](../../src/scripts/forecast/emagram-page.ts)).
 
-- **Regional Forecast (`forecast`)**: 3 regional text forecasts with multi-day outlooks (Heute, Morgen, Übermorgen & Trend):
-  - Key `'0'`: **Deutschschweiz, Nord- und Mittelbünden** (Suisse alémanique / Svizzera tedesca)
-  - Key `'1'`: **Alpensüdseite und das Engadin** (Sud des Alpes / Sud delle Alpi)
-  - Key `'2'`: **Westschweiz und das Wallis** (Suisse romande / Svizzera romanda)
-- **Gleitschirmprognose (`gleitschirmForecast`)**: Official Paragliding text prognosis covering thermal activity, convection, wind shear, cloud base, and alpine safety warnings.
-- **Segelflugprognose (`segelflugForecast`)**: Official MeteoSchweiz Soaring briefing detailing inversion levels, thermal strengths, high-altitude winds, and convection triggers.
-- **Allgemeine Lage (`generalForecast`)**: Synoptic overview across Central Europe.
-- **Isobar Charts**: `https://shv-app-ws-prod.shv-app.ch/v1/text/isobaren/{lang}.svg` (Synoptic European surface pressure field and fronts).
-- **Timeseries Telemetry**: `https://weather-ws-prod.ubmeteo.io/v1/measurements/timeseries/{stationId}?parameters=...` (24-hour recorded historical telemetry).
+## BAZL obstacles
 
-## Meteo-Aussichten (Outlooks / Days Overview)
-
-Reversed from `ShvAggregatedForecastType` and `https://static-prod.ubmeteo.io/v1/animation/switzerland/days_overview.json`:
-
-- **`RELATIVE_SUNSHINE`**: 6-hour interval raster forecast animations (`.webp`) displaying relative sunshine duration across Switzerland (0% - 100%).
-- **`PRECIPITATION_PROBABILITY_WEAK`**: 12-hour interval raster animations mapping light precipitation probability (>0.1 mm / 12h).
-- **`PRECIPITATION_PROBABILITY_STRONG`**: 12-hour interval raster animations mapping heavy precipitation probability (>1.0 mm / 12h).
-- **In-place DOM Animation Engine**: Step and play updates modify image source, time interval label, step indicators, and range slider directly in-place without triggering full view re-renders, preventing scroll resets. Next frames are pre-cached in memory for seamless playback.
-
-## Previtemps Sounding Stations & Genuine MeteoSwiss ICON-CH1 Emagram
-
-Reversed from `fl5.java`, `sl2.java`, `xh7.java`, `ki4.java`, and `u62.java`:
-
-- **107 Sounding Locations**: Extracted with exact geographic coordinates and elevations covering the entire Swiss Alpine space (Interlaken, Engelberg, Payerne, Fiesch, Davos, Scuol, Zermatt, Chur, Zürich, Sion, etc.).
-- **Keyless High-Resolution Map**: Leaflet sounding map powered by official Swisstopo Pixelkarte WMTS (`ch.swisstopo.pixelkarte-farbe`), eliminating external CartoDB dependencies and "API KEY REQUIRED" errors.
-- **EPSG:4326 Grid Tile Resolution (`xh7.java`)**:
-  - Zoom 10 tile coordinates derived via:
-    $x = \lfloor (180.0 + \text{lon}) / 0.3515625 \rfloor$, $y = \lfloor (90.0 - \text{lat}) / 0.17578125 \rfloor$.
-  - Grid definition fetched from `https://static-prod.ubmeteo.io/v1/products/grid/10/{x}/{y}.json`.
-  - Maps any station to the nearest `meteo_swiss:icon_ch1` or `meteo_swiss:icon_ch2` model grid point.
-- **Hourly Point-Data Sounding Engine ([src/scripts/emagram/](../../src/scripts/emagram/), behind `/api/meteo/previtemps/forecast/:name`)**:
-  - Latest model run fetched from `https://weather-ws-prod.ubmeteo.io/v1/point-data/meteo_swiss:icon_ch1/runs`.
-  - Multi-level atmospheric profiles fetched across 34 hourly timesteps:
-    `temperature`, `pressure`, `specific_humidity`, `height_half_level`, `wind_u`, `wind_v`.
-  - Dew point derived via Magnus-Tetens from vapor pressure $e = \frac{q \cdot p}{0.622 + 0.378 \cdot q}$.
-  - Wind speed ($km/h$) and direction ($0^\circ-360^\circ$) computed from vector components $u, v$.
-- **Android Native Visual Parity**:
-  - **Lapse Rate Color Scale**: Temperature curve segmented and dynamically colored by vertical temperature lapse rate $\Gamma = -\frac{dT}{dz} \times 100$ (°C / 100m):
-    - Yellow ($\ge 0.0$ °C/100m, Inversion layer)
-    - Light Green ($-0.3$ to $0.0$ °C/100m, Weak lapse)
-    - Green ($-0.6$ to $-0.3$ °C/100m, Normal lapse / good thermals)
-    - Cyan/Blue ($-0.8$ to $-0.6$ °C/100m, Moderate instability)
-    - Red ($-1.0$ to $-0.8$ °C/100m, Strong thermals / near DALR)
-    - Purple ($< -1.0$ °C/100m, Superadiabatic)
-  - **Dashed Dew Point Curve**: Plotted alongside environmental temperature.
-  - **Right Column Wind Vector & Speed Profile**: Dedicated wind barb column and $0-45$ km/h wind speed line.
-  - **Interactive Time Selector Bar**: Horizontal timeline with hour marks, current time indicator, stepper controls (`<<` / `>>`), and play button for smooth animation across the forecast day.
-
-## Unified Map Controls & Native Android Segmented Drawer Architecture
-
-In accordance with `Screenshot_20261022-164845.png` and decompiled bytecode (`LiveMapCategory.java`, `d.java`, `g34.java`), map controls are organized into a docked bottom drawer (`.map-bottom-drawer`) with a 3-tab segmented category selector:
-
-1. **`Weather` (`METEO`)**: Live weather overlays (`Wind & Böen`, `Temperatur`, `Föhn / Δp`, `Webcams`, `Keine`).
-2. **`Airspace` (`AIRSPACE`)**:
-   - **Base map**: Swisstopo Light Base Map (`topoLight` / `ch.swisstopo.pixelkarte-grau`), Pixelkarte (`topoColor`), Luftbild (`topoSatellite`), OpenStreetMap (`topoOsm`).
-   - **Luftraum & Hindernisse**:
-     - `Luftfahrthindernisse BAZL` (checked by default).
-     - `Luftraum (CTR, TMA, Segelflug)` (checked by default).
-     - `Wildschutz & Jagdbanngebiete` (checked by default).
-   - **Floating DABS Button**: Floating pill (`DABS ↗`) linking directly to official Skybriefing DABS (`https://www.skybriefing.com/de/dabs`).
-3. **`Flying sites` (`FLYING_AREAS`)**:
-   - `Startplätze (Take-offs)` and `Landeplätze (Landings)` toggles.
-   - 8-direction wind compass rose filter with reset button.
-
-## BAZL Aviation Obstacles (`Luftfahrthindernisse`)
-
-Reversed from `apk_analysis/unpacked/assets/map/layers/bazl_obstacles/style.json`, `b20.java`, `n10.java`, and `n20.java`:
-
-- **Data Source & CDN Endpoints**:
-  - Complete Swiss GeoJSON dataset: `https://shv-app-static-prod.ubmeteo.io/v1/obstacles/bazl.geojson` (225,389 authentic features).
-  - Production vector tile CDN: `https://shv-app-static-prod.ubmeteo.io/v1/obstacles/tiles/bazl/{z}/{x}/{y}.pbf` (levels 6, 9, 12).
-- **Spatial Grid Indexing & LOD Engine (the deleted `server/obstacles_provider.js`, replaced in PR12)**:
-  - Caches authentic GeoJSON to local disk with 24-hour TTL and builds a 0.1° spatial binning index ($~7 \times 11$ km cells) in ~45 ms.
-  - Viewport bounding-box queries execute in sub-millisecond time ($<0.5$ ms).
-  - Strict zoom LOD filtering adhering to native `style.json`:
-    - `z >= 6`: Regional lines (`TRANSMISSION_LINE`, `CABLE_CAR`, `BRIDGE`, `CATENARY`) and hazard polygons.
-    - `z >= 8`: Structural point symbols (masts, antennas, cranes, tree groups, buildings, windmills).
-    - `z >= 13`: Cable pylon endpoint markers (circular dots along transmission lines and triangles for marked catenaries).
-- **Styling Parity with Native App**:
-  - Transmission lines colored `#0054FF` (blue) or `#CC0000` (red if marked), with line width scaling from 1.5 to 5.0.
-  - Endpoints rendered as red dots (`red_circle.svg`) or triangles (`triangle.svg`).
-  - Point obstacles rendered using authentic SVG symbols (`ms_pole.svg`, `ms_tree_group.svg`, `ms_crane.svg`, `ms_building.svg`, `ms_windmill.svg`).
-- **Obstacle Details Bottom Sheet ([src/scripts/sheet/obstacle.ts](../../src/scripts/sheet/obstacle.ts))**:
-  - The obstacle type in the UI language (`Freileitung`, `Baukran`, `Mast`, `Seilbahn`, etc.), upstream's code when unknown.
-  - Heights: maximum above ground (AGL) and top elevation (AMSL) in metres, and the aerodrome code when the obstacle lies in an aerodrome zone.
-  - Marking (`Markierung: Markiert / Keine`) and lighting (`Beleuchtung`). The shards keep only these properties (`slim()` in [src/scripts/obstacles/lod.ts](../../src/scripts/obstacles/lod.ts)), so length, radius, decree and dates are not shown.
-  - Directions in the device's maps app and a link to the Skybriefing DABS.
+- **Source**: `shv-app-static-prod.ubmeteo.io/v1/obstacles/bazl.geojson`, about 128 MB, cut into static shards at build time by `npm run obstacles` ([scripts/obstacles.ts](../../scripts/obstacles.ts)); how the browser loads them is the "BAZL obstacles" row in [data-queries.md](data-queries.md). Upstream's MVT tiles were tried and not used (the spike in data-queries.md and [the research note](../research/2026-11-24-obstacle-vector-tiles.md)).
+- **Level of detail** (`visibleAt` in [src/scripts/obstacles/lod.ts](../../src/scripts/obstacles/lod.ts)): nothing below z7; areas always; up to z11 a line or point needs a `MARKED` marking or a height above a threshold that drops as the zoom rises; cable pylon points only from z13. The map draws obstacles from z8 (`OBSTACLE_MIN_ZOOM`).
+- **Look** ([src/scripts/maps/obstacles.ts](../../src/scripts/maps/obstacles.ts)): power lines blue, red when marked; other lines red; areas red, orange around an airport. Cable ends are always circles; other points are coloured circles below z13 and the BAZL symbols (`public/assets/obstacles/<styleId>.svg`) from z13.
+- **Sheet** ([src/scripts/sheet/obstacle.ts](../../src/scripts/sheet/obstacle.ts)): the type in the UI language (upstream's code when unknown), height above ground and top elevation, the aerodrome when there is one, marking, lighting, the BAZL id, directions and the DABS link. The shards keep only these properties (`slim()` in `lod.ts`).
