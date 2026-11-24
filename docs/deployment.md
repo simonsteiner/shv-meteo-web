@@ -32,7 +32,7 @@ In the Cloudflare dashboard: Workers & Pages, `shv-meteo`, Deployments, then Rol
 
 ## What Pages serves
 
-- `dist/` as static files: one page per tab (`/map/`, `/weather/`, `/forecast/`, `/safety/`; `/profile/` redirects to `/map/`), `public/` copied as is (assets and the GeoJSON snapshots under `/data/`).
+- `dist/` as static files: one page per tab (`/map/`, `/weather/`, `/forecast/` with `/forecast/outlooks/`, `/forecast/emagram/` and `/forecast/isobaren/`, `/safety/`; `/profile/` redirects to `/map/`), `public/` copied as is (assets, the GeoJSON snapshots and the obstacle shards under `/data/`).
 - [public/_redirects](../public/_redirects): `/` to `/map/` (302), and `/profile/` and `/profile` to `/map/` (301).
 - [public/_headers](../public/_headers): `frame-ancestors 'none'`, `Referrer-Policy` and `nosniff` on every static response (Pages doesn't apply `_headers` to Functions). The rest of the Content Security Policy is a meta tag the build writes into each page ([src/scripts/access/csp.ts](../src/scripts/access/csp.ts)).
 - `functions/api/**`: the Pages Functions, at their file paths under `/api/`.
@@ -40,4 +40,4 @@ In the Cloudflare dashboard: Workers & Pages, `shv-meteo`, Deployments, then Rol
 ## State and secrets
 
 - **No secrets.** The site has no API keys or client secrets.
-- **No server state.** The Functions keep their last good upstream answers in the edge cache only. What a visitor sets (language, theme, map layers and filters, flight log) stays in their browser's localStorage under `shv_*` keys; the pre-flight checklist stays in sessionStorage.
+- **No server state.** The Functions keep their last good upstream answers in the edge cache only. What a visitor sets (language, theme, map layers and filters, logbook) stays in their browser's localStorage under `shv_*` keys; the pre-flight checklist stays in sessionStorage.

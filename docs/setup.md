@@ -18,13 +18,11 @@ npm run dev
 - `wrangler pages dev public` on port `8788`, which compiles the Pages Functions in `functions/` without a build
 - `astro dev` on port `4321`, which proxies `/api/*` to `http://127.0.0.1:8788` ([astro.config.mjs](../astro.config.mjs))
 
-A route not ported to a Function yet answers 404, in dev as in production. Ctrl-C stops both.
+An `/api` path with no Function answers 404, in dev as in production. Ctrl-C stops both.
 
 Open <http://localhost:4321>; `/` redirects to `/map/` once built (`public/_redirects`), so in dev open <http://localhost:4321/map/>.
 
-## Pages and navigation
-
-Every tab is its own page, `src/pages/<tab>/index.astro`, wrapped in [src/layouts/Base.astro](../src/layouts/Base.astro), which sets `<body data-view>` and renders the header and bottom nav (`src/components/shell/`); the tab links are plain links, so they work without JavaScript and Back works. Selections handed to the map travel in its URL (`/map/?station=`, `?webcam=`, `?locate`, [src/scripts/handoff.ts](../src/scripts/handoff.ts)); settings that must survive a page load are in localStorage under `shv_*` keys ([src/scripts/settings.ts](../src/scripts/settings.ts)).
+How the pages and the shell fit together is in [architecture/web.md](architecture/web.md).
 
 ## Checks
 
@@ -32,7 +30,16 @@ Every tab is its own page, `src/pages/<tab>/index.astro`, wrapped in [src/layout
 npm run lint       # oxlint and prettier --check, as in the pre-commit hook
 npm run typecheck  # astro check; also the pre-push hook
 npm test           # node --test over src/scripts/**/*.test.ts
+node --experimental-strip-types --test src/scripts/units.test.ts  # one test file
+npx rumdl check .  # Markdown lint, as CI runs it; rumdl check --fix in the pre-commit hook
 ```
+
+## Data files
+
+Two scripts write data the app reads; both need network:
+
+- `npm run obstacles` downloads the BAZL dataset (about 128 MB, kept a day under `.cache/obstacles/`) and writes the obstacle shards into `public/data/obstacles/` (git-ignored, about 260 MB). Without it the map's obstacle layer stays empty locally; `deploy.yml` runs it before every deploy.
+- `npm run grid` rewrites `src/data/previtemps_grid.json`, each sounding station's ICON grid point. Run it after changing `public/data/previtemps_stations.json`, or when a station's sounding answers 503 for a day.
 
 ## Build and preview
 
@@ -41,7 +48,7 @@ npm run build    # astro build into dist/
 npm run preview  # wrangler pages dev dist: the built site as Pages serves it, on port 8788
 ```
 
-`npm run preview` serves exactly what Pages will serve: the built pages, `_redirects` and the Functions.
+`npm run preview` serves exactly what Pages will serve: the built pages, `_redirects` and the Functions. Only the built pages carry the Content Security Policy (`npm run dev` has none), so check a change that loads something from a new origin here.
 
 ## Configuration
 
