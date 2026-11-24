@@ -98,6 +98,7 @@ The site is built with Astro and deployed to Cloudflare Pages at <https://shv-me
 * [docs/architecture.md](docs/architecture.md): data sources, which calls are proxied and why, how the code is organised.
 * [docs/reference/shv-native-app.md](docs/reference/shv-native-app.md): reverse-engineered notes on the official SHV FSVL app and its backends.
 * [docs/reference/shv-app-emulator.md](docs/reference/shv-app-emulator.md): running the official app on an Android emulator to compare with it.
+* [docs/reference/shv-app-traffic-capture.md](docs/reference/shv-app-traffic-capture.md): capturing its HTTPS calls with mitmproxy.
 * [GLOSSARY.md](GLOSSARY.md): domain terms (German and English).
 * [AGENTS.md](AGENTS.md): rules for changing the code, for AI agents and humans.
 
