@@ -24,7 +24,7 @@ export const METEO_MODES = [
   "NONE",
 ] as const;
 export const COMPASS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] as const;
-/** The vario slider's range in m/s (SafetyView). */
+/** The vario slider's range in m/s (src/components/safety/Vario.astro). */
 export const VARIO_RANGE = [-5, 6] as const;
 
 export type Lang = (typeof LANGS)[number];

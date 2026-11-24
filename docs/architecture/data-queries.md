@@ -66,4 +66,4 @@ Upstream serves the dataset as MVT tiles (`shv-app-static-prod.ubmeteo.io/v1/obs
 | `9/267/180` (Bernese Oberland) | 0.34 MB / 1.1 MB, 11,713 features | z9 to z11 | 1,679 / 3,046 / 11,533 | 0 |
 | `12/2137/1445` (Interlaken) | 6 KB / 17 KB, 184 features | z12, z13 | 82 / 184 | 0 |
 
-Every tile feature has a stable `id` and carries `obstacleType`, `marking`, `styleId`, `maxHeightAgl`, `small`, `lighting`, `topElevationAmsl`, `sourceId` and `airport`. The tiles fall short at z7 and z8 (MapView shows obstacles from z8), so PR12 took the shard path. A later change could read the z9 and z12 tiles for z9 and up and keep shards only for the overview.
+Every tile feature has a stable `id` and carries `obstacleType`, `marking`, `styleId`, `maxHeightAgl`, `small`, `lighting`, `topElevationAmsl`, `sourceId` and `airport`. The tiles fall short at z7 and z8 (the map shows obstacles from z8), so PR12 took the shard path. A later change could read the z9 and z12 tiles for z9 and up and keep shards only for the overview.

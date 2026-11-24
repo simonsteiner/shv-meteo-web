@@ -149,14 +149,78 @@
 }
 
 .section-fees {
-  background: rgba(0, 165, 81, 0.06);
-  border: 1px solid rgba(0, 165, 81, 0.22);
+  background: rgba(0, 165, 81, 0.08);
+  border: 1px solid rgba(0, 165, 81, 0.25);
   border-radius: 12px;
   padding: 14px;
 }
 
+.section-fees .section-title {
+  color: #00a551;
+  margin-bottom: 6px;
+}
+
+.section-fees .section-text {
+  line-height: 1.5;
+}
+
+.fee-action-row {
+  margin-top: 10px;
+}
+
+.btn-action.btn-pay {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  background: #00a551;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 10px 16px;
+  border-radius: 10px;
+  text-decoration: none;
+}
+
 .btn-pay:hover {
   filter: brightness(1.08);
+}
+
+.fee-qr-wrapper {
+  margin-top: 12px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.fee-qr-img {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.fee-qr-hint {
+  font-size: 0.74rem;
+  color: #334155;
+  margin-top: 6px;
+  font-weight: 700;
+}
+
+.section-opening {
+  background: rgba(0, 137, 207, 0.08);
+  border-left: 3px solid var(--shv-blue);
+  padding: 10px 12px;
+  border-radius: 0 8px 8px 0;
+}
+
+.section-opening .section-title {
+  color: var(--shv-blue);
 }
 
 .sheet-title {
@@ -232,6 +296,7 @@
   border-radius: 0 8px 8px 0;
 }
 
+.section-warning .section-title,
 .text-warning {
   color: var(--shv-amber);
 }
@@ -341,4 +406,89 @@
   max-height: 55vh;
   object-fit: contain;
   display: block;
+}
+
+.sheet-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.webcam-actions,
+.sheet-actions-spaced {
+  margin-top: 14px;
+}
+
+.webcam-actions {
+  gap: 8px;
+}
+
+/* BAZL obstacle sheet */
+.badge-obstacle {
+  background: #cc0000;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.obstacle-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.obstacle-title img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.obstacle-metrics {
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+}
+
+.metric-agl {
+  border-left: 3px solid #cc0000;
+}
+
+.metric-agl .metric-val {
+  color: #cc0000;
+}
+
+.obstacle-attributes {
+  margin-top: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.obstacle-attr-grid {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 8px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.attr-label {
+  color: var(--text-secondary);
+}
+
+.attr-strong {
+  font-weight: 600;
+}
+
+.attr-mono {
+  font-family: monospace;
+  font-size: 0.8rem;
+}
+
+.btn-action.btn-dabs {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  gap: 6px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 10px 14px;
 }

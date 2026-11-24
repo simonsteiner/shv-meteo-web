@@ -1,0 +1,52 @@
+---
+// The buttons down the map's right edge: the layers drawer (with the
+// number of wind directions filtered) and back to Switzerland.
+---
+
+<div class="map-fab-column">
+  <button
+    type="button"
+    class="map-fab"
+    data-action="toggle-drawer"
+    aria-controls="map-layers-drawer"
+    aria-expanded="false"
+    data-t-title="map.layersButton"
+    data-t-aria-label="map.layersButton"
+  >
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      aria-hidden="true"
+    >
+      <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+      <polyline points="2 17 12 22 22 17"></polyline>
+      <polyline points="2 12 12 17 22 12"></polyline>
+    </svg>
+    <span class="fab-badge hidden" data-wind-count></span>
+  </button>
+
+  <button
+    type="button"
+    class="map-fab"
+    data-action="centre"
+    data-t-title="map.centerButton"
+    data-t-aria-label="map.centerButton"
+  >
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="3"></circle>
+      <path d="M3 12h3m12 0h3M12 3v3m0 12v3"></path>
+    </svg>
+  </button>
+</div>

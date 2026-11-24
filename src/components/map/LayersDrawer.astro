@@ -1,0 +1,78 @@
+---
+// The layers drawer: three tabs (weather, airspace, flying sites), each a
+// list of sections from DRAWER_PANES. page.ts shows the active tab and
+// keeps every control in step with the store.
+import { DRAWER_PANES } from "../../scripts/maps/drawer.ts";
+import BaseMaps from "./BaseMaps.astro";
+import LayerSwitches from "./LayerSwitches.astro";
+import MeteoModes from "./MeteoModes.astro";
+import WindCompass from "./WindCompass.astro";
+---
+
+<div
+  id="map-layers-drawer"
+  class="map-layers-flyout hidden"
+  data-drawer
+  role="dialog"
+  data-t-aria-label="map.layersTitle"
+>
+  <div class="layers-flyout-header">
+    <div class="layers-flyout-title-row">
+      <div class="layers-flyout-title">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+        <span data-t="map.layersTitle"></span>
+      </div>
+      <button
+        type="button"
+        class="layers-flyout-close"
+        data-action="close-drawer"
+        data-t-title="map.close"
+        data-t-aria-label="map.close"
+      >
+        &times;
+      </button>
+    </div>
+
+    <div class="drawer-category-bar">
+      {DRAWER_PANES.map(({ category }) => (
+        <button
+          type="button"
+          class="drawer-cat-pill"
+          data-map-category={category}
+          aria-pressed="false"
+          data-t={`map.category.${category}`}
+        />
+      ))}
+    </div>
+  </div>
+
+  <div class="drawer-body">
+    {DRAWER_PANES.map(({ category, sections }) => (
+      <div class="drawer-tab-pane hidden" data-pane={category}>
+        {sections.map((s) =>
+          s.kind === "meteo" ? (
+            <MeteoModes />
+          ) : s.kind === "layers" ? (
+            <LayerSwitches title={s.title} layers={s.layers} />
+          ) : s.kind === "compass" ? (
+            <WindCompass />
+          ) : (
+            <BaseMaps maps={s.maps} />
+          ),
+        )}
+      </div>
+    ))}
+  </div>
+</div>

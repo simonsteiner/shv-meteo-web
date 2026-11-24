@@ -1,0 +1,67 @@
+---
+// Live stations and webcams: two tabs, a search and the provider filter.
+// page.ts renders the cards (src/scripts/weather/cards.ts).
+import { PROVIDERS } from "../../scripts/weather/stations.ts";
+---
+
+<section id="live" class="weather-section stations-section">
+  <div class="section-header-row">
+    <div class="sub-view-switcher" role="tablist">
+      <button
+        type="button"
+        role="tab"
+        class="sub-tab-btn"
+        data-weather-tab="stations"
+      >
+        <span data-t="weather.tabStations"></span> (
+        <span data-count="stations">0</span>)
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="sub-tab-btn"
+        data-weather-tab="webcams"
+      >
+        <span data-t="weather.tabWebcams"></span> (
+        <span data-count="webcams">0</span>)
+      </button>
+    </div>
+  </div>
+
+  <div class="station-filters-bar">
+    <div class="station-search-box">
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        aria-hidden="true"
+      >
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input type="text" data-weather-search />
+    </div>
+
+    <div class="provider-filter-pills" data-provider-pills>
+      {PROVIDERS.map((p) => (
+        <button type="button" class="prov-pill" data-provider={p}>
+          {p === "ALL" ? (
+            <>
+              <span data-t="weather.providerAll" /> (
+              <span data-count="providers">0</span>)
+            </>
+          ) : (
+            <span data-t={`weather.provider_${p}`} />
+          )}
+        </button>
+      ))}
+    </div>
+  </div>
+
+  <p class="weather-status" data-list-status data-t="weather.loading"></p>
+  <div class="stations-cards-grid" data-station-cards></div>
+  <div class="webcams-cards-grid" data-webcam-cards hidden></div>
+</section>
