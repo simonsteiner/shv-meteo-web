@@ -20,11 +20,13 @@ The [migration plan](../2026-11-23-astro-cloudflare/README.md) has shipped up to
 | F6 `perf/obstacle-loading`  | [#35](https://github.com/simonsteiner/shv-meteo-web/pull/35)                                                       | only the quarters a view covers, a cell cache bounded by bytes, shared in-flight loads                  |
 | capture of the official app | [#28](https://github.com/simonsteiner/shv-meteo-web/pull/28), [#34](https://github.com/simonsteiner/shv-meteo-web/pull/34) | the app on an Android emulator, its HTTPS calls captured and listed                             |
 
-## Next: small additions from the capture (independent, off `main`)
+## In review: the capture's additions and the F7 spike
+
+One stack on this plan's PR ([#38](https://github.com/simonsteiner/shv-meteo-web/pull/38)), so the owner can merge it in one go: F12 [#40](https://github.com/simonsteiner/shv-meteo-web/pull/40), F13 [#41](https://github.com/simonsteiner/shv-meteo-web/pull/41), F14 [#42](https://github.com/simonsteiner/shv-meteo-web/pull/42), F7 [#43](https://github.com/simonsteiner/shv-meteo-web/pull/43). Once merged, they move to Shipped.
 
 ### F12 `perf/measurements-filter`
 
-`/api/measurements` fetches every parameter for the Alps box: 3.1 MB and 4,177 stations, every minute. The app asks for six parameters and gets 536 KB. Our pages read eight: wind speed, direction and gust, `temperature`, `temperature_2m` and `pressure_standard_msl` (the app's six), plus `pressure_msl` and `pressure_surface` (`src/scripts/weather/stations.ts`). Add `parameters=` to the `measurements` route in `src/scripts/upstream/routes.ts`. Stations that report none of the eight drop out, so measure first: size and station count before and after, and check the box still covers the neighbouring countries the map shows. The Föhn Function makes its own calls and is not affected. **Accept:** the figures in the PR; the map's stations and the weather page's tables unchanged apart from live data.
+`/api/measurements` asks upstream for nine parameters (wind speed, direction and gust, `temperature`, `dew_point`, `relative_humidity`, `pressure_msl`, `pressure_standard_msl`, `pressure_surface`), the eleven values the map and the weather page read: the weather page's dialog also shows dew point and humidity, which the list here had missed, and upstream's `temperature`, `dew_point` and `relative_humidity` include their 2 m variants (`dew_point_2m` is a 400). Measured on 2026-11-24: 3.1 MB and 4,179 stations before, 2.2 MB and 3,754 after (455 KB to 266 KB gzip); the 425 dropped report only precipitation, pollen, radiation or snow depth, so the map draws the same 3,737 stations and the weather page lists no all-dash cards.
 
 ### F13 `feat/dew-point`
 
@@ -34,9 +36,9 @@ Add `dew_point` to `TIMESERIES_PARAMETERS` and draw it in the station chart next
 
 The BAZL glider chart as one more base map or overlay in `src/scripts/maps/basemap.ts` (`BASE_LAYERS`, `BASE_MAPS` in `settings.ts`). `wmts.geo.admin.ch` serves it in the 3857 grid (`ch.bazl.segelflugkarte/default/current/3857/{z}/{x}/{y}.png`) with CORS `*`. Check its zoom range and the attribution swisstopo asks for. **Accept:** the layer switch shows it, the choice persists through `shv_*`, no CSP violation on preview.
 
-## F7 `perf/obstacle-tiles` (spike first, F6 has shipped)
+## F7 `perf/obstacle-tiles`: shards stay
 
-PR12's spike found upstream's sampled z9 and z12 tiles complete at the zooms they would serve ([data-queries.md](../../architecture/data-queries.md)). The capture shows the app reads the obstacles as vector tiles from `shv-app-static-prod.ubmeteo.io` (CORS `*`), with 404s for empty tiles beside Switzerland. Read them above z8 and keep the shards only for z7 and z8, if a wider check confirms they are complete; Leaflet would need a vector-tile plugin, so weigh that against the 250 MB of shards and the deploy's shard build.
+The wider check ([research note](../../research/2026-11-24-obstacle-vector-tiles.md)) found upstream's tiles 99.9% complete (every z9 tile with obstacles, 400 z12 tiles), but a z9 tile carries z11 detail, so z9 to z11 views would read 1 to 3 times the bytes of today's shards, and the z7 tier keeps the daily download. Only z12 and z13 views get lighter. No change; revisit if the shards near a Pages limit or upstream cuts tiles per zoom.
 
 ## F15 `feat/forecast-animations` (after the owner's decision in F10)
 
@@ -73,8 +75,7 @@ Port `analyze_sounding` (`e1e5525:server/emagram_calc.py:56-201`) to TypeScript:
 ## Order
 
 ```text
-F12 measurements filter, F13 dew point, F14 Segelflugkarte   independent, off main, now
-F7 obstacle tiles spike                                       now (F6 shipped)
+F12, F13, F14, F7 (research only)                             in review, one stack on #38
 F10 members-only decision -> F15 forecast animations
 F10 SHV registers a client -> F16 member login
 F8 when upstream recovers -> F11
