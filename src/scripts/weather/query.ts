@@ -2,7 +2,7 @@
 // the webcams list with that station pair's history. Unknown values are
 // ignored, so an old or mistyped link still opens the page.
 
-import { PAIRS } from "../foehn/pairs.ts";
+import { DEFAULT_PAIR, PAIRS } from "../foehn/pairs.ts";
 
 export const WEATHER_TABS = ["stations", "webcams"] as const;
 export type WeatherTab = (typeof WEATHER_TABS)[number];
@@ -21,6 +21,15 @@ export function readWeatherQuery(search: string): WeatherQuery {
     tab: WEATHER_TABS.includes(tab as WeatherTab) ? (tab as WeatherTab) : null,
     pair: PAIRS.some((p) => p.id === pair) ? pair : null,
   };
+}
+
+/** The weather page's URL opening `pair` (a badge on the map's Foehn
+ * layer links there); an unknown or the default pair opens the page as is. */
+export function weatherUrl(pair: string): string {
+  const known = PAIRS.some((p) => p.id === pair);
+  return known && pair !== DEFAULT_PAIR
+    ? `/weather/?pair=${encodeURIComponent(pair)}`
+    : "/weather/";
 }
 
 /** `href`'s path and query with the page's state written in, any other

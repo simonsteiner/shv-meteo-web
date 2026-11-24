@@ -57,6 +57,7 @@ import { findSite } from "./sites.ts";
 import { stationLatLng } from "./stations.ts";
 import { centredIcon, createMap, showLayer } from "./view.ts";
 import type { FoehnReport } from "../foehn/report.ts";
+import { weatherUrl } from "../weather/query.ts";
 
 const dictionary = (): Dictionary => store.t;
 const say: Say = (key) => sayIn(dictionary(), key);
@@ -256,8 +257,8 @@ export function mountMap(root: HTMLElement): void {
     }
   }
 
-  function openWeather(): void {
-    store.setTab("weather");
+  function openWeather(pairId: string): void {
+    location.assign(weatherUrl(pairId));
   }
 
   function setDrawer(open: boolean): void {
