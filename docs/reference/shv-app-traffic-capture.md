@@ -26,16 +26,22 @@ Checked on 2026-11-24 with app 1.1.0 (version code 1010001) on the `x86_64` Goog
    ```bash
    E=emulator-5554
    adb -s $E root
+   adb -s $E wait-for-device   # adb root restarts adbd
    adb -s $E push "/tmp/$HASH.0" scripts/shv-app-capture/android-ca.sh /data/local/tmp/
    adb -s $E shell sh /data/local/tmp/android-ca.sh "/data/local/tmp/$HASH.0"
    adb -s $E shell am force-stop ch.shv_fsvl   # the next start picks up the CA
    ```
 
-3. **Start the proxy, then point the emulator at it.** Logged out, a plain flow file is fine:
+3. **Start the proxy, then point the emulator at it.** Logged out, a plain flow file is fine. `mitmdump` stays in the foreground:
 
    ```bash
    mkdir -p ~/shv-capture
    mitmdump --listen-host 0.0.0.0 --listen-port 8080 -w ~/shv-capture/session.flows
+   ```
+
+   Then, in a second terminal:
+
+   ```bash
    adb -s $E shell settings put global http_proxy 10.0.2.2:8080
    ```
 
@@ -51,11 +57,18 @@ Checked on 2026-11-24 with app 1.1.0 (version code 1010001) on the `x86_64` Goog
 
 ## Logged in: capture redacted
 
-An AVD with a member login sends a Bearer token to the member service (`/v1/wms/person`), refreshes it at `login.shv-fsvl.ch`, and gets member data back. Capture there only through [redacted_log.py](../../scripts/shv-app-capture/redacted_log.py), and without `-w`, so nothing unredacted reaches the disk: it writes one JSON line per request with the method, URL, status, type, Cache-Control and sizes, and drops every body, `Authorization` and `Cookie` value and token-like query value.
+An AVD with a member login sends a Bearer token to the member service (`/v1/wms/person`), refreshes it at `login.shv-fsvl.ch`, and gets member data back. Capture there only through [redacted_log.py](../../scripts/shv-app-capture/redacted_log.py), and without `-w`, so nothing unredacted reaches the disk: it writes one JSON line per request with the method, URL, status, type, Cache-Control and sizes, and drops every body, every `Authorization` and `Cookie` value, and the value of every query key with a secret word anywhere in its name (`token`, `id_token_hint`, `session_state`, `client_secret`). `python3 -I scripts/shv-app-capture/redacted_log.py` checks that on the OIDC and Keycloak URL shapes.
+
+Add the CA to that AVD first (step 2 above, with `E=emulator-5556`). Then start the proxy, which stays in the foreground:
 
 ```bash
 mitmdump --listen-host 0.0.0.0 --listen-port 8081 -q \
   -s scripts/shv-app-capture/redacted_log.py --set redacted_log=$HOME/shv-capture/member.jsonl
+```
+
+And in a second terminal:
+
+```bash
 adb -s emulator-5556 shell settings put global http_proxy 10.0.2.2:8081
 ```
 
@@ -65,8 +78,8 @@ A second port keeps two AVDs' traffic apart, since both arrive from `127.0.0.1`.
 
 The app keeps OkHttp disk caches (`cache/map/`, `cache/reports-map/`, `cache/ubiquache/`), and a cached tile or layer never reaches the proxy. Two ways round it:
 
-- **Logged out:** `adb shell pm clear ch.shv_fsvl` resets the app; tap through the onboarding again and skip the login ("Überspringen").
-- **Logged in:** clear only the HTTP caches, which keeps the login in `shared_prefs/`: `adb shell am force-stop ch.shv_fsvl; adb shell 'rm -rf /data/data/ch.shv_fsvl/cache/*'` (as root).
+- **Logged out:** `adb -s $E shell pm clear ch.shv_fsvl` resets the app; tap through the onboarding again and skip the login ("Überspringen").
+- **Logged in:** clear only the HTTP caches, which keeps the login in `shared_prefs/`: `adb -s $E shell am force-stop ch.shv_fsvl; adb -s $E shell 'rm -rf /data/data/ch.shv_fsvl/cache/*'` (as root).
 
 The cache files are also a record of past calls: the first line of each OkHttp `*.0` file is the URL it holds.
 
