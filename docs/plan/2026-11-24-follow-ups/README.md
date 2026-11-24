@@ -58,8 +58,13 @@ Upstream's ICON columns were still broken late on 2026-11-24: `/api/meteo/previt
 ## F10 Decisions for the owner
 
 - **Members-only forecasts (blocks F15):** the official app shows the animations, like the text forecast, to SHV members only ("Nur für Mitglieder"). We already show the text forecast publicly; the animations would put much more of that content on a public site. Ask the SHV first, or decide it is fine.
+- **Member login (SSO) needs a client from the SHV (blocks F16):** Keycloak (`login.shv-fsvl.ch/realms/SHV`) only redirects to the URLs registered for each client. Checked on 2026-11-24: `client_id=typo3` accepts only `www.shv-fsvl.ch/typo3conf/ext/oidc/Resources/Public/callback.php`, `app-android` only `prod.shv-app.ch/oidc/callback`, and both answer 400 to `https://shv-meteo.pages.dev/api/auth/callback`. Borrowing either client would pass for the SHV's own site or app, so login waits until the SHV registers a client for this site (a confidential one, since the exchange runs in a Function) with its callback URL, and says which member data we may show.
 - **Language routes (`/fr/map/`):** open question 1. The default stays no; the strings are typed modules now, so routes would be cheap to add later.
 - **Fixes for the upstream repo** ([branching.md](../2026-11-23-astro-cloudflare/branching.md)): the timeseries cache key, the Foehn timezone, the inline `onerror` XSS, the dead Python routes. Optional; each would be a fresh branch from `master` against `unbe/ai-shv-app`.
+
+## F16 `feat/member-login` (after the SHV registers a client, F10)
+
+The cookie design in [target.md](../2026-11-23-astro-cloudflare/target.md) ("Auth"): `/api/auth/start`, `exchange`, `profile` and `logout` as Functions, PKCE and `state` sealed with AES-GCM in an `HttpOnly; Secure; SameSite=Lax` cookie, only the refresh token kept, the profile in memory or `sessionStorage`. The header's member portal link becomes a login button. Needs `SESSION_SECRET` and the client's secret as Pages secrets; never an SHV password in our pages, never a token in the browser. Read [shv-native-app.md](../../reference/shv-native-app.md) for the member web service first.
 
 ## F11 `feat/parcel-analysis` (new feature, last)
 
@@ -71,6 +76,7 @@ Port `analyze_sounding` (`e1e5525:server/emagram_calc.py:56-201`) to TypeScript:
 F12 measurements filter, F13 dew point, F14 Segelflugkarte   independent, off main, now
 F7 obstacle tiles spike                                       now (F6 shipped)
 F10 members-only decision -> F15 forecast animations
+F10 SHV registers a client -> F16 member login
 F8 when upstream recovers -> F11
 F9, F10 when the owner decides
 ```
