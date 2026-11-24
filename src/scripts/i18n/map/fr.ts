@@ -156,9 +156,7 @@ export const map: MapStrings = {
     markedYes: "🔴 Balisé",
     none: "Aucun",
     lighting: "Éclairage:",
-    effective: "En vigueur depuis:",
     updated: "Mis à jour:",
-    sanction: "Décision:",
     dabs: "Consulter le DABS ↗",
     obstacleType: {
       TRANSMISSION_LINE: "Ligne électrique aérienne",

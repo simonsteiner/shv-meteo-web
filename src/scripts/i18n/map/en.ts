@@ -156,9 +156,7 @@ export const map: MapStrings = {
     markedYes: "🔴 Marked",
     none: "None",
     lighting: "Lighting:",
-    effective: "In force since:",
     updated: "Updated:",
-    sanction: "Ruling:",
     dabs: "Check the DABS ↗",
     obstacleType: {
       TRANSMISSION_LINE: "Overhead power line",

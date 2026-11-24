@@ -153,9 +153,7 @@ export const map = {
     markedYes: "🔴 Markiert",
     none: "Keine",
     lighting: "Beleuchtung:",
-    effective: "In Kraft seit:",
     updated: "Aktualisiert:",
-    sanction: "Verfügung:",
     dabs: "DABS Konsultation ↗",
     obstacleType: {
       TRANSMISSION_LINE: "Freileitung / Stromkabel",
