@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { resetsMap, type LinkClick } from "./nav.ts";
+import { resetsMap, tabCurrent, type LinkClick } from "./nav.ts";
 
 const plain: LinkClick = {
   defaultPrevented: false,
@@ -28,4 +28,15 @@ test("a modified, non-primary or prevented click leaves the map as it is", () =>
   ];
   for (const click of clicks)
     assert.equal(resetsMap({ ...plain, ...click }, "map"), false);
+});
+
+test("the tab's own URL is the page; a section of it is only current", () => {
+  assert.equal(tabCurrent("forecast", "forecast", "/forecast/"), "page");
+  assert.equal(tabCurrent("forecast", "forecast", "/forecast"), "page");
+  assert.equal(tabCurrent("map", "map", "/map/index.html"), "page");
+  assert.equal(
+    tabCurrent("forecast", "forecast", "/forecast/emagram/"),
+    "true",
+  );
+  assert.equal(tabCurrent("map", "forecast", "/forecast/"), undefined);
 });

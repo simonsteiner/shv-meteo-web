@@ -83,7 +83,9 @@ export function mountShell(header: HTMLElement): void {
       setMenu(false);
   });
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") setMenu(false);
+    if (event.key !== "Escape" || langMenu.classList.contains("hidden")) return;
+    setMenu(false);
+    langButton.focus();
   });
   for (const link of document.querySelectorAll<HTMLAnchorElement>(
     'a[data-tab="map"]',
