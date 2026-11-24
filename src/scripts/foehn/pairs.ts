@@ -66,7 +66,7 @@ export const PAIRS: PairConfig[] = [
     startId: "meteo_swiss:DEM",
     endId: "meteo_swiss:GRE",
     nameDe: "Jura-Querung (Delémont \u2013 Grenchen)",
-    nameEn: "Jura Transect (Delemont \u2013 Grenchen)",
+    nameEn: "Jura Crossing (Delemont \u2013 Grenchen)",
     unit: "hPa",
   },
 ];
