@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { ObstacleFeature } from "../types.ts";
-import { partBox, type Tier } from "./cells.ts";
+import type { Bbox } from "../types.ts";
+import { loadObstacles, partBox, type Tier } from "./cells.ts";
 import { buildShards } from "./shards.ts";
 
 const z13: Tier = { name: "z13", zoom: 13, size: 0.25 };
@@ -101,5 +102,82 @@ test("each quarter's features lie in the box its name gives (cells.ts partBox)",
         `${f.properties.sourceId} outside ${name}`,
       );
     }
+  }
+});
+
+function uid(f: ObstacleFeature): ObstacleFeature {
+  return { ...f, properties: { ...f.properties, _uid: f.properties.sourceId } };
+}
+
+function cable(id: number, coordinates: number[][]): ObstacleFeature {
+  return {
+    type: "Feature",
+    geometry: { type: "LineString", coordinates },
+    properties: { sourceId: `c${id}`, marking: "MARKED", maxHeightAgl: 80 },
+  };
+}
+
+/** Builds `features` with a limit one feature fits and two do not, then
+ * reads `view` back through loadObstacles: the ids it gives, and the
+ * files it read. */
+async function readBack(features: ObstacleFeature[], view: Bbox) {
+  const withUid = features.map(uid);
+  const maxBytes = Math.max(
+    ...withUid.map(
+      (f) =>
+        JSON.stringify({ type: "FeatureCollection", features: [f] }).length,
+    ),
+  );
+  const { index, written } = build(withUid, maxBytes);
+  const read: string[] = [];
+  const got = await loadObstacles(view, 13, index, async (path) => {
+    read.push(path);
+    if (!written.has(path)) throw new Error(`${path} was not written`);
+    return written.get(path);
+  });
+  return { ids: got.map((f) => f.properties.sourceId).sort(), read };
+}
+
+test("a line across a quarter's edge comes back from either side alone", async () => {
+  // cell 28_184 splits at 7.125 / 46.125; the line crosses 7.125
+  const features = [
+    cable(1, [
+      [7.1, 46.05],
+      [7.15, 46.05],
+    ]),
+    marked(2, 7.2, 46.2),
+  ];
+  const west = { minLon: 7.01, minLat: 46.01, maxLon: 7.11, maxLat: 46.1 };
+  const east = { minLon: 7.14, minLat: 46.01, maxLon: 7.24, maxLat: 46.1 };
+  for (const [view, leaf] of [
+    [west, "z13/28_184.0.json"],
+    [east, "z13/28_184.1.json"],
+  ] as const) {
+    const { ids, read } = await readBack(features, view);
+    assert.deepEqual(ids, ["c1"]);
+    assert.deepEqual(read, ["z13/28_184.json", leaf]);
+  }
+});
+
+test("a line across a depth-2 edge comes back from either side alone", async () => {
+  // quarter 28_184.0 (7..7.125, 46..46.125) splits again at 7.0625 /
+  // 46.0625; the line crosses 7.0625
+  const features = [
+    cable(1, [
+      [7.05, 46.03],
+      [7.075, 46.03],
+    ]),
+    marked(2, 7.1, 46.1),
+    marked(3, 7.2, 46.2),
+  ];
+  const west = { minLon: 7.01, minLat: 46.01, maxLon: 7.055, maxLat: 46.05 };
+  const east = { minLon: 7.065, minLat: 46.01, maxLon: 7.09, maxLat: 46.05 };
+  for (const [view, leaf] of [
+    [west, "z13/28_184.0.0.json"],
+    [east, "z13/28_184.0.1.json"],
+  ] as const) {
+    const { ids, read } = await readBack(features, view);
+    assert.deepEqual(ids, ["c1"]);
+    assert.deepEqual(read, ["z13/28_184.json", "z13/28_184.0.json", leaf]);
   }
 });
