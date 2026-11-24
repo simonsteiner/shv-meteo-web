@@ -18,7 +18,7 @@ import {
   type Handoff,
 } from "../handoff.ts";
 import { applyText } from "../i18n/text.ts";
-import { mountSheet, selectionOf, type Selection } from "../sheet/render.ts";
+import { mountSheet, selectionOf } from "../sheet/render.ts";
 import type {
   BaseMap,
   Compass,
@@ -36,6 +36,7 @@ import {
 } from "./handoff-target.ts";
 import { drawFoehn, drawStations, drawWebcams } from "./layer-meteo.ts";
 import { obstacleLayer } from "./layer-obstacles.ts";
+import { NOTHING_DRAWN, redraws } from "./redraws.ts";
 import { failedShown, loadStatusText, type Dataset } from "./load-status.ts";
 import { siteLayers } from "./layer-sites.ts";
 import { zoneLayers } from "./layer-zones.ts";
@@ -108,12 +109,7 @@ export function mountMap(root: HTMLElement): void {
   let pilotFix = 0;
   const failed = new Set<Dataset>();
   // what was drawn last, so a store change redraws only what it touched
-  let lang: string | null = null;
-  let sitesKey = "";
-  let stationsMode: MeteoMode | null = null;
-  let obstaclesShown = false;
-  let shownSelection: Selection | null = null;
-  let sheetLang: string | null = null;
+  let drawn = NOTHING_DRAWN;
 
   function stationMode(): "WIND" | "TEMPERATURE" {
     return store.state.meteoMode === "TEMPERATURE" ? "TEMPERATURE" : "WIND";
@@ -121,7 +117,6 @@ export function mountMap(root: HTMLElement): void {
 
   function redrawStations(): void {
     if (!store.state.layers.stations) return;
-    stationsMode = store.state.meteoMode;
     drawStations(stationsLayer, map, stations, stationMode(), (f) =>
       store.select("station", f),
     );
@@ -203,43 +198,24 @@ export function mountMap(root: HTMLElement): void {
 
   function render(): void {
     const state = store.state;
-    const langChanged = state.lang !== lang;
-    if (langChanged) {
-      lang = state.lang;
-      applyText(root, store.t);
-    }
+    const selection = selectionOf(state);
+    const next = redraws(drawn, state, selection);
+    const { redraw } = next;
+    drawn = next.drawn;
+    if (redraw.text) applyText(root, store.t);
     setBaseMap(state.baseMap);
     for (const key of Object.keys(layerOf) as (keyof Layers)[])
       showLayer(map, layerOf[key], state.layers[key] === true);
     // the obstacles load when shown and as the map moves, and go when hidden
-    if (state.layers.obstacles !== obstaclesShown) {
-      obstaclesShown = state.layers.obstacles;
-      if (obstaclesShown) void obstacles.update();
-      else obstacles.clear();
-    }
-    // hidden stations aren't redrawn as the map moves, so showing them
-    // draws them afresh
-    if (!state.layers.stations) stationsMode = null;
-    else if (state.meteoMode !== stationsMode) redrawStations();
-    if (langChanged) drawFoehn(foehnLayer, foehn, say, openWeather);
-
-    const key = `${state.searchQuery}|${state.windFilter.join(",")}|${state.lang}`;
-    if (key !== sitesKey) {
-      sitesKey = key;
+    if (redraw.obstacles === "load") void obstacles.update();
+    else if (redraw.obstacles === "clear") obstacles.clear();
+    if (redraw.stations) redrawStations();
+    if (redraw.text) drawFoehn(foehnLayer, foehn, say, openWeather);
+    if (redraw.sites)
       sites.draw(state.searchQuery, state.windFilter, say, state.lang);
-    }
     renderControls();
     renderPilot();
-
-    const selection = selectionOf(state);
-    const same =
-      selection?.kind === shownSelection?.kind &&
-      selection?.value === shownSelection?.value;
-    if (!same || state.lang !== sheetLang) {
-      shownSelection = selection;
-      sheetLang = state.lang;
-      sheet.show(selection, sites.names);
-    }
+    if (redraw.sheet) sheet.show(selection, sites.names);
   }
 
   function openWeather(pairId: string): void {
@@ -324,7 +300,7 @@ export function mountMap(root: HTMLElement): void {
     if (!data) return fail("sites");
     const features = (data.features ?? []) as FlyingSiteFeature[];
     sites.setData(features);
-    sitesKey = "";
+    drawn = { ...drawn, sites: "" };
     takeHandoff(findHandoff(handoff, { kind: "site", items: features }));
     render();
   });
@@ -347,7 +323,6 @@ export function mountMap(root: HTMLElement): void {
   ).then((data) => {
     if (!data) return fail("measurements");
     stations = data.features ?? [];
-    stationsMode = null;
     redrawStations();
     takeHandoff(findHandoff(handoff, { kind: "station", items: stations }));
   });
