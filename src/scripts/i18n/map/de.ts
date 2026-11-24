@@ -80,7 +80,8 @@ export const map = {
     danger: "LS-D Gefahrengebiet",
     restricted: "LS-R Sperrgebiet",
     wildlife: "Wildruhezonen & Schutzgebiete",
-    dabsNote: "LS-D und LS-R sind aktiv gemäss DABS (Skybriefing).",
+    dabsNote:
+      "Die meisten LS-D und LS-R werden über den DABS (Skybriefing) aktiviert, einige gelten dauernd.",
   },
   popup: {
     landingCircuit: "Landevolte",

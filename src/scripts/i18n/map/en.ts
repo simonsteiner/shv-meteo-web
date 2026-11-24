@@ -82,7 +82,8 @@ export const map: MapStrings = {
     danger: "LS-D danger area",
     restricted: "LS-R restricted area",
     wildlife: "Wildlife rest areas & reserves",
-    dabsNote: "LS-D and LS-R are active according to the DABS (Skybriefing).",
+    dabsNote:
+      "Most LS-D and LS-R are activated through the DABS (Skybriefing); some are permanent.",
   },
   popup: {
     landingCircuit: "Landing circuit",

@@ -82,7 +82,8 @@ export const map: MapStrings = {
     danger: "LS-D Zone dangereuse",
     restricted: "LS-R Zone réglementée",
     wildlife: "Zones de tranquillité & réserves",
-    dabsNote: "Les LS-D et LS-R sont actives selon le DABS (Skybriefing).",
+    dabsNote:
+      "La plupart des LS-D et LS-R sont activées par le DABS (Skybriefing), certaines sont permanentes.",
   },
   popup: {
     landingCircuit: "Circuit d'atterrissage",
