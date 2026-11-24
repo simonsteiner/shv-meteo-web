@@ -64,10 +64,21 @@ adb -s $E shell reboot -p                                                   # sh
 
 Switch AVDs by shutting one down and starting the other. Two can run at once, as `emulator-5554` and `emulator-5556`.
 
+## Open a screen directly
+
+The main activity takes verified app links on `https://prod.shv-app.ch/`, so a screen opens without tapping through the home screen:
+
+```bash
+adb -s $E shell am start -a android.intent.action.VIEW -d https://prod.shv-app.ch/previtemps ch.shv_fsvl
+```
+
+The paths are `liveMap`, `textForecast`, `globalForecast`, `localForecast`, `northSouthDifferences`, `previtemps` and `aggregatedForecast` (from the manifest's intent filter; the app also handles `/oidc/callback` for the login). Members-only screens such as Previtemps show "Nur für Mitglieder" when the AVD isn't logged in. Which query parameters a path accepts isn't known.
+
 ## Gotchas
 
 - **`adb emu kill` does nothing from WSL**, because the emulator console port is on Windows; use `adb shell reboot -p` or close the window.
 - **Android Studio takes over the adb server** when it starts, and its server listens on localhost only. Set it to use an existing, manually managed server on port 5037 (Settings, Debugger), or restart the listening server after Studio.
 - **A new app version needs a new pull.** `install-multiple` with the newer parts upgrades in place and keeps the app data.
 - **The onboarding ends at the member login** ("Mitglieds-Login"). Tap "Überspringen" to use the app without an account. "Jetzt anmelden" opens `login.shv-fsvl.ch` in Chrome; don't type an SHV password into a shared or scripted emulator, back out with `KEYCODE_BACK`.
-- **The map stays blank on the emulator.** The app's map engine (`libmapscore.so`, Open Mobile Maps) compiles its shaders as `#version 320 es`, which needs OpenGL ES 3.2, and the emulator offers at most 3.1. The shaders don't compile, so the app log fills with `GL error 0x502` from `glGetUniformLocation`, and the emulator window on Windows prints `glTexImage2D: got err pre :( 0x502` for every texture upload after that. Checked on the API 36 AVD with the default GPU mode and `-gpu swiftshader_indirect` (GLES 3.0), and on the API 34 AVD with `-gpu host` (3.0) and `-gpu host -feature GLESDynamicVersion` (3.1, the emulator's ceiling: SurfaceFlinger lists `ANDROID_EMU_gles_max_version_3_1`): blank every time. An x86_64 build of the app wouldn't help, since its shaders are the same. The screens around the map render. For the map, use the phone itself; `adb -s $PHONE exec-out screencap -p` takes its screenshots the same way.
+- **The map stays blank on the emulator, and no setting fixes it.** The app's map engine (`libmapscore.so`, Open Mobile Maps) uses tessellation shaders (`#version 320 es`, `layout(vertices = 3)`, `gl_TessLevelOuter`), an OpenGL ES 3.2 feature, and the manifest declares 3.2 as required (`glEsVersion 0x30002`). The emulator offers at most 3.1, so the shaders don't compile: the app log fills with `GL error 0x502` from `glGetUniformLocation`, and the emulator window on Windows prints `glTexImage2D: got err pre :( 0x502` for every texture upload after that. Checked on the API 36 AVD with the default GPU mode and `-gpu swiftshader_indirect` (GLES 3.0), and on the API 34 AVD with `-gpu host` (3.0) and `-gpu host -feature GLESDynamicVersion` (3.1, the emulator's ceiling: SurfaceFlinger lists `ANDROID_EMU_gles_max_version_3_1`). An x86_64 build of the app has the same shaders, and patching the version line doesn't help because the shaders really use 3.2. The screens around the map render. For the map, use the phone itself; `adb -s $PHONE exec-out screencap -p` takes its screenshots the same way.
+- **No debug menu.** The app is a release build (`ch.ubique.alpaka.flavor` is `prod`) and isn't debuggable; the debug-sounding strings in its DEX come from libraries.
