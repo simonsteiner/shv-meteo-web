@@ -27,6 +27,8 @@ Each open question has a recommended default; the plan assumes the default until
 
 ## Later (not in this plan)
 
+The [follow-up plan](../2026-11-24-follow-ups/README.md) orders these and gives each its scope.
+
 - **Parcel analysis for the emagram.** `analyze_sounding` (`e1e5525:server/emagram_calc.py:56-201`) is about 150 lines of closed-form maths: Bolton LCL, Tetens, moist adiabatic lapse rate, CAPE, inversions, trigger temperature. A TypeScript port is about half a day with tests and could run in the browser over the real ICON levels, which `ShvApi.getEmagramForecast` already builds there. Golden fixtures come from `python3 server/emagram_calc.py --test` at `e1e5525`. Only the routes the audit deleted called it, so it would be a new feature.
 - **Review findings left for later** (from the reviews of the merged PRs):
   - The Cloudflare secrets on the `production` environment rather than the repo, a repo-settings change.

@@ -21,9 +21,9 @@ Domain terms (station pair, sounding, DABS) are in [GLOSSARY.md](../../../GLOSSA
 
 The implementation PRs start at PR5.
 
-## Status (2026-11-23)
+## Status (2026-11-24)
 
-PR5 to PR14 have merged, with four follow-ups that the stack's reviews and its first deploys called for, and production runs on `https://shv-meteo.pages.dev`. Where the merged code differs from these files, [data-queries.md](../../architecture/data-queries.md) records what shipped and why, and the plan files say so where it matters.
+PR5 to PR20 have merged, with five follow-ups that the stack's reviews and its first deploys called for, and production runs on `https://shv-meteo.pages.dev`. PR21 and PR22 remain; they and the work left for later are planned in [../2026-11-24-follow-ups/](../2026-11-24-follow-ups/README.md). Where the merged code differs from these files, [data-queries.md](../../architecture/data-queries.md) records what shipped and why, and the plan files say so where it matters.
 
 | Plan | PR | Branch | Notes |
 | --- | --- | --- | --- |
@@ -41,9 +41,13 @@ PR5 to PR14 have merged, with four follow-ups that the stack's reviews and its f
 | follow-up | [#18](https://github.com/simonsteiner/shv-meteo-web/pull/18) | `fix/foehn-cpu` | filtered upstream calls: `/api/foehn` 5.5 ms CPU median |
 | follow-up | [#19](https://github.com/simonsteiner/shv-meteo-web/pull/19) | `fix/sounding-run` | the newest run, not the oldest |
 | follow-up | [#20](https://github.com/simonsteiner/shv-meteo-web/pull/20) | `perf/sounding-cpu` | levels built in the browser: a sounding 3 ms CPU median |
-| follow-up | [#21](https://github.com/simonsteiner/shv-meteo-web/pull/21) | `fix/review-leftovers` | the deferred review findings that were cheap to fix; open |
+| follow-up | [#21](https://github.com/simonsteiner/shv-meteo-web/pull/21) | `fix/review-leftovers` | the deferred review findings that were cheap to fix |
+| PR16 | [#23](https://github.com/simonsteiner/shv-meteo-web/pull/23) | `refactor/safety-page` | sets the pattern; the shared `escape.ts`, `dom.ts` and `i18n/text.ts` |
+| PR18 | [#24](https://github.com/simonsteiner/shv-meteo-web/pull/24) | `refactor/weather-page` |  |
+| PR19 | [#25](https://github.com/simonsteiner/shv-meteo-web/pull/25) | `refactor/forecast-page` | the emagram shows its empty state while upstream's ICON columns are broken |
+| PR20 | [#26](https://github.com/simonsteiner/shv-meteo-web/pull/26) | `refactor/map-page` | also took the geolocation code and emptied the file-tokens `exclude:` list |
 
-Next: PR16 `refactor/safety-page`, then PR18 to PR20 in parallel, then PR21 and PR22 ([prs-views.md](prs-views.md)). Each branches off `main`; the plan numbers stay, GitHub's differ.
+PR18 to PR20 branched off PR16 side by side and merged one after another, each merging `main` in first. Next: the [follow-up plan](../2026-11-24-follow-ups/README.md), whose first two PRs are this plan's PR21 and PR22, delivered as one `gh stack`.
 
 ## Contents
 
@@ -56,3 +60,4 @@ Next: PR16 `refactor/safety-page`, then PR18 to PR20 in parallel, then PR21 and 
 - [prs-views.md](prs-views.md): PR16 to PR22, view refactors, CSP, dependency graph
 - [questions.md](questions.md): decisions, open questions with recommended defaults, and what is left for later
 - [branching.md](branching.md): `master` mirrors upstream, `main` is ours
+- [../2026-11-24-follow-ups/](../2026-11-24-follow-ups/README.md): what is left after PR20, in order
