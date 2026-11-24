@@ -5,9 +5,9 @@ Date: 2026-11-24, between 19:15 and 19:30 UTC. The plan's F7 ([follow-ups](../pl
 ## Summary
 
 - **The tiles are nearly complete.** Every z9 tile holding an obstacle (27) misses 59 of the 104,874 features the map shows at z11 (0.06%), 3 of 24,341 at z9; 400 z12 tiles miss 3 of 108,925 at z13. The gaps are short cable car, catenary and power line pieces, plus new cranes: the tiles are a slightly different snapshot from `bazl.geojson` (they also hold 9 features the dataset no longer has).
-- **But a z9 tile carries z11 detail**, so from z9 to z11 a view would read 1 to 3 times the bytes it reads from the shards today: at z9, 2.9 to 3.1 MB gzip against about 1.1 MB. Only z12 and z13 views get lighter (48 to 401 KB against 160 to 572 KB).
-- **The build stays.** The z7 tier still needs the full 128 MB download every day, so tiles would shrink the deploy's output (247 MB) but not remove the step.
-- **Verdict: not worth it now.** Reading tiles from z9 makes the common zooms heavier; the variant that pays (tiles only for z12 and z13, shards up to z11) saves about 150 MB of build output and some bytes on close views, against a runtime dependency on a third-party CDN, a protobuf decoder and lines cut at tile edges. Revisit if the shards near a Pages limit (20,000 files a deploy, 25 MiB a file) or upstream publishes tiles cut per zoom.
+- **But a z9 tile carries z11 detail**, so a z9 view reads about 3 times the bytes it reads from the shards today (2.9 to 3.1 MB gzip against about 1.1 MB), and a z11 view about as much (0.9 to 1.4 times). Only z12 and z13 views get lighter (48 to 401 KB against 160 to 572 KB).
+- **The build stays.** The z7 tier still needs the full 128 MB download every day, so tiles would shrink the deploy's output (258 MB) but not remove the step.
+- **Verdict: not worth it now.** Reading tiles from z9 makes the common zooms heavier; the variant that pays (tiles only for z12 and z13, shards up to z11) saves about 160 MB of build output and some bytes on close views, against a runtime dependency on a third-party CDN, a protobuf decoder and lines cut at tile edges. Revisit if the shards near a Pages limit (20,000 files a deploy, 25 MiB a file) or upstream publishes tiles cut per zoom.
 
 ## Completeness
 
@@ -40,7 +40,7 @@ A 1280 by 800 view padded by a fifth on each side, as `layer-obstacles.ts` loads
 | Lugano z11 | 12 files, 345 KB | 6 tiles, 428 KB |
 | Lugano z13 | 4 files, 237 KB | 12 tiles, 48 KB |
 
-A z9 tile decodes in about 25 ms in Node (11,714 features, 1.06 MB of protobuf, 6 MB as GeoJSON); a 0.5 MB shard parses in 2 ms. The shards per tier: z7 4.5 MB (13 files), z9 12 MB, z10 26 MB, z11 53 MB, z12 54 MB, z13 108 MB (155 files); 453 files, 247 MB in all.
+A z9 tile decodes in about 25 ms in Node (11,714 features, 1.06 MB of protobuf, 6 MB as GeoJSON); a 0.5 MB shard parses in 2 ms. The shards per tier: z7 4.5 MB (13 files), z9 12 MB, z10 26 MB, z11 53 MB, z12 54 MB, z13 108 MB (155 files); 453 files, 258 MB in all.
 
 ## What the switch would take
 
