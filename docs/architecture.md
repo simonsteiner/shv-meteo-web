@@ -2,6 +2,39 @@
 
 How this web app gets, processes and shows its data. Static Astro pages with TypeScript page scripts on Cloudflare Pages, and Pages Functions for the upstream calls a browser can't make. For how the official native app and its backends work (Keycloak, member web service, `UserProfile` payload), see [reference/shv-native-app.md](reference/shv-native-app.md).
 
+```mermaid
+flowchart LR
+  subgraph browser["Browser: Astro pages, ShvApi (src/scripts/api.ts)"]
+    pages["map, weather, forecast, safety"]
+  end
+  subgraph pagesdev["Cloudflare Pages"]
+    static["public/data/: flying sites, airspaces, wildlife zones,<br/>sounding stations, obstacle shards"]
+    fn["Functions /api/*<br/>measurements, timeseries, webcams,<br/>text-forecast, foehn, previtemps forecast"]
+    cache[("edge cache:<br/>last good answer")]
+  end
+  subgraph direct["Upstreams with CORS"]
+    tiles["wmts.geo.admin.ch (swisstopo, glider chart),<br/>tile.openstreetmap.org"]
+    outlooks["static-prod.ubmeteo.io: outlook frames"]
+    isobars["shv-app-ws-prod.shv-app.ch: isobar SVG"]
+  end
+  subgraph proxied["Upstreams a browser can't call"]
+    weather["weather-ws-prod.ubmeteo.io:<br/>measurements, timeseries, ICON point data"]
+    webcams["webcam-prod.ubmeteo.io"]
+    text["shv-app-ws-prod.shv-app.ch: text forecast"]
+  end
+  cdn["shv-app-static-prod.ubmeteo.io:<br/>GeoJSON CDN, bazl.geojson"]
+
+  pages --> static
+  pages --> fn
+  pages --> tiles & outlooks & isobars
+  pages -. "snapshot fails" .-> cdn
+  fn --> weather & webcams & text
+  fn <--> cache
+  cdn -. "npm run obstacles, at deploy" .-> static
+```
+
+Each arrow and the reason for it is a row in [data-queries.md](architecture/data-queries.md).
+
 - [architecture/data-queries.md](architecture/data-queries.md): every upstream, which calls go straight from the browser and which through a Function in `functions/api/`, the rules every Function keeps, and the edge-cache, CPU and vector-tile spikes. Read it before adding or changing an endpoint.
 - [architecture/data-pipeline.md](architecture/data-pipeline.md): what the data holds and how the app reads it: the GIS snapshots, flying sites, station pairs, measurement units, map controls, forecasts, soundings and BAZL obstacles.
 - [architecture/web.md](architecture/web.md): pages, the shell, state, the tab pages, the CSP, the data client, translations, the API and the dev launcher.
