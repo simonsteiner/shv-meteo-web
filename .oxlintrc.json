@@ -105,7 +105,14 @@
     "typescript/prefer-namespace-keyword": "error",
     "typescript/triple-slash-reference": "error",
     "no-undef": "error",
-    "no-useless-assignment": "error"
+    "no-useless-assignment": "error",
+    "no-restricted-globals": [
+      "error",
+      {
+        "name": "fetch",
+        "message": "Call upstreams through ShvApi (src/scripts/api.ts); see AGENTS.md, Data access."
+      }
+    ]
   },
   "overrides": [
     {
@@ -155,6 +162,19 @@
       "files": ["scripts/**", "*.config.js", "*.config.mjs"],
       "env": {
         "node": true
+      }
+    },
+    {
+      "files": [
+        "src/scripts/api.ts",
+        "src/scripts/upstream/**",
+        "src/scripts/*/fetch.ts",
+        "**/*.test.ts",
+        "functions/**",
+        "scripts/**"
+      ],
+      "rules": {
+        "no-restricted-globals": "off"
       }
     }
   ]
