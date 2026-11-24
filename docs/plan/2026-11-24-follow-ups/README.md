@@ -4,7 +4,7 @@ The [migration plan](../2026-11-23-astro-cloudflare/README.md) has shipped up to
 
 ## Delivery
 
-- A stack is a line, so items that don't depend on each other are separate PRs off `main`.
+- A stack is a line, so items that don't depend on each other go up as separate PRs off `main`, unless the owner wants them merged in one go, as with the stack in review below.
 - Each PR passes `npm run lint`, `npm run typecheck`, `npm test` and `npm run build`, and is used in the browser on `npm run dev` (and on `npm run build && npm run preview` when it loads something from a new origin, for the CSP); a PR that changes a page attaches before and after shots from `npm run shot`.
 - The owner reviews and merges.
 
