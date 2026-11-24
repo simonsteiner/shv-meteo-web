@@ -43,7 +43,7 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 ## Hard constraints
 
 - **Never add mock, sample or synthesized data.** No fake profiles, placeholder ratings, simulated measurements or generated trend curves; show an empty or error state when real data is missing.
-- **Never accept or store SHV passwords, and never send tokens to the browser.** The site has no member login (it reused the official app's Keycloak client; the header links to the SHV member portal instead). If login returns, it follows the cookie design in the migration plan (`target.md`, "Auth").
+- **Never accept or store SHV passwords, and never send tokens to the browser.** The site has no member login (it reused the official app's Keycloak client; the header links to the SHV member portal instead). If login returns, it follows the cookie design in the migration plan (`target.md`, "Auth"); how to check membership, and what to ask the SHV for, is in `docs/research/2026-11-24-member-check.md`.
 - **Never bypass the git hooks** (`--no-verify`, `LEFTHOOK=0`). lefthook (`lefthook.yml`, installed by `npm install`) blocks staged files over 5,000 tokens and any em or en dash. Split an oversized file along its seams; write a dash a user must see as a JavaScript unicode escape, as the views already do.
 
 ## Gotchas
