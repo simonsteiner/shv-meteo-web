@@ -127,13 +127,15 @@ export function assess(
     return {
       ...calm,
       alertLevel: "DANGER",
-      descriptionDe: `Starker Druckgradient (${signed} hPa). Starkwind und Turbulenzen im Transect.`,
+      descriptionDe: `Starker Druckgradient (${signed} hPa). Starkwind und Turbulenzen zwischen den beiden Stationen.`,
+      descriptionEn: `Strong pressure gradient (${signed} hPa). Strong wind and turbulence between the two stations.`,
     };
   if (Math.abs(delta) >= 3)
     return {
       ...calm,
       alertLevel: "MODERATE",
       descriptionDe: `Mässiger Gradient (${signed} hPa). Merkliche Ausgleichsströmung.`,
+      descriptionEn: `Moderate gradient (${signed} hPa). Noticeable compensating flow.`,
     };
   return calm;
 }

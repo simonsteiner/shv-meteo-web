@@ -41,6 +41,15 @@ test("other pressure pairs grade the absolute gradient", () => {
   assert.equal(assess(pairConfig("PIL_MTR"), 10).alertLevel, "NONE");
 });
 
+test("a gradient alert says so in English too, not the calm text", () => {
+  const calm = assess(pairConfig("GVE_GUT"), 0).descriptionEn;
+  for (const d of [-3, 6]) {
+    const a = assess(pairConfig("DEM_GRE"), d);
+    assert.notEqual(a.descriptionEn, calm);
+    assert.match(a.descriptionEn, new RegExp(`${d > 0 ? "\\+" : ""}${d} hPa`));
+  }
+});
+
 test("station values accept Kelvin and tenths of hPa", () => {
   assert.equal(
     stationTemperature(station("A", { temperature2mValue: 279.65 })),
