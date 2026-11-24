@@ -55,7 +55,7 @@ There is no `.env` file and nothing loads one: the Functions have no bindings an
 npm run shot -- http://localhost:4321/map/ /tmp/map.png [--size 1280x800] [--wait 3000] [--no-sandbox]
 ```
 
-It launches a headless Chromium (`$CHROME`, else Playwright's newest under `~/.cache/ms-playwright`, else `chromium` on `PATH`; that lookup is Linux-only, so on macOS or Windows set `$CHROME` to the browser binary), waits for the load event plus `--wait` ms so the map tiles arrive, and prints the page's exceptions and console errors. `--no-sandbox` is for a container running as root, where Chromium's sandbox won't start. The refactor PRs attach before/after shots taken with it. The gallery in `screenshots/` predates it and is regenerated once the views are ported.
+It launches a headless Chromium (`$CHROME`, else Playwright's newest under `~/.cache/ms-playwright`, else `chromium` on `PATH`; that lookup is Linux-only, so on macOS or Windows set `$CHROME` to the browser binary), waits for the load event plus `--wait` ms so the map tiles arrive, and prints the page's exceptions and console errors. `--no-sandbox` is for a container running as root, where Chromium's sandbox won't start. The refactor PRs attach before/after shots taken with it. The README gallery in `screenshots/` is taken with it too.
 
 ## Chrome DevTools MCP
 
