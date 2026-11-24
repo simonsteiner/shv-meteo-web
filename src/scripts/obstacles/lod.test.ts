@@ -90,13 +90,15 @@ test("the key and the slimmed properties", () => {
     sourceId: "BE1",
     partIndex: 2,
     name: "x",
-    effectiveDate: "2026",
+    effectiveDate: "2025-12-18",
   } as ObstacleFeature["properties"]);
   assert.equal(featureKey(f), "BE1_LineString_2");
   const s = slim(f);
   assert.equal(s.properties._uid, "BE1_LineString_2");
   assert.equal(s.properties.geometryType, "LineString");
-  assert.equal("effectiveDate" in s.properties, false);
+  // the sheet shows the date; the UUID name is dropped
+  assert.equal(s.properties.effectiveDate, "2025-12-18");
+  assert.equal("name" in s.properties, false);
 });
 
 test("the cap orders marked, then cable cars, then taller, then key", () => {

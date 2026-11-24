@@ -1,5 +1,5 @@
 // A BAZL aviation obstacle's sheet: type, airport, marking and lighting,
-// heights, its BAZL id, and the directions and DABS links.
+// heights, its BAZL id and effective date, and the directions and DABS links.
 
 import { nonZeroNum, text } from "../coerce.ts";
 import { escapeHtml } from "../escape.ts";
@@ -38,6 +38,13 @@ export function obstacleTypeLabel(type: unknown, say: Say): string {
 
 function attr(label: string, value: string, cls = ""): string {
   return `<span class="attr-label">${escapeHtml(label)}</span><span${cls ? ` class="${cls}"` : ""}>${escapeHtml(value)}</span>`;
+}
+
+/** The record's effective date, or null for a missing or malformed one and
+ * for upstream's placeholder `1950-01-01` (on about 2,800 of 225,000). */
+function effectiveDate(v: unknown): string | null {
+  const d = text(v);
+  return /^\d{4}-\d{2}-\d{2}$/.test(d) && d !== "1950-01-01" ? d : null;
 }
 
 export function obstacleSheetHtml(f: ObstacleFeature, say: Say): string {
@@ -89,6 +96,7 @@ export function obstacleSheetHtml(f: ObstacleFeature, say: Say): string {
         ),
   ].join("");
   const sourceId = text(p.sourceId);
+  const since = effectiveDate(p.effectiveDate);
   const attributes = [
     attr(say("map.sheet.type"), type || "-", "attr-strong"),
     sourceId ? attr(say("map.sheet.bazlId"), sourceId, "attr-mono") : "",
@@ -102,6 +110,7 @@ export function obstacleSheetHtml(f: ObstacleFeature, say: Say): string {
       say("map.sheet.lighting"),
       lit ? `💡 ${lighting}` : say("map.sheet.none"),
     ),
+    since ? attr(say("map.sheet.effective"), since) : "",
   ].join("");
 
   const body = `${metrics ? `<div class="station-metrics-grid obstacle-metrics">${metrics}</div>` : ""}<div class="sheet-section obstacle-attributes"><div class="obstacle-attr-grid">${attributes}</div></div><div class="sheet-actions sheet-actions-spaced">${navLink(at, say)}<a href="https://www.skybriefing.com/de/dabs" target="_blank" rel="noopener" class="btn-action btn-dabs"><span>${escapeHtml(say("map.sheet.dabs"))}</span></a></div>`;

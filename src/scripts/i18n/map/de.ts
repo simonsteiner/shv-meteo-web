@@ -163,6 +163,7 @@ export const map = {
     radius: "Radius",
     type: "Typ:",
     bazlId: "BAZL-ID:",
+    effective: "In Kraft seit:",
     marking: "Markierung:",
     markedYes: "🔴 Markiert",
     none: "Keine",

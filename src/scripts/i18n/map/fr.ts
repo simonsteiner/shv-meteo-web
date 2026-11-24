@@ -166,6 +166,7 @@ export const map: MapStrings = {
     radius: "Rayon",
     type: "Type:",
     bazlId: "ID OFAC:",
+    effective: "En vigueur depuis:",
     marking: "Balisage:",
     markedYes: "🔴 Balisé",
     none: "Aucun",

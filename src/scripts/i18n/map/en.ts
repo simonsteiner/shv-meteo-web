@@ -166,6 +166,7 @@ export const map: MapStrings = {
     radius: "Radius",
     type: "Type:",
     bazlId: "FOCA ID:",
+    effective: "In force since:",
     marking: "Marking:",
     markedYes: "🔴 Marked",
     none: "None",

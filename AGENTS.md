@@ -67,7 +67,7 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 - **No inline scripts or handlers.** Each built page carries a meta CSP (`src/scripts/access/csp.ts`) whose `script-src` is `'self'` plus the hash of the one inline script, the theme script in `Base.astro`; attach handlers with `addEventListener`. `npm run dev` has no CSP, so check a change that loads something new on `npm run build && npm run preview`.
 - **Browser code stays at ES2020.** `astro.config.mjs` keeps the old build target (Safari 14, Chrome 87, Firefox 78); syntax is lowered but builtins are not polyfilled, so don't use newer ones (`Object.hasOwn`, `Array.prototype.at`, `structuredClone`).
 - **The sounding Function reads a generated grid.** Rerun `npm run grid` after changing `public/data/previtemps_stations.json`, or when a station's sounding answers 503 for a day.
-- **The BAZL obstacles are build-time shards.** `npm run obstacles` writes `public/data/obstacles/` (git-ignored, about 260 MB); without it locally the obstacle layer stays empty.
+- **The BAZL obstacles are build-time shards.** `npm run obstacles` writes `public/data/obstacles/` (git-ignored, about 275 MB); without it locally the obstacle layer stays empty.
 - **`public/data/*.geojson` are snapshots of the upstream CDN datasets.** `ShvApi` loads them first and falls back to the CDN URLs in `src/scripts/api.ts`.
 
 ## Docs

@@ -166,6 +166,7 @@ export const map: MapStrings = {
     radius: "Raggio",
     type: "Tipo:",
     bazlId: "ID UFAC:",
+    effective: "In vigore dal:",
     marking: "Segnalazione:",
     markedYes: "🔴 Segnalato",
     none: "Nessuna",

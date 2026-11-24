@@ -40,7 +40,7 @@ npx rumdl check .  # Markdown lint, as CI runs it; rumdl check --fix in the pre-
 
 Two scripts write data the app reads; both need network:
 
-- `npm run obstacles` downloads the BAZL dataset (about 128 MB, kept a day under `.cache/obstacles/`) and writes the obstacle shards into `public/data/obstacles/` (git-ignored, about 260 MB). Without it the map's obstacle layer stays empty locally; `deploy.yml` runs it before every deploy.
+- `npm run obstacles` downloads the BAZL dataset (about 128 MB, kept a day under `.cache/obstacles/`) and writes the obstacle shards into `public/data/obstacles/` (git-ignored, about 275 MB). Without it the map's obstacle layer stays empty locally; `deploy.yml` runs it before every deploy.
 - `npm run grid` rewrites `src/data/previtemps_grid.json`, each sounding station's ICON grid point. Run it after changing `public/data/previtemps_stations.json`, or when a station's sounding answers 503 for a day.
 
 ## Build and preview
