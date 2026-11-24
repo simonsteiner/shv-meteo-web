@@ -24,6 +24,16 @@ test("every inline script gets its hash; src and JSON scripts get none", () => {
   ]);
 });
 
+test("an attribute that only starts with src or type doesn't count", () => {
+  assert.deepEqual(
+    inlineScriptHashes(
+      '<script srcfoo="/x.js">b()</script>' +
+        '<script typex type="application/json">{"a":1}</script>',
+    ),
+    [sha("b()")],
+  );
+});
+
 test("a script that appears twice is hashed once", () => {
   assert.deepEqual(
     inlineScriptHashes("<script>a()</script><script>a()</script>"),
