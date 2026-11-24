@@ -29,7 +29,7 @@ The [migration plan](../2026-11-23-astro-cloudflare/README.md) has shipped up to
 
 ## F15 `feat/forecast-animations` (after the owner's decision in F10; after F16 if members only)
 
-`animation/switzerland/animation_overview.json` lists 185 sections: wind at 1,500 to 4,000 m above sea level and at 100, 400 and 800 m above ground, gusts, cloud by level, precipitation (radar plus ICON) and 850 hPa temperature. The host answers CORS `*` and the frames are the frame strips our Outlooks already play, so most of `src/scripts/forecast/outlooks.ts` carries over and no Function is needed; a strip is about 880 KB and only the layer shown is fetched. A new forecast section, `/forecast/animations/`. The European index (60 sections of ICON global, frames per focus point) reuses it later, if at all. If the animations are for members only, F16's member check gates them, so the frames then come through a Function that checks the cookie instead of straight from the host.
+`animation/switzerland/animation_overview.json` lists 185 sections: wind at 1,500 to 4,000 m above sea level and at 100, 400 and 800 m above ground, gusts, cloud by level, precipitation (radar plus ICON) and 850 hPa temperature. The host answers CORS `*` and the frames are the frame strips our Outlooks already play, so most of `src/scripts/forecast/outlooks.ts` carries over and no Function is needed; a strip is about 880 KB and only the layer shown is fetched. A new forecast section, `/forecast/animations/`. A heading for the winds aloft is in `101eccd^:src/scripts/i18n/*.ts` (`forecast.windAloftTitle`). The European index (60 sections of ICON global, frames per focus point) reuses it later, if at all. If the animations are for members only, F16's member check gates them, so the frames then come through a Function that checks the cookie instead of straight from the host.
 
 ## Later, or never
 
@@ -64,7 +64,7 @@ Only "current member: yes or no", no profile, as in the [member check research](
 
 ## F11 `feat/parcel-analysis` (new feature, last)
 
-Port `analyze_sounding` (`e1e5525:server/emagram_calc.py:56-201`) to TypeScript: LCL, moist adiabat, CAPE, inversions, trigger temperature, run in the browser over the real ICON levels, with golden fixtures from the Python at `e1e5525`. Shown on the emagram card. Only worth starting once F8 shows the soundings are back.
+Port `analyze_sounding` (`e1e5525:server/emagram_calc.py:56-201`) to TypeScript: LCL, moist adiabat, CAPE, inversions, trigger temperature, run in the browser over the real ICON levels, with golden fixtures from the Python at `e1e5525`. Shown on the emagram card. Only worth starting once F8 shows the soundings are back. Labels in all four languages are in `101eccd^:src/scripts/i18n/{de,fr,it,en}.ts` under `forecast`: `cloudBase` (LCL), `thermalCeiling`, `triggerTemp`, `surfaceTemp`, `surfaceDew`, `thermalTitle` and `calcSim`, dropped while nothing showed them; restore those the card uses.
 
 ## Order
 
