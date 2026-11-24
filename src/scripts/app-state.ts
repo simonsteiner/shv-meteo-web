@@ -41,6 +41,8 @@ export interface State extends Settings {
   selectedWebcam: unknown;
   selectedObstacle: unknown;
   pilotLocation: LatLng | null;
+  /** How many positions have arrived; the map centres on each new one. */
+  pilotFix: number;
   /** The ticked pre-flight checklist points, per browser tab. */
   checklist: Record<string, boolean>;
   /** The vario starts muted on every page: audio may only start on a click. */
@@ -97,6 +99,7 @@ export class AppState {
       selectedWebcam: null,
       selectedObstacle: null,
       pilotLocation: null,
+      pilotFix: 0,
       checklist: { ...checklist, ...loadChecklist(session) },
       varioMuted: true,
     };
@@ -210,6 +213,7 @@ export class AppState {
 
   setPilotLocation(at: LatLng | null): void {
     this.state.pilotLocation = at;
+    if (at) this.state.pilotFix += 1;
     this.notify();
   }
 

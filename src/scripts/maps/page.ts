@@ -41,12 +41,7 @@ import type {
   MeasurementFeature,
   Webcam,
 } from "../types.ts";
-import {
-  DEFAULT_CENTER,
-  DEFAULT_ZOOM,
-  PILOT_ZOOM,
-  viewFor,
-} from "./basemap.ts";
+import { DEFAULT_CENTER, DEFAULT_ZOOM, pilotZoom, viewFor } from "./basemap.ts";
 import type { LatLngTuple } from "./centroid.ts";
 import {
   findHandoff,
@@ -57,7 +52,7 @@ import { drawFoehn, drawStations, drawWebcams } from "./layer-meteo.ts";
 import { obstacleLayer } from "./layer-obstacles.ts";
 import { siteLayers } from "./layer-sites.ts";
 import { zoneLayers } from "./layer-zones.ts";
-import { locatePilot, type LatLng } from "./locate.ts";
+import { locatePilot } from "./locate.ts";
 import { centredIcon, createMap, showLayer } from "./view.ts";
 import type { FoehnReport } from "../foehn/report.ts";
 import { weatherUrl } from "../weather/query.ts";
@@ -73,7 +68,7 @@ export function mountMap(root: HTMLElement): void {
   const handoff: Handoff | null = readHandoff(location.search);
   const zoom = readZoom(location.search);
   // ?z sets the zoom of a ?locate handoff only, and only once, so the
-  // header's GPS button later centres the pilot at PILOT_ZOOM
+  // header's GPS button later keeps the zoom (pilotZoom)
   let locateZoom = handoff && "locate" in handoff ? zoom : null;
   if (handoff || zoom !== null)
     history.replaceState(history.state, "", withoutHandoff(location.href));
@@ -120,6 +115,7 @@ export function mountMap(root: HTMLElement): void {
   let webcams: Webcam[] = [];
   let foehn: FoehnReport | null = null;
   let pilotMarker: L.Marker | null = null;
+  let pilotFix = 0;
   // what was drawn last, so a store change redraws only what it touched
   let lang: string | null = null;
   let sitesKey = "";
@@ -212,21 +208,22 @@ export function mountMap(root: HTMLElement): void {
   }
 
   function renderPilot(): void {
-    const pilot = store.state.pilotLocation as LatLng | null;
+    const { pilotLocation: pilot, pilotFix: fix } = store.state;
     if (!pilot) return;
     const at: LatLngTuple = [pilot.lat, pilot.lng];
-    if (pilotMarker) {
-      pilotMarker.setLatLng(at);
-      return;
-    }
-    pilotMarker = L.marker(at, {
-      icon: centredIcon(
-        "pilot-loc-icon",
-        '<div class="pilot-pulse"><div class="pilot-center"></div></div>',
-        [24, 24],
-      ),
-    }).addTo(map);
-    map.setView(at, locateZoom ?? PILOT_ZOOM);
+    if (pilotMarker) pilotMarker.setLatLng(at);
+    else
+      pilotMarker = L.marker(at, {
+        icon: centredIcon(
+          "pilot-loc-icon",
+          '<div class="pilot-pulse"><div class="pilot-center"></div></div>',
+          [24, 24],
+        ),
+      }).addTo(map);
+    // each new position, from the GPS button or ?locate, centres the map
+    if (fix === pilotFix) return;
+    pilotFix = fix;
+    map.setView(at, pilotZoom(locateZoom, map.getZoom()));
     locateZoom = null;
   }
 
@@ -391,6 +388,7 @@ export function mountMap(root: HTMLElement): void {
   if (handoff && "locate" in handoff)
     void locatePilot().then((at) => {
       if (at) store.setPilotLocation(at);
+      locateZoom = null;
     });
 
   store.subscribe(render);

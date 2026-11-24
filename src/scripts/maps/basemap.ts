@@ -9,7 +9,7 @@ import type { LatLngTuple } from "./centroid.ts";
 export const DEFAULT_CENTER: LatLngTuple = [46.8182, 8.2275];
 export const DEFAULT_ZOOM = 9;
 export const [MIN_ZOOM, MAX_ZOOM] = ZOOM_RANGE;
-/** The zoom the map flies to when the pilot's position first arrives. */
+/** The least zoom the map shows the pilot's position at. */
 export const PILOT_ZOOM = 12;
 
 export interface BaseLayerSpec {
@@ -93,4 +93,11 @@ export function viewFor(
 ): { center: LatLngTuple; zoom: number } | null {
   if (!at && zoom === null) return null;
   return { center: at ?? DEFAULT_CENTER, zoom: zoom ?? currentZoom };
+}
+
+/** The zoom the map centres a new pilot position at: the asked-for `zoom`
+ * of a ?locate handoff, else the current zoom, but no less than PILOT_ZOOM,
+ * so a pilot who zoomed in stays zoomed in. */
+export function pilotZoom(zoom: number | null, currentZoom: number): number {
+  return zoom ?? Math.max(currentZoom, PILOT_ZOOM);
 }
