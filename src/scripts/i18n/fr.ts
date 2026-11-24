@@ -107,6 +107,7 @@ export const fr: Strings = {
     stationsUnavailable: "Mesures en direct momentanément indisponibles.",
     webcamsUnavailable: "Webcams momentanément indisponibles.",
     noMatches: "Aucun résultat.",
+    moreMatches: "{shown} sur {total} affichés. La recherche affine la liste.",
     loading: "Chargement des données météo...",
   },
   forecast: {

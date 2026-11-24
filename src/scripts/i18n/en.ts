@@ -103,6 +103,7 @@ export const en: Strings = {
     stationsUnavailable: "Live measurements temporarily unavailable.",
     webcamsUnavailable: "Webcams temporarily unavailable.",
     noMatches: "No matches.",
+    moreMatches: "Showing {shown} of {total}. Search to narrow the list.",
     loading: "Loading weather data...",
   },
   forecast: {

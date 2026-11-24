@@ -15,7 +15,12 @@ import { must } from "../dom.ts";
 import { DEFAULT_PAIR } from "../foehn/pairs.ts";
 import type { StationPair } from "../foehn/report.ts";
 import { handoffUrl } from "../handoff.ts";
-import { applyText, say as sayIn, type Dictionary } from "../i18n/text.ts";
+import {
+  applyText,
+  fill,
+  say as sayIn,
+  type Dictionary,
+} from "../i18n/text.ts";
 import type { MeasurementFeature, Webcam } from "../types.ts";
 import { pairPillsHtml, stationCardHtml, webcamCardHtml } from "./cards.ts";
 import { stationModal } from "./modal.ts";
@@ -41,12 +46,8 @@ import {
   withWeatherQuery,
   type WeatherTab,
 } from "./query.ts";
-import { filterStations, PROVIDERS, type Provider } from "./stations.ts";
-import { filterWebcams } from "./webcams.ts";
-
-/** How many cards a list shows, as the old view did. */
-const MAX_STATIONS = 48;
-const MAX_WEBCAMS = 36;
+import { listView } from "./lists.ts";
+import { PROVIDERS, type Provider } from "./stations.ts";
 
 const dictionary = (): Dictionary => store.t;
 const say = (key: string) => sayIn(dictionary(), key);
@@ -77,6 +78,7 @@ export function mountWeather(root: HTMLElement): void {
   const searchInput = q<HTMLInputElement>("[data-weather-search]");
   const providerPills = q("[data-provider-pills]");
   const listStatus = q("[data-list-status]");
+  const listMore = q("[data-list-more]");
   const stationCards = q("[data-station-cards]");
   const webcamCards = q("[data-webcam-cards]");
   const modal = stationModal(
@@ -216,25 +218,20 @@ export function mountWeather(root: HTMLElement): void {
     );
     providerPills.hidden = tab !== "stations";
 
-    const shownStations = stations
-      ? filterStations(stations, provider, search)
-      : [];
-    const shownWebcams = webcams ? filterWebcams(webcams, search) : [];
-    q('[data-count="stations"]').textContent = String(shownStations.length);
-    q('[data-count="providers"]').textContent = String(shownStations.length);
-    q('[data-count="webcams"]').textContent = String(shownWebcams.length);
-
-    const data = tab === "stations" ? stations : webcams;
-    const shown = tab === "stations" ? shownStations : shownWebcams;
-    listStatus.hidden = !!data && shown.length > 0;
-    if (data === undefined) listStatus.textContent = say("weather.loading");
-    else if (data === null)
-      listStatus.textContent = say(
-        tab === "stations"
-          ? "weather.stationsUnavailable"
-          : "weather.webcamsUnavailable",
-      );
-    else listStatus.textContent = say("weather.noMatches");
+    const view = listView({ tab, stations, webcams, provider, search });
+    q('[data-count="stations"]').textContent = String(view.counts.stations);
+    q('[data-count="providers"]').textContent = String(
+      view.counts.allProviders,
+    );
+    q('[data-count="webcams"]').textContent = String(view.counts.webcams);
+    listStatus.hidden = view.statusKey === null;
+    if (view.statusKey) listStatus.textContent = say(view.statusKey);
+    // the cards show the first matches only; the search narrows them
+    listMore.hidden = view.shown >= view.matches;
+    listMore.textContent = fill(say("weather.moreMatches"), {
+      shown: view.shown,
+      total: view.matches,
+    });
 
     stationCards.hidden = tab !== "stations";
     webcamCards.hidden = tab !== "webcams";
@@ -245,15 +242,11 @@ export function mountWeather(root: HTMLElement): void {
         temp: say("weather.tempShort"),
         windDirection: say("weather.windDirection"),
       };
-      stationCards.innerHTML = shownStations
-        .slice(0, MAX_STATIONS)
+      stationCards.innerHTML = view.stations
         .map((st) => stationCardHtml(st, text))
         .join("");
     } else {
-      webcamCards.innerHTML = shownWebcams
-        .slice(0, MAX_WEBCAMS)
-        .map(webcamCardHtml)
-        .join("");
+      webcamCards.innerHTML = view.webcams.map(webcamCardHtml).join("");
     }
   }
 

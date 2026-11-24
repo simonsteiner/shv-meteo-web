@@ -103,6 +103,8 @@ export const de = {
     stationsUnavailable: "Live-Messwerte vorübergehend nicht verfügbar.",
     webcamsUnavailable: "Webcams vorübergehend nicht verfügbar.",
     noMatches: "Keine Treffer.",
+    moreMatches:
+      "{shown} von {total} angezeigt. Die Suche grenzt die Liste ein.",
     loading: "Wetterdaten werden geladen...",
   },
   forecast: {

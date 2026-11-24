@@ -103,9 +103,17 @@ export function stationModal(
     backdrop.hidden = true;
     chart?.destroy();
     chart = null;
+    // a language or theme change rebuilds the cards, so the card that opened
+    // the dialog may be gone: focus its replacement
+    const id = station?.id;
+    const back = opener?.isConnected
+      ? opener
+      : Array.from(
+          root.querySelectorAll<HTMLElement>("[data-station-id]"),
+        ).find((el) => el.dataset.stationId === id);
     station = null;
     drawn = null;
-    opener?.focus();
+    back?.focus();
   }
 
   backdrop.addEventListener("click", (event) => {
