@@ -19,26 +19,18 @@ The [migration plan](../2026-11-23-astro-cloudflare/README.md) has shipped up to
 | F5 `fix/upstream-body-timeout` | [#33](https://github.com/simonsteiner/shv-meteo-web/pull/33)                                                    | the route's deadline covers the body too; a stalled body errors and is never cached                     |
 | F6 `perf/obstacle-loading`  | [#35](https://github.com/simonsteiner/shv-meteo-web/pull/35)                                                       | only the quarters a view covers, a cell cache bounded by bytes, shared in-flight loads                  |
 | capture of the official app | [#28](https://github.com/simonsteiner/shv-meteo-web/pull/28), [#34](https://github.com/simonsteiner/shv-meteo-web/pull/34) | the app on an Android emulator, its HTTPS calls captured and listed                             |
+| F12 `perf/measurements-filter` | [#40](https://github.com/simonsteiner/shv-meteo-web/pull/40) | `/api/measurements` asks upstream for the nine parameters the map and the weather page read: 3.1 MB and 4,179 stations to 2.2 MB and 3,754 (455 KB to 266 KB gzip), the same 3,737 stations drawn |
+| F13 `feat/dew-point` | [#41](https://github.com/simonsteiner/shv-meteo-web/pull/41) | `dew_point` in the timeseries call, drawn dashed next to the temperature in the station chart; no line for a station that doesn't report it |
+| F14 `feat/segelflugkarte` | [#42](https://github.com/simonsteiner/shv-meteo-web/pull/42) | BAZL's glider chart as a base map, the choice kept in `shv_*` |
+| F7 `perf/obstacle-tiles` (research only) | [#43](https://github.com/simonsteiner/shv-meteo-web/pull/43) | the shards stay: upstream's tiles are 99.9% complete, but a z9 tile carries z11 detail, so a z9 view would read about 3 times the bytes and only z12 and z13 views get lighter ([research note](../../research/2026-11-24-obstacle-vector-tiles.md)); revisit if the shards near a Pages limit or upstream cuts tiles per zoom |
+| member check research | [#39](https://github.com/simonsteiner/shv-meteo-web/pull/39) | how to tell that a visitor is a current SHV member, and why it needs a client from the SHV ([research note](../../research/2026-11-24-member-check.md)); reshaped F10, F15 and F16 |
 
-## In review: the capture's additions and the F7 spike
+## In review: two station dialog fixes
 
-One stack on this plan's PR ([#38](https://github.com/simonsteiner/shv-meteo-web/pull/38)), so the owner can merge it in one go: F12 [#40](https://github.com/simonsteiner/shv-meteo-web/pull/40), F13 [#41](https://github.com/simonsteiner/shv-meteo-web/pull/41), F14 [#42](https://github.com/simonsteiner/shv-meteo-web/pull/42), F7 [#43](https://github.com/simonsteiner/shv-meteo-web/pull/43), and on top the member check research ([#39](https://github.com/simonsteiner/shv-meteo-web/pull/39)), which reshapes F10, F15 and F16 below. Once merged, they move to Shipped.
+One stack against `main`, so the owner can merge it in one go: the two fixes, then this update of the plan.
 
-### F12 `perf/measurements-filter`
-
-`/api/measurements` asks upstream for nine parameters (wind speed, direction and gust, `temperature`, `dew_point`, `relative_humidity`, `pressure_msl`, `pressure_standard_msl`, `pressure_surface`), the eleven values the map and the weather page read: the weather page's dialog also shows dew point and humidity, which the list here had missed, and upstream's `temperature`, `dew_point` and `relative_humidity` include their 2 m variants (`dew_point_2m` is a 400). Measured on 2026-11-24: 3.1 MB and 4,179 stations before, 2.2 MB and 3,754 after (455 KB to 266 KB gzip); the 425 dropped report only precipitation, pollen, radiation or snow depth, so the map draws the same 3,737 stations and the weather page lists no all-dash cards.
-
-### F13 `feat/dew-point`
-
-Add `dew_point` to `TIMESERIES_PARAMETERS` and draw it in the station chart next to the temperature; their gap gives a rough cloud base. One call as now, not the app's three. **Accept:** the line on a station that reports it, no line (not a gap filled in) on one that doesn't.
-
-### F14 `feat/segelflugkarte`
-
-The BAZL glider chart as one more base map or overlay in `src/scripts/maps/basemap.ts` (`BASE_LAYERS`, `BASE_MAPS` in `settings.ts`). `wmts.geo.admin.ch` serves it in the 3857 grid (`ch.bazl.segelflugkarte/default/current/3857/{z}/{x}/{y}.png`) with CORS `*`. Check its zoom range and the attribution swisstopo asks for. **Accept:** the layer switch shows it, the choice persists through `shv_*`, no CSP violation on preview.
-
-## F7 `perf/obstacle-tiles`: shards stay
-
-The wider check ([research note](../../research/2026-11-24-obstacle-vector-tiles.md)) found upstream's tiles 99.9% complete (every z9 tile with obstacles, 400 z12 tiles), but a z9 tile carries z11 detail, so a z9 view would read about 3 times the bytes of today's shards and a z11 view about as much, and the z7 tier keeps the daily download. Only z12 and z13 views get lighter. No change; revisit if the shards near a Pages limit or upstream cuts tiles per zoom.
+- **`fix/station-chart-24h`:** the dialog's chart is headed "24h Verlauf", but `/api/measurements/timeseries/:id` passed upstream's default of 14 days (KLO: 548 KB, 2,012 points per series; a Holfuy station 3.1 MB at one-minute values). The route now sends `start=` 24 hours back, rounded down to the minute as for Foehn; the edge-cache copy stays keyed by station. KLO comes down to 39 KB and 1,001 points, the Holfuy station to 211 KB and 5,576.
+- **`fix/dew-point-fallback`:** `stationValues` read only `dewPoint2mValue`, so the 118 stations that send only `dewPointValue` (Bantiger, five Windline stations, the aviation reports) showed a dash; it now falls back to the plain value, as the temperature does.
 
 ## F15 `feat/forecast-animations` (after the owner's decision in F10; after F16 if members only)
 
@@ -51,7 +43,7 @@ The wider check ([research note](../../research/2026-11-24-obstacle-vector-tiles
 
 ## F8 Sounding on production (a check, not a PR)
 
-Upstream's ICON columns were still broken late on 2026-11-24: `/api/meteo/previtemps/forecast/<station>` answers 503 for Buochs, Sion and Tuttlingen, and the emagram shows its empty state. Once a station answers 200, check `/forecast/emagram/` on production and the route's CPU in the Functions metrics, and add the emagram shot to the README. If only some stations keep failing, run `npm run grid` and open a PR with the new grid.
+Upstream's ICON columns were still broken late on 2026-11-24. Checked at 21:30 Swiss time: production's `/api/meteo/previtemps/forecast/<station>` answers 503 for Buochs, Sion, Tuttlingen and Interlaken, and the emagram shows its empty state. Every catalogue station's grid point is on ICON-CH1. Its newest run, 18Z, answers 404 for those four points; the 15Z and 12Z runs answer 200 with all 80 levels, but every level holds about the same pressure and temperature (Tuttlingen at 15Z: 616.5 to 620.7 hPa and 262.5 to 262.9 K; Buochs 786 to 788 hPa, Interlaken 790 hPa, Sion 681 to 738 hPa), while `height_half_level` runs from 22,000 m down to the ground (655 m at Tuttlingen) as it should. `pointProblem` rightly rejects every one: pressure falls 0 to 18 hPa from the ground to the model top, against the 300 hPa it asks for. Once a station answers 200, check `/forecast/emagram/` on production and the route's CPU in the Functions metrics, and add the emagram shot to the README. If only some stations keep failing, run `npm run grid` and open a PR with the new grid.
 
 ## F9 Cloudflare secrets on the `production` environment (owner)
 
@@ -81,7 +73,7 @@ Port `analyze_sounding` (`e1e5525:server/emagram_calc.py:56-201`) to TypeScript:
 ## Order
 
 ```text
-F12, F13, F14, F7 (research only), member check research    in review, one stack on #38
+fix/station-chart-24h, fix/dew-point-fallback                in review, one stack on main
 F10 send the SHV the client request -> F16 acceptance spike -> F16 member check
 F10 members-only decision (-> F16 if members only) -> F15 forecast animations
 F8 when upstream recovers -> F11
