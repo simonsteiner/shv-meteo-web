@@ -38,7 +38,7 @@ The BAZL glider chart as one more base map or overlay in `src/scripts/maps/basem
 
 ## F7 `perf/obstacle-tiles`: shards stay
 
-The wider check ([research note](../../research/2026-11-24-obstacle-vector-tiles.md)) found upstream's tiles 99.9% complete (every z9 tile with obstacles, 400 z12 tiles), but a z9 tile carries z11 detail, so z9 to z11 views would read 1 to 3 times the bytes of today's shards, and the z7 tier keeps the daily download. Only z12 and z13 views get lighter. No change; revisit if the shards near a Pages limit or upstream cuts tiles per zoom.
+The wider check ([research note](../../research/2026-11-24-obstacle-vector-tiles.md)) found upstream's tiles 99.9% complete (every z9 tile with obstacles, 400 z12 tiles), but a z9 tile carries z11 detail, so a z9 view would read about 3 times the bytes of today's shards and a z11 view about as much, and the z7 tier keeps the daily download. Only z12 and z13 views get lighter. No change; revisit if the shards near a Pages limit or upstream cuts tiles per zoom.
 
 ## F15 `feat/forecast-animations` (after the owner's decision in F10)
 
