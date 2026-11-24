@@ -26,11 +26,11 @@ Start the AVD from Android Studio's Device Manager, or from WSL:
 SDK='C:\Users\<you>\AppData\Local\Android\Sdk'
 "$(wslpath "$SDK")/emulator/emulator.exe" -list-avds
 powershell.exe -NoProfile -Command "Start-Process '$SDK\emulator\emulator.exe' '-avd A54_like_API_36'"
-adb wait-for-device
-until [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = 1 ]; do sleep 3; done
+adb -s emulator-5554 wait-for-device
+until [ "$(adb -s emulator-5554 shell getprop sys.boot_completed | tr -d '\r')" = 1 ]; do sleep 3; done
 ```
 
-`Start-Process` detaches the Windows process; a plain `emulator.exe &` keeps the WSL shell attached.
+`Start-Process` detaches the Windows process; a plain `emulator.exe &` keeps the WSL shell attached. The first emulator is `emulator-5554`; name it with `-s`, since a plain `adb` fails with "more than one device/emulator" once the phone is attached too.
 
 ## Install the app from your phone
 
@@ -44,7 +44,7 @@ for f in $(adb -s $PHONE shell pm path ch.shv_fsvl | sed 's/package://' | tr -d 
 adb -s emulator-5554 install-multiple *.apk
 ```
 
-The phone delivers `split_config.arm64_v8a.apk`, and the emulator is `x86_64`. It installs and runs anyway: recent `x86_64` images translate ARM code (`adb shell getprop ro.product.cpu.abilist` lists `x86_64,arm64-v8a`).
+The phone delivers `split_config.arm64_v8a.apk`, and the emulator is `x86_64`. It installs and runs anyway: recent `x86_64` images translate ARM code (`adb -s emulator-5554 shell getprop ro.product.cpu.abilist` lists `x86_64,arm64-v8a`).
 
 ## Use it
 
