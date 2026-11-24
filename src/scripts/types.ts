@@ -134,6 +134,9 @@ export interface ObstacleFeature {
     topElevationAmsl?: number | null;
     styleId?: string;
     airport?: string | null;
+    /** When BAZL's record took effect, `YYYY-MM-DD`; `1950-01-01` means
+     * unknown. */
+    effectiveDate?: string;
     geometryType?: string;
     small?: boolean;
     _uid?: string;

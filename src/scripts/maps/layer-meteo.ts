@@ -3,6 +3,7 @@
 
 import L from "leaflet";
 import type { FoehnReport } from "../foehn/report.ts";
+import type { Say } from "../i18n/text.ts";
 import type { MeasurementFeature, Webcam } from "../types.ts";
 import { foehnAxes } from "./foehn.ts";
 import { stationLatLng, stationMarker } from "./stations.ts";
@@ -37,11 +38,11 @@ export function drawStations(
 export function drawFoehn(
   layer: L.LayerGroup,
   report: FoehnReport | null,
-  lang: string,
+  say: Say,
   open: (pairId: string) => void,
 ): void {
   layer.clearLayers();
-  for (const axis of foehnAxes(report, lang)) {
+  for (const axis of foehnAxes(report, say)) {
     layer.addLayer(
       L.polyline([axis.from, axis.to], {
         color: axis.color,

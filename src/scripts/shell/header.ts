@@ -99,7 +99,6 @@ export function mountShell(header: HTMLElement): void {
       const shown = foehnPill(report);
       if (!shown) return;
       pill.classList.add(shown.badge);
-      pill.title = shown.title;
       must(pill, "[data-foehn-label]").textContent = shown.label;
       pill.classList.remove("hidden");
     })

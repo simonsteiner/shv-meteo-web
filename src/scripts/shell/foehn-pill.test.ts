@@ -9,14 +9,11 @@ function report(pair: Partial<Primary> | null): FoehnReport {
   return {
     primaryPair: pair && {
       id: "KLO_LUG",
-      name: "Lugano - Zürich/Kloten",
       northStation: { name: "Kloten", pressureHpa: 1020.1 },
       southStation: { name: "Lugano", pressureHpa: 1016.0 },
       diffHpa: 4.1,
       status: "MODERATE_SOUTH_FOEHN",
       alertLevel: "MODERATE",
-      descriptionDe: "",
-      descriptionEn: "",
       ...pair,
     },
     pairs: [],
@@ -31,7 +28,6 @@ test("a positive difference gets a plus sign and its alert's badge", () => {
   assert.deepEqual(foehnPill(report({})), {
     badge: "badge-warning",
     label: "Föhn: +4.1 hPa",
-    title: "Lugano - Zürich/Kloten",
   });
 });
 

@@ -245,6 +245,16 @@ function obstacle(
   };
 }
 
+test("an obstacle sheet hides upstream's 1950-01-01 placeholder date", () => {
+  for (const effectiveDate of ["1950-01-01", "", "soon"]) {
+    const html = obstacleSheetHtml(
+      obstacle({ obstacleType: "POLE", effectiveDate }),
+      say,
+    );
+    assert.ok(!html.includes("[map.sheet.effective]"), effectiveDate);
+  }
+});
+
 test("obstacleTypeLabel names known types and keeps unknown codes", () => {
   assert.equal(
     obstacleTypeLabel("CRANE", say),
@@ -264,10 +274,13 @@ test("an obstacle sheet shows heights, marking and lighting", () => {
       topElevationAmsl: 1500,
       sourceId: "CH-123",
       airport: "LSZH",
+      effectiveDate: "2025-12-18",
     }),
     say,
   );
   for (const part of [
+    "[map.sheet.effective]",
+    "2025-12-18",
     "airport LSZH",
     "[map.sheet.marked]",
     "[map.sheet.lit]",

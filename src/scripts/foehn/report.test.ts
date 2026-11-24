@@ -41,6 +41,13 @@ test("other pressure pairs grade the absolute gradient", () => {
   assert.equal(assess(pairConfig("PIL_MTR"), 10).alertLevel, "NONE");
 });
 
+test("a gradient alert has its own status, not CALM", () => {
+  const cfg = pairConfig("DEM_GRE");
+  assert.equal(assess(cfg, -3).status, "MODERATE_GRADIENT");
+  assert.equal(assess(cfg, 6).status, "STRONG_GRADIENT");
+  assert.equal(assess(cfg, 2.9).status, "CALM");
+});
+
 test("station values accept Kelvin and tenths of hPa", () => {
   assert.equal(
     stationTemperature(station("A", { temperature2mValue: 279.65 })),

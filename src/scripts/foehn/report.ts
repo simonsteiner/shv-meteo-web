@@ -15,6 +15,18 @@ import {
 
 type AlertLevel = "NONE" | "MODERATE" | "DANGER";
 
+/** What a pair's difference means; the dictionaries word each one. */
+export const PAIR_STATUSES = [
+  "CALM",
+  "MODERATE_SOUTH_FOEHN",
+  "SEVERE_SOUTH_FOEHN",
+  "MODERATE_NORTH_FOEHN",
+  "SEVERE_NORTH_FOEHN",
+  "MODERATE_GRADIENT",
+  "STRONG_GRADIENT",
+] as const;
+export type PairStatus = (typeof PAIR_STATUSES)[number];
+
 export interface PairStation {
   id: string;
   name: unknown;
@@ -26,10 +38,8 @@ export interface PairStation {
 
 export interface StationPair extends Omit<PairConfig, "startId" | "endId"> {
   delta: number | null;
-  status: string;
+  status: PairStatus;
   alertLevel: AlertLevel;
-  descriptionDe: string;
-  descriptionEn: string;
   station1: PairStation;
   station2: PairStation;
 }
@@ -37,14 +47,11 @@ export interface StationPair extends Omit<PairConfig, "startId" | "endId"> {
 export interface FoehnReport {
   primaryPair: {
     id: string;
-    name: string;
     northStation: { name: unknown; pressureHpa: number | null };
     southStation: { name: unknown; pressureHpa: number | null };
     diffHpa: number | null;
-    status: string;
+    status: PairStatus;
     alertLevel: AlertLevel;
-    descriptionDe: string;
-    descriptionEn: string;
   } | null;
   pairs: StationPair[];
   geoJson: { type: "FeatureCollection"; features: object[] };
@@ -75,66 +82,31 @@ export function stationTemperature(st: MeasurementFeature): number | null {
   return v === null ? null : round1(v);
 }
 
-/** The status, alert level and texts for a pair's difference. */
+/** The status and alert level for a pair's difference. The words for each
+ * status are in the dictionaries (`weather.foehnStatus`, `weather.foehnText`),
+ * so the browser shows them in the UI language. */
 export function assess(
   cfg: PairConfig,
   delta: number | null,
-): Pick<
-  StationPair,
-  "status" | "alertLevel" | "descriptionDe" | "descriptionEn"
-> {
-  const calm = {
-    status: "CALM",
-    alertLevel: "NONE" as AlertLevel,
-    descriptionDe: "Normale Druckverhältnisse. Sichere Bedingungen.",
-    descriptionEn: "Normal pressure conditions. Safe flying conditions.",
-  };
+): Pick<StationPair, "status" | "alertLevel"> {
+  const calm = { status: "CALM", alertLevel: "NONE" } as const;
   if (delta === null) return calm;
   if (cfg.id === "KLO_LUG") {
     if (delta >= 8)
-      return {
-        status: "SEVERE_SOUTH_FOEHN",
-        alertLevel: "DANGER",
-        descriptionDe: `Starker Südföhn (+${delta} hPa)! Akute Lebensgefahr in den Föhntälern (starke Rotoren, schwere Sturmböen). Flugbetrieb einstellen!`,
-        descriptionEn: `Severe South Foehn (+${delta} hPa)! Extreme hazard in alpine valleys (severe rotors, storm gusts). Cease flying!`,
-      };
+      return { status: "SEVERE_SOUTH_FOEHN", alertLevel: "DANGER" };
     if (delta >= 4)
-      return {
-        status: "MODERATE_SOUTH_FOEHN",
-        alertLevel: "MODERATE",
-        descriptionDe: `Mässiger Südföhn (+${delta} hPa). Zunehmende Turbulenz und Gefahr des Föhndurchbruchs in den Alpentälern.`,
-        descriptionEn: `Moderate South Foehn (+${delta} hPa). Increasing turbulence and risk of Foehn breakthrough in valleys.`,
-      };
+      return { status: "MODERATE_SOUTH_FOEHN", alertLevel: "MODERATE" };
     if (delta <= -8)
-      return {
-        status: "SEVERE_NORTH_FOEHN",
-        alertLevel: "DANGER",
-        descriptionDe: `Starker Nordföhn (${delta} hPa)! Gefährliche Turbulenzen und Lee-Rotoren auf der Alpensüdseite (Tessin).`,
-        descriptionEn: `Severe North Foehn (${delta} hPa)! Dangerous turbulence and lee-wave rotors on the south side of the Alps.`,
-      };
+      return { status: "SEVERE_NORTH_FOEHN", alertLevel: "DANGER" };
     if (delta <= -4)
-      return {
-        status: "MODERATE_NORTH_FOEHN",
-        alertLevel: "MODERATE",
-        descriptionDe: `Mässiger Nordföhn (${delta} hPa). Böig und turbulent im Tessin.`,
-        descriptionEn: `Moderate North Foehn (${delta} hPa). Gusty and turbulent in Ticino.`,
-      };
+      return { status: "MODERATE_NORTH_FOEHN", alertLevel: "MODERATE" };
     return calm;
   }
   if (!cfg.isPressure) return calm;
-  const signed = `${delta > 0 ? "+" : ""}${delta}`;
   if (Math.abs(delta) >= 6)
-    return {
-      ...calm,
-      alertLevel: "DANGER",
-      descriptionDe: `Starker Druckgradient (${signed} hPa). Starkwind und Turbulenzen im Transect.`,
-    };
+    return { status: "STRONG_GRADIENT", alertLevel: "DANGER" };
   if (Math.abs(delta) >= 3)
-    return {
-      ...calm,
-      alertLevel: "MODERATE",
-      descriptionDe: `Mässiger Gradient (${signed} hPa). Merkliche Ausgleichsströmung.`,
-    };
+    return { status: "MODERATE_GRADIENT", alertLevel: "MODERATE" };
   return calm;
 }
 
@@ -183,7 +155,6 @@ function pairFeatures(pair: StationPair): object[] {
       },
       properties: {
         ...common,
-        nameDe: pair.nameDe,
         status: pair.status,
         station1_name: pair.station1.name,
         station2_name: pair.station2.name,
@@ -218,8 +189,6 @@ export function foehnReport(
       isPressure: cfg.isPressure,
       isNorthSouth: cfg.isNorthSouth,
       midpointPosition: cfg.midpointPosition,
-      nameDe: cfg.nameDe,
-      nameEn: cfg.nameEn,
       unit: cfg.unit,
       delta,
       ...assess(cfg, delta),
@@ -233,7 +202,6 @@ export function foehnReport(
     primaryPair: gotthard
       ? {
           id: gotthard.id,
-          name: gotthard.nameDe,
           northStation: {
             name: gotthard.station1.name,
             pressureHpa: gotthard.station1.pressureHpa,
@@ -245,8 +213,6 @@ export function foehnReport(
           diffHpa: gotthard.delta,
           status: gotthard.status,
           alertLevel: gotthard.alertLevel,
-          descriptionDe: gotthard.descriptionDe,
-          descriptionEn: gotthard.descriptionEn,
         }
       : null,
     pairs,

@@ -9,6 +9,8 @@ import {
   formatDelta,
 } from "./foehn.ts";
 
+const say = (key: string) => `[${key}]`;
+
 function pair(overrides: Partial<StationPair> = {}): StationPair {
   return {
     id: "KLO_LUG",
@@ -16,14 +18,10 @@ function pair(overrides: Partial<StationPair> = {}): StationPair {
     isPressure: true,
     isNorthSouth: true,
     midpointPosition: 0.25,
-    nameDe: "Gotthard-Achse",
-    nameEn: "Gotthard Axis",
     unit: "hPa",
     delta: 4.2,
-    status: "MODERATE",
+    status: "MODERATE_SOUTH_FOEHN",
     alertLevel: "MODERATE",
-    descriptionDe: "",
-    descriptionEn: "",
     station1: {
       id: "meteo_swiss:KLO",
       name: "Zürich / Kloten",
@@ -66,31 +64,28 @@ test("along interpolates between two points", () => {
 });
 
 test("an axis runs between the stations, its badge a quarter along", () => {
-  const [axis] = foehnAxes(report([pair()]), "de");
+  const [axis] = foehnAxes(report([pair()]), say);
   assert.deepEqual(axis.from, [47.5, 8.5]);
   assert.deepEqual(axis.to, [46, 9]);
   assert.deepEqual(axis.badgeAt, [47.125, 8.625]);
   assert.ok(axis.badgeHtml.includes("KLO \u2013 LUG"));
   assert.ok(axis.badgeHtml.includes("+4.2 hPa"));
-  assert.ok(axis.badgeHtml.includes('title="Gotthard-Achse"'));
+  assert.ok(axis.badgeHtml.includes('title="[weather.pairName.KLO_LUG]"'));
   assert.ok(axis.endpointsHtml[0].includes("Zürich / Kloten: 1015.2 hPa"));
   assert.ok(axis.endpointsHtml[0].includes("<span>Zürich</span>"));
   assert.ok(axis.endpointsHtml[1].includes("Lugano: \u2013"));
-  assert.ok(
-    foehnAxes(report([pair()]), "en")[0].badgeHtml.includes("Gotthard Axis"),
-  );
 });
 
 test("a pair missing a station position is left out", () => {
   const broken = pair();
   broken.station2 = { ...broken.station2, coordinates: undefined };
-  assert.deepEqual(foehnAxes(report([broken]), "de"), []);
-  assert.deepEqual(foehnAxes(null, "de"), []);
+  assert.deepEqual(foehnAxes(report([broken]), say), []);
+  assert.deepEqual(foehnAxes(null, say), []);
 });
 
 test("station names land in the markers as text", () => {
   const evil = pair();
   evil.station1 = { ...evil.station1, name: "<img src=x onerror=alert(1)>" };
-  const [axis] = foehnAxes(report([evil]), "de");
+  const [axis] = foehnAxes(report([evil]), say);
   assert.ok(!axis.endpointsHtml[0].includes("<img"), axis.endpointsHtml[0]);
 });

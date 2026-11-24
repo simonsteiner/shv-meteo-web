@@ -18,7 +18,7 @@ _Avoid_: Landing site, landing zone, LZ
 
 **Landing circuit** (Landevolte):
 The prescribed approach pattern flown before a landing.
-_Avoid_: Landing pattern, Volte, approach
+_Avoid_: Landing pattern (except as the data's `landingpattern` type), Volte, approach
 
 **Site fee** (Start- und Landegebühr):
 The charge a club levies for using a take-off or landing.
@@ -88,7 +88,7 @@ _Avoid_: Pressure map, Wetterkarte
 
 **Sounding station** (Previtemps-Standort):
 One of the fixed locations for which a forecast sounding is shown.
-_Avoid_: Previtemps station, sounding location
+_Avoid_: Previtemps station (except in data and file names), sounding location
 
 **Sounding** (Emagramm):
 A forecast vertical profile of temperature, dew point and wind above a sounding station, drawn as an emagram.

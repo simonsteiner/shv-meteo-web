@@ -1,13 +1,16 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { PAIRS } from "../foehn/pairs.ts";
+import { PAIRS, pairNameKey } from "../foehn/pairs.ts";
+import { PAIR_STATUSES } from "../foehn/report.ts";
+import { de } from "../i18n/de.ts";
+import { lookup } from "../i18n/text.ts";
 import {
   alertTextClass,
   bannerClass,
   chartTitleKey,
   formatDelta,
-  pairDescription,
   pairLabel,
+  pairStatusText,
   sideKeys,
   stationReading,
 } from "./pair.ts";
@@ -50,12 +53,37 @@ test("stationReading shows the pair's unit", () => {
   assert.equal(stationReading({ isPressure: true }, undefined), "\u2013 hPa");
 });
 
-test("chartTitleKey and pairDescription", () => {
+test("chartTitleKey", () => {
   assert.equal(chartTitleKey("GVE_GUT"), "weather.chart_GVE_GUT");
   assert.equal(chartTitleKey("XYZ"), "weather.chartDefault");
   for (const p of PAIRS)
     assert.equal(chartTitleKey(p.id), `weather.chart_${p.id}`);
-  const pair = { descriptionDe: "Kein Föhn", descriptionEn: "No foehn" };
-  assert.equal(pairDescription(pair, "de"), "Kein Föhn");
-  assert.equal(pairDescription(pair, "fr"), "No foehn");
+});
+
+test("pairStatusText words the status in the UI language, the difference filled in", () => {
+  const say = (key: string) =>
+    key === "weather.foehnText.STRONG_GRADIENT"
+      ? "Fort gradient ({delta} hPa)"
+      : `[${key}]`;
+  assert.deepEqual(
+    pairStatusText({ status: "STRONG_GRADIENT", delta: 6.4 }, say),
+    {
+      title: "[weather.foehnStatus.STRONG_GRADIENT]",
+      text: "Fort gradient (+6.4 hPa)",
+    },
+  );
+  // a code the dictionaries don't know shows as itself
+  const stale = { status: "WHATEVER", delta: 1 } as unknown as Parameters<
+    typeof pairStatusText
+  >[0];
+  assert.deepEqual(pairStatusText(stale, say), { title: "WHATEVER", text: "" });
+});
+
+test("every pair status and every pair has its words in the dictionary", () => {
+  // dictionaries.test.ts checks the other three languages have the same keys
+  for (const status of PAIR_STATUSES) {
+    assert.ok(lookup(de, `weather.foehnStatus.${status}`), status);
+    assert.ok(lookup(de, `weather.foehnText.${status}`), status);
+  }
+  for (const p of PAIRS) assert.ok(lookup(de, pairNameKey(p.id)), p.id);
 });

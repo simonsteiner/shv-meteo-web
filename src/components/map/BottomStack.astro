@@ -1,6 +1,9 @@
 ---
-// The info button with its sources panel, and the DABS link while the
-// airspace tab is chosen.
+// The info button with its legend and sources panel, and the DABS link while
+// the airspace tab is chosen. The legend's swatches are drawn here at build
+// time from the map's own styles (src/scripts/maps/legend.ts).
+import { AIRSPACE_LEGEND, swatchSvg } from "../../scripts/maps/legend.ts";
+
 const SOURCES = ["sites", "baseMap", "obstacles", "weather", "airspace"];
 ---
 
@@ -28,6 +31,16 @@ const SOURCES = ["sites", "baseMap", "obstacles", "weather", "airspace"];
         &times;
       </button>
     </div>
+    <p class="map-info-sub" data-t="map.legend.title"></p>
+    <ul class="map-legend">
+      {AIRSPACE_LEGEND.map((e) => (
+        <li>
+          <Fragment set:html={swatchSvg(e.style)} />
+          <span data-t={`map.legend.${e.key}`} />
+        </li>
+      ))}
+    </ul>
+    <p class="map-legend-note" data-t="map.legend.dabsNote"></p>
     <p class="map-info-sub" data-t="map.info.sources"></p>
     <ul class="map-info-list">
       {SOURCES.map((key) => (

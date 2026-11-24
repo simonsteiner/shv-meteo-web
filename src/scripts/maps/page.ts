@@ -235,7 +235,7 @@ export function mountMap(root: HTMLElement): void {
     // draws them afresh
     if (!state.layers.stations) stationsMode = null;
     else if (state.meteoMode !== stationsMode) redrawStations();
-    if (langChanged) drawFoehn(foehnLayer, foehn, state.lang, openWeather);
+    if (langChanged) drawFoehn(foehnLayer, foehn, say, openWeather);
 
     const key = `${state.searchQuery}|${state.windFilter.join(",")}|${state.lang}`;
     if (key !== sitesKey) {
@@ -377,7 +377,7 @@ export function mountMap(root: HTMLElement): void {
   ShvApi.getFoehn()
     .then((report) => {
       foehn = report;
-      drawFoehn(foehnLayer, foehn, store.state.lang, openWeather);
+      drawFoehn(foehnLayer, foehn, say, openWeather);
     })
     .catch((err: unknown) =>
       console.error("[maps] Cannot load the Foehn report:", err),

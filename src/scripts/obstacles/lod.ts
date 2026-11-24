@@ -123,6 +123,7 @@ export function slim(f: ObstacleFeature): ObstacleFeature {
       topElevationAmsl: p.topElevationAmsl,
       styleId: p.styleId,
       airport: p.airport,
+      effectiveDate: p.effectiveDate,
       geometryType: p.geometryType ?? f.geometry?.type,
       small: p.small,
       _uid: featureKey(f),
