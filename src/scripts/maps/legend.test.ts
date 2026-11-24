@@ -1,4 +1,7 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import util from "node:util";
 import { test } from "node:test";
 import { de } from "../i18n/de.ts";
 import { lookup } from "../i18n/text.ts";
@@ -16,6 +19,30 @@ test("each legend entry draws the style the map gives its type", () => {
     AIRSPACE_LEGEND.find((e) => e.key === "wildlife")?.style,
     WILDLIFE_STYLE,
   );
+});
+
+test("every airspace in the snapshot is drawn in a style the legend shows", () => {
+  const path = join(
+    import.meta.dirname,
+    "../../../public/data/airspaces.geojson",
+  );
+  const data = JSON.parse(readFileSync(path, "utf8")) as {
+    features: {
+      properties: { type?: unknown; inactiveByAgreement?: unknown };
+    }[];
+  };
+  const seen = new Set<string>();
+  for (const { properties: p } of data.features) {
+    const style = airspaceStyle(p.type, p.inactiveByAgreement);
+    const key = `${String(p.type)}|${Boolean(p.inactiveByAgreement)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    assert.ok(
+      AIRSPACE_LEGEND.some((e) => util.isDeepStrictEqual(e.style, style)),
+      key,
+    );
+  }
+  assert.ok(seen.size > 0);
 });
 
 test("every legend entry has its words in the dictionary", () => {
