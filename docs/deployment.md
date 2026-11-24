@@ -34,7 +34,7 @@ In the Cloudflare dashboard: Workers & Pages, `shv-meteo`, Deployments, then Rol
 
 - `dist/` as static files: one page per tab (`/map/`, `/weather/`, `/forecast/`, `/safety/`; `/profile/` redirects to `/map/`), `public/` copied as is (assets and the GeoJSON snapshots under `/data/`).
 - [public/_redirects](../public/_redirects): `/` to `/map/` (302), and `/profile/` and `/profile` to `/map/` (301).
-- [public/_headers](../public/_headers): `frame-ancestors 'none'`, `Referrer-Policy` and `nosniff` on every response. The rest of the Content Security Policy is a meta tag the build writes into each page ([src/scripts/access/csp.ts](../src/scripts/access/csp.ts)).
+- [public/_headers](../public/_headers): `frame-ancestors 'none'`, `Referrer-Policy` and `nosniff` on every static response (Pages doesn't apply `_headers` to Functions). The rest of the Content Security Policy is a meta tag the build writes into each page ([src/scripts/access/csp.ts](../src/scripts/access/csp.ts)).
 - `functions/api/**`: the Pages Functions, at their file paths under `/api/`.
 
 ## State and secrets

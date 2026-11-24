@@ -12,6 +12,7 @@ import { locatePilot } from "../maps/locate.ts";
 import { LANGS, type Lang } from "../settings.ts";
 import { store } from "../state.ts";
 import { foehnPill } from "./foehn-pill.ts";
+import { resetsMap } from "./nav.ts";
 
 function isLang(v: unknown): v is Lang {
   return LANGS.includes(v as Lang);
@@ -82,11 +83,15 @@ export function mountShell(header: HTMLElement): void {
       setMenu(false);
   });
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") setMenu(false);
+    if (event.key !== "Escape" || langMenu.classList.contains("hidden")) return;
+    setMenu(false);
+    langButton.focus();
   });
-  for (const link of document.querySelectorAll('a[data-tab="map"]'))
-    link.addEventListener("click", () => {
-      if (store.state.activeTab === "map") store.clearWindFilter();
+  for (const link of document.querySelectorAll<HTMLAnchorElement>(
+    'a[data-tab="map"]',
+  ))
+    link.addEventListener("click", (event) => {
+      if (resetsMap(event, store.state.activeTab)) store.clearWindFilter();
     });
 
   ShvApi.getFoehn()

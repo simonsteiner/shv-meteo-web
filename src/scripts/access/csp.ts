@@ -2,8 +2,8 @@
 // `astro:build:done` it hashes (sha256, base64) the body of each inline
 // script the page ships, so those run and nothing else inline does: no
 // injected `<script>`, no `onerror=` handler. Styles may stay inline, as
-// Leaflet and Chart.js set style attributes. The headers the meta tag can't
-// carry (`frame-ancestors`, Referrer-Policy, nosniff) are in public/_headers.
+// Leaflet and Chart.js set style attributes. `frame-ancestors` (ignored in a
+// meta tag), Referrer-Policy and nosniff are in public/_headers.
 // Chosen over Astro's built-in `security.csp` because it is known to hash
 // every inline script the pages ship; the built-in can replace it later with
 // the same policy.
@@ -22,7 +22,7 @@ const META_CHARSET = /<meta\s+charset\s*=\s*["']?[\w-]+["']?\s*\/?>/i;
 
 function attribute(attrs: string, name: string): string | null {
   const match = new RegExp(
-    `(?:^|\\s)${name}(?:\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+)))?`,
+    `(?:^|\\s)${name}(?=[\\s=/>]|$)(?:\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+)))?`,
     "i",
   ).exec(attrs);
   if (!match) return null;
