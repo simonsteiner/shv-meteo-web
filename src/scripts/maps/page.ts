@@ -16,19 +16,8 @@ import {
   withoutHandoff,
   type Handoff,
 } from "../handoff.ts";
-import {
-  applyText,
-  fill,
-  say as sayIn,
-  type Dictionary,
-  type Say,
-} from "../i18n/text.ts";
-import {
-  mountSheet,
-  selectionOf,
-  type Selection,
-  type SelectionKind,
-} from "../sheet/render.ts";
+import { applyText, fill } from "../i18n/text.ts";
+import { mountSheet, selectionOf, type Selection } from "../sheet/render.ts";
 import type {
   BaseMap,
   Compass,
@@ -36,11 +25,7 @@ import type {
   MapCategory,
   MeteoMode,
 } from "../settings.ts";
-import type {
-  FlyingSiteFeature,
-  MeasurementFeature,
-  Webcam,
-} from "../types.ts";
+import type { FlyingSiteFeature, MeasurementFeature } from "../types.ts";
 import { DEFAULT_CENTER, DEFAULT_ZOOM, pilotZoom, viewFor } from "./basemap.ts";
 import type { LatLngTuple } from "./centroid.ts";
 import {
@@ -58,12 +43,7 @@ import { centredIcon, createMap, showLayer } from "./view.ts";
 import type { FoehnReport } from "../foehn/report.ts";
 import { weatherUrl } from "../weather/query.ts";
 
-const dictionary = (): Dictionary => store.t;
-const say: Say = (key) => sayIn(dictionary(), key);
-
-function select(kind: SelectionKind | null, value: unknown = null): void {
-  store.select(kind, value);
-}
+const { say } = store;
 
 export function mountMap(root: HTMLElement): void {
   const handoff: Handoff | null = readHandoff(location.search);
@@ -88,9 +68,9 @@ export function mountMap(root: HTMLElement): void {
     store.state.baseMap,
     zoom,
   );
-  const sites = siteLayers((f) => select("site", f));
-  const zones = zoneLayers(() => say);
-  const obstacles = obstacleLayer(map, (f) => select("obstacle", f));
+  const sites = siteLayers((f) => store.select("site", f));
+  const zones = zoneLayers(say);
+  const obstacles = obstacleLayer(map, (f) => store.select("obstacle", f));
   const stationsLayer = L.layerGroup();
   const foehnLayer = L.layerGroup();
   const webcamsLayer = L.layerGroup();
@@ -108,12 +88,11 @@ export function mountMap(root: HTMLElement): void {
   };
   const sheet = mountSheet(
     must<HTMLElement>(document, "#bottom-sheet-container"),
-    () => select(null),
-    () => say,
+    () => store.select(null),
+    say,
   );
 
   let stations: MeasurementFeature[] = [];
-  let webcams: Webcam[] = [];
   let foehn: FoehnReport | null = null;
   let pilotMarker: L.Marker | null = null;
   let pilotFix = 0;
@@ -134,7 +113,7 @@ export function mountMap(root: HTMLElement): void {
     if (!store.state.layers.stations) return;
     stationsMode = store.state.meteoMode;
     drawStations(stationsLayer, map, stations, stationMode(), (f) =>
-      select("station", f),
+      store.select("station", f),
     );
   }
 
@@ -150,15 +129,19 @@ export function mountMap(root: HTMLElement): void {
     const reveal = revealFor(kind, store.state);
     if (reveal.meteoMode) store.setMeteoMode(reveal.meteoMode);
     for (const key of reveal.layers) store.toggleLayer(key);
-    select(kind, value);
+    store.select(kind, value);
     moveTo(target.at);
   }
 
   function renderControls(): void {
-    const { searchQuery, windFilter, layers, meteoMode, baseMap, mapCategory } =
-      store.state;
-    const search: string = searchQuery;
-    const wind: string[] = windFilter;
+    const {
+      searchQuery: search,
+      windFilter: wind,
+      layers,
+      meteoMode,
+      baseMap,
+      mapCategory,
+    } = store.state;
     if (searchInput.value !== search) searchInput.value = search;
     q('.clear-btn[data-action="clear-search"]').classList.toggle(
       "hidden",
@@ -188,7 +171,7 @@ export function mountMap(root: HTMLElement): void {
       el.setAttribute("aria-pressed", String(on));
     };
     for (const b of all("[data-wind]"))
-      press(b, wind.includes(b.dataset.wind ?? ""));
+      press(b, (wind as readonly string[]).includes(b.dataset.wind ?? ""));
     for (const b of all("[data-meteo-mode]"))
       press(b, b.dataset.meteoMode === meteoMode);
     for (const b of all("[data-base]")) press(b, b.dataset.base === baseMap);
@@ -237,7 +220,7 @@ export function mountMap(root: HTMLElement): void {
     const langChanged = state.lang !== lang;
     if (langChanged) {
       lang = state.lang;
-      applyText(root, dictionary());
+      applyText(root, store.t);
     }
     setBaseMap(state.baseMap);
     for (const key of Object.keys(layerOf) as (keyof Layers)[])
@@ -269,7 +252,7 @@ export function mountMap(root: HTMLElement): void {
     if (!same || state.lang !== sheetLang) {
       shownSelection = selection;
       sheetLang = state.lang;
-      sheet.show(selection, say, sites.names);
+      sheet.show(selection, sites.names);
     }
   }
 
@@ -337,7 +320,7 @@ export function mountMap(root: HTMLElement): void {
     redrawStations();
   });
   map.on("click", () => {
-    if (selectionOf(store.state)) select(null);
+    if (selectionOf(store.state)) store.select(null);
   });
 
   // Each data set loads on its own, so a slow or failed one holds up none
@@ -398,8 +381,8 @@ export function mountMap(root: HTMLElement): void {
   ShvApi.getWebcams()
     .then((data) => {
       if (!data) return fail("webcams");
-      webcams = data.webcams ?? [];
-      drawWebcams(webcamsLayer, webcams, (w) => select("webcam", w));
+      const webcams = data.webcams ?? [];
+      drawWebcams(webcamsLayer, webcams, (w) => store.select("webcam", w));
       takeHandoff(findHandoff(handoff, { kind: "webcam", items: webcams }));
     })
     .catch((err: unknown) => {

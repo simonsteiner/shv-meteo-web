@@ -66,17 +66,14 @@ function sheetFor(
 
 export interface Sheet {
   /** Shows `sel`, or hides the sheet for null. */
-  show(
-    sel: Selection | null,
-    say: Say,
-    names: ReadonlyMap<string, string>,
-  ): void;
+  show(sel: Selection | null, names: ReadonlyMap<string, string>): void;
 }
 
+/** `say` reads the current language's strings (store.say). */
 export function mountSheet(
   container: HTMLElement,
   close: () => void,
-  say: () => Say,
+  say: Say,
 ): Sheet {
   let open = false;
 
@@ -90,7 +87,7 @@ export function mountSheet(
     button.classList.toggle("btn-primary", !playing);
     button.classList.toggle("btn-secondary", playing);
     if (label)
-      label.textContent = say()(
+      label.textContent = say(
         playing ? "map.sheet.timelapse" : "map.sheet.currentImage",
       );
   }
@@ -118,7 +115,7 @@ export function mountSheet(
         return;
       }
       console.error("[sheet] The webcam has no image to show:", img.src);
-      img.parentElement?.insertAdjacentHTML("beforebegin", noImageHtml(say()));
+      img.parentElement?.insertAdjacentHTML("beforebegin", noImageHtml(say));
       img.parentElement?.remove();
     },
     true,
@@ -128,10 +125,10 @@ export function mountSheet(
   });
 
   return {
-    show(sel, sayNow, names) {
+    show(sel, names) {
       open = sel !== null;
       container.classList.toggle("hidden", !open);
-      container.innerHTML = sel ? sheetFor(sel, sayNow, names) : "";
+      container.innerHTML = sel ? sheetFor(sel, say, names) : "";
     },
   };
 }

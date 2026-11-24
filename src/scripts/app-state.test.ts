@@ -198,3 +198,12 @@ test("each pilot position counts as a new fix, even at the same place", () => {
   store.setPilotLocation(null);
   assert.equal(store.state.pilotFix, 2);
 });
+
+test("say reads the current language's string, also when passed on", () => {
+  const { store } = make();
+  const { say } = store;
+  const de = say("map.close");
+  store.setLang("fr");
+  assert.notEqual(say("map.close"), de);
+  assert.equal(say("map.close"), store.t.map.close);
+});

@@ -6,6 +6,7 @@
 // the tests.
 
 import { dictionaryFor, type Strings } from "./i18n/dictionaries.ts";
+import { say } from "./i18n/text.ts";
 import type { LatLng } from "./maps/locate.ts";
 import { CHECK_POINTS } from "./safety/checklist.ts";
 import type { SelectionKind } from "./sheet/render.ts";
@@ -130,6 +131,10 @@ export class AppState {
   get t(): Strings {
     return dictionaryFor(this.state.lang);
   }
+
+  /** The current language's string at a dotted key, "" when it is missing
+   * (logged); a page hands it to the pure modules that build text. */
+  readonly say = (key: string): string => say(this.t, key);
 
   /** Every tab is a page, so switching tabs navigates. */
   setTab(tab: Tab): void {

@@ -19,7 +19,6 @@ export interface StationModal {
   /** Redraws an open dialog after a language or theme change; does
    * nothing when neither changed. */
   refresh(): void;
-  isOpen(): boolean;
 }
 
 export function stationModal(
@@ -160,6 +159,5 @@ export function stationModal(
         return;
       fill(station);
     },
-    isOpen: () => !backdrop.hidden,
   };
 }

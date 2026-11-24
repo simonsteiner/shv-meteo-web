@@ -16,12 +16,7 @@ import { alertLook, formatDelta } from "../foehn/look.ts";
 import { DEFAULT_PAIR } from "../foehn/pairs.ts";
 import type { StationPair } from "../foehn/report.ts";
 import { handoffUrl } from "../handoff.ts";
-import {
-  applyText,
-  fill,
-  say as sayIn,
-  type Dictionary,
-} from "../i18n/text.ts";
+import { applyText, fill } from "../i18n/text.ts";
 import type { MeasurementFeature, Webcam } from "../types.ts";
 import { pairPillsHtml, stationCardHtml, webcamCardHtml } from "./cards.ts";
 import { stationModal } from "./modal.ts";
@@ -47,8 +42,7 @@ import {
 import { listView } from "./lists.ts";
 import { PROVIDERS, type Provider } from "./stations.ts";
 
-const dictionary = (): Dictionary => store.t;
-const say = (key: string) => sayIn(dictionary(), key);
+const { say } = store;
 
 export function mountWeather(root: HTMLElement): void {
   const query = readWeatherQuery(location.search);
@@ -251,7 +245,7 @@ export function mountWeather(root: HTMLElement): void {
   function render(): void {
     if (store.state.lang !== lang) {
       lang = store.state.lang;
-      applyText(root, dictionary());
+      applyText(root, store.t);
     }
     renderFoehn();
     renderLists();
