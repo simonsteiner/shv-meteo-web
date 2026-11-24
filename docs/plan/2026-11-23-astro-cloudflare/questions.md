@@ -33,7 +33,7 @@ The [follow-up plan](../2026-11-24-follow-ups/README.md) orders these and gives 
 - **Review findings left for later** (from the reviews of the merged PRs):
   - The Cloudflare secrets on the `production` environment rather than the repo, a repo-settings change.
   - A check that a cached copy parses before `respond.ts` serves it as the fallback.
-  - A timeout on a Function's upstream body, not only its headers (`fetchUpstream`; Express had none either).
+  - A timeout on a Function's upstream body, not only its headers (`fetchUpstream`; Express had none either). Done by F5 ([#33](https://github.com/simonsteiner/shv-meteo-web/pull/33)): one deadline now covers the headers and the body.
   - Obstacle loading: a split cell loads all four quarters, the cell cache is capped by count rather than bytes, and an aborted pan throws away the cells it loaded.
 - **Obstacle tiles above z8.** PR12's spike found nothing missing from upstream's sampled z9 and z12 tiles at the zooms they would serve, so a later change could read them there and keep shards only for z7 and z8 ([data-queries.md](../../architecture/data-queries.md)).
 - **The sounding on production.** On 2026-11-23 upstream's ICON columns were broken (every level at about one pressure), every station failed `pointProblem`, and `/forecast/` showed the sounding's error. Once upstream recovers, check the emagram on production and the route's CPU in the Functions metrics.
