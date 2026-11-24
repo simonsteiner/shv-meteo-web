@@ -13,6 +13,8 @@ npm install
 npm run dev
 ```
 
+Only `esbuild`, `lefthook` and `workerd` may run install scripts, each at the version listed under `allowScripts` in `package.json`. After bumping one of them (or `astro` or `wrangler`, which pull them in), `npm install` warns about it; review the new version and run `npm approve-scripts <name>` to update its pin.
+
 `npm run dev` runs [scripts/dev.ts](../scripts/dev.ts), which starts two processes:
 
 - `wrangler pages dev public` on port `8788`, which compiles the Pages Functions in `functions/` without a build
