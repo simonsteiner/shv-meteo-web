@@ -67,3 +67,4 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 - `docs/reference/shv-native-app.md`: reverse-engineered notes on the official app, Keycloak and the member web service. Read before bringing back login or member data.
 - `GLOSSARY.md`: domain terms in English and German.
 - `docs/plan/2026-11-23-astro-cloudflare/`: the migration plan and PR stack. Read before starting a migration PR.
+- `docs/plan/2026-11-24-follow-ups/`: what is left after the view refactors (the app shell, CSP, deferred review findings), in order.
