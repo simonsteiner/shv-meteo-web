@@ -66,6 +66,8 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 - `docs/architecture.md`: index of `docs/architecture/`: data sources, which calls go through a Function and why, every `/api` route, how the code is organised. Read `data-queries.md` before adding or changing an endpoint.
 - `docs/research/`: dated research notes with the measurements behind a decision (upstream sources, CPU on Pages, the official app's calls).
 - `docs/reference/shv-native-app.md`: reverse-engineered notes on the official app, Keycloak and the member web service. Read before bringing back login or member data.
+- `docs/reference/shv-app-emulator.md`: installing the official app from a phone onto an Android emulator and driving it with `adb`, from WSL too.
+- `docs/reference/shv-app-traffic-capture.md`: capturing the official app's HTTPS calls on the emulator with mitmproxy, redacted when logged in; the calls it found are in `docs/research/2026-11-24-shv-app-network-calls.md`.
 - `GLOSSARY.md`: domain terms in English and German.
 - `docs/plan/2026-11-23-astro-cloudflare/`: the migration plan and PR stack. Read before starting a migration PR.
 - `docs/plan/2026-11-24-follow-ups/`: what is left after the view refactors (the app shell, CSP, deferred review findings), in order.
