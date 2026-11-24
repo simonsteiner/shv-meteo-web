@@ -5,6 +5,7 @@ import {
   cellsFor,
   cellsOf,
   loadObstacles,
+  partBox,
   tierFor,
   type ShardIndex,
 } from "./cells.ts";
@@ -135,4 +136,55 @@ test("a cell that fails counts as empty", async () => {
   } finally {
     console.error = original;
   }
+});
+
+test("a quarter's box comes from its name", () => {
+  const z10 = tierFor(10)!;
+  assert.deepEqual(partBox("16_94", z10), {
+    minLon: 8,
+    minLat: 47,
+    maxLon: 8.5,
+    maxLat: 47.5,
+  });
+  assert.deepEqual(partBox("16_94.1", z10), {
+    minLon: 8.25,
+    minLat: 47,
+    maxLon: 8.5,
+    maxLat: 47.25,
+  });
+  assert.deepEqual(partBox("16_94.2.3", z10), {
+    minLon: 8.125,
+    minLat: 47.375,
+    maxLon: 8.25,
+    maxLat: 47.5,
+  });
+});
+
+test("a split cell loads only the quarters the view touches", async () => {
+  const sw = line("sw", [
+    [8.1, 47.1],
+    [8.11, 47.11],
+  ]);
+  const files: Record<string, unknown> = {
+    "z10/16_94.json": { parts: ["16_94.0", "16_94.1", "16_94.2", "16_94.3"] },
+    "z10/16_94.0.json": { type: "FeatureCollection", features: [sw] },
+  };
+  const asked: string[] = [];
+  const fetchJson = async (path: string) => {
+    asked.push(path);
+    if (!(path in files)) throw new Error(`404 ${path}`);
+    return files[path];
+  };
+  const index: ShardIndex = { generatedAt: "", tiers: { z10: ["16_94"] } };
+  const got = await loadObstacles(
+    { minLon: 8.05, minLat: 47.05, maxLon: 8.2, maxLat: 47.2 },
+    10,
+    index,
+    fetchJson,
+  );
+  assert.deepEqual(
+    got.map((f) => f.properties._uid),
+    ["sw"],
+  );
+  assert.deepEqual(asked, ["z10/16_94.json", "z10/16_94.0.json"]);
 });
