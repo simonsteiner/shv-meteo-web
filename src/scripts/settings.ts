@@ -7,8 +7,10 @@
 // pre-flight checklist lives in sessionStorage: it survives moving between
 // pages but not closing the tab. Storage is a parameter, for the tests.
 
+import { isOneOf, isRecord } from "./coerce.ts";
+
 export const LANGS = ["de", "fr", "it", "en"] as const;
-export const THEMES = ["dark", "light"] as const;
+const THEMES = ["dark", "light"] as const;
 export const BASE_MAPS = [
   "topoLight",
   "topoColor",
@@ -35,17 +37,19 @@ export type MapCategory = (typeof MAP_CATEGORIES)[number];
 export type MeteoMode = (typeof METEO_MODES)[number];
 export type Compass = (typeof COMPASS)[number];
 
-export interface Layers {
-  launches: boolean;
-  landings: boolean;
-  landingPatterns: boolean;
-  airspace: boolean;
-  wildschutz: boolean;
-  obstacles: boolean;
-  stations: boolean;
-  webcams: boolean;
-  foehnAxis: boolean;
-}
+export const LAYER_KEYS = [
+  "launches",
+  "landings",
+  "landingPatterns",
+  "airspace",
+  "wildschutz",
+  "obstacles",
+  "stations",
+  "webcams",
+  "foehnAxis",
+] as const;
+export type LayerKey = (typeof LAYER_KEYS)[number];
+export type Layers = Record<LayerKey, boolean>;
 
 export interface Settings {
   lang: Lang;
@@ -112,7 +116,7 @@ export function defaultSettings(): Settings {
 }
 
 const KEY_PREFIX = "shv_";
-export const CHECKLIST_KEY = "shv_checklist";
+const CHECKLIST_KEY = "shv_checklist";
 
 /** Kept as plain strings, as `shv_lang` and `shv_theme` always were; every
  * other key holds JSON. */
@@ -127,11 +131,7 @@ const STRING_KEYS: ReadonlySet<keyof Settings> = new Set([
 const oneOf =
   <T extends string>(allowed: readonly T[]) =>
   (v: unknown): T | undefined =>
-    allowed.includes(v as T) ? (v as T) : undefined;
-
-function isRecord(v: unknown): v is Record<string, unknown> {
-  return typeof v === "object" && v !== null && !Array.isArray(v);
-}
+    isOneOf(allowed, v) ? v : undefined;
 
 /** Each key's check: the value when allowed, else undefined. */
 const PARSERS: {
@@ -148,7 +148,7 @@ const PARSERS: {
   layers: (v, fallback) => {
     if (!isRecord(v)) return undefined;
     const merged = { ...fallback };
-    for (const key of Object.keys(merged) as (keyof Layers)[]) {
+    for (const key of LAYER_KEYS) {
       const value = v[key];
       if (typeof value === "boolean") merged[key] = value;
     }
@@ -156,7 +156,7 @@ const PARSERS: {
   },
   windFilter: (v) => {
     if (!Array.isArray(v)) return undefined;
-    const dirs = v.filter((d): d is Compass => COMPASS.includes(d as Compass));
+    const dirs = v.filter((d): d is Compass => isOneOf(COMPASS, d));
     return dirs.length === v.length && new Set(dirs).size === dirs.length
       ? dirs
       : undefined;

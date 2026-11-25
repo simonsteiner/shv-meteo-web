@@ -1,7 +1,12 @@
 // Every proxied route's upstream, cache lifetime, timeout and error body.
 // No request picks a host: each upstream URL is a constant here. The
 // Functions in functions/api/ are one-line adapters over proxy()
-// (respond.ts); the rules live here and in params.ts, where the tests run.
+// (respond.ts); the rules live here, each route with its own parameter
+// checks (`parse`, over the helpers in params.ts), where the tests run.
+import { gridPoint, GRID } from "../emagram/grid.ts";
+import { STATION_ID } from "../handoff.ts";
+import { pairConfig } from "../foehn/pairs.ts";
+import { badRequest, decoded, none, notFound } from "./params.ts";
 
 export interface Route {
   /** The upstream URL for the parsed parameters at `now` (epoch ms); absent
@@ -14,14 +19,15 @@ export interface Route {
   timeoutMs: number;
   /** The JSON body of the 503 every upstream failure answers. */
   errorBody: object;
-  /** The query keys the route accepts; any other is dropped, also from
-   * the cache key. */
-  query: string[];
+  /** The route's parameters from its path and query, or the 400 or 404
+   * Response that refuses them before anything goes upstream. It keeps only
+   * what the route reads: any other query key is dropped, also from the
+   * cache key. */
+  parse(
+    path: Record<string, string | string[]>,
+    search: URLSearchParams,
+  ): Record<string, string> | Response;
 }
-
-/** Sent upstream instead of a browser's; never poses as the official app. */
-export const USER_AGENT =
-  "shv-meteo-web (+https://github.com/simonsteiner/shv-meteo-web)";
 
 export const WEATHER = "https://weather-ws-prod.ubmeteo.io/v1";
 
@@ -60,6 +66,8 @@ export function startBefore(at: number, spanMs: number): number {
   return since - (since % START_STEP_MS);
 }
 
+const TEXT_LANGS = ["de", "fr", "it"];
+
 export type RouteName =
   | "measurements"
   | "timeseries"
@@ -78,7 +86,7 @@ export const ROUTES: Record<RouteName, Route> = {
       error: "Live-Messwerte vorübergehend nicht erreichbar",
       features: [],
     },
-    query: [],
+    parse: none,
   },
   timeseries: {
     url: ({ id }, now) =>
@@ -86,7 +94,12 @@ export const ROUTES: Record<RouteName, Route> = {
     ttl: 180,
     timeoutMs: 8_000,
     errorBody: { error: "Stations-Zeitreihe vorübergehend nicht erreichbar" },
-    query: [],
+    parse: (path) => {
+      const id = decoded(path.id);
+      if (id === null || !STATION_ID.test(id))
+        return badRequest("Ungültige Stations-ID");
+      return { id };
+    },
   },
   webcams: {
     url: () =>
@@ -97,7 +110,7 @@ export const ROUTES: Record<RouteName, Route> = {
       error: "Webcams vorübergehend nicht erreichbar",
       webcams: [],
     },
-    query: [],
+    parse: none,
   },
   textForecast: {
     url: ({ lang }) =>
@@ -105,22 +118,37 @@ export const ROUTES: Record<RouteName, Route> = {
     ttl: 900,
     timeoutMs: 8_000,
     errorBody: { error: "Textprognose vorübergehend nicht erreichbar" },
-    query: [],
+    parse: (path) => {
+      // anything else, the UI's `en` included, gets German, as before; a
+      // malformed escape is a 400, as for every other path parameter
+      const lang = decoded(path.lang);
+      if (lang === null) return badRequest("Ungültige Sprache");
+      const lower = lang.toLowerCase();
+      return { lang: TEXT_LANGS.includes(lower) ? lower : "de" };
+    },
   },
-  // four calls (foehn/fetch.ts): two filtered measurements and the pair's
-  // two series, 8 s each; keyed by its pair
+  // keyed by its pair; four calls, described in foehn/fetch.ts
   foehn: {
     ttl: 60,
     timeoutMs: 8_000,
     errorBody: { error: "Föhndaten vorübergehend nicht erreichbar" },
-    query: ["pair"],
+    // an unknown or missing pair gets the Gotthard pair, as before
+    parse: (_path, search) => ({ pair: pairConfig(search.get("pair")).id }),
   },
-  // the runs list, then one call per run tried (emagram/fetch.ts), 8 s
-  // each; keyed by station
+  // keyed by station; its calls are described in emagram/fetch.ts
   sounding: {
     ttl: 1200,
     timeoutMs: 8_000,
     errorBody: { error: "Sondierung vorübergehend nicht erreichbar" },
-    query: [],
+    parse: (path) => {
+      // names may hold `/` (Disentis/Mustér); matched case-insensitively, so
+      // the lower-cased name keys the cached copy
+      const decodedName = decoded(path.name);
+      if (decodedName === null) return badRequest("Ungültiger Stationsname");
+      const name = decodedName.trim().toLowerCase();
+      return gridPoint(name, GRID)
+        ? { name }
+        : notFound("Unbekannte Sondierungsstation");
+    },
   },
 };

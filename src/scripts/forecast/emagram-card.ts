@@ -12,6 +12,7 @@ import {
   rulerSvg,
   soundingCurves,
 } from "./emagram.ts";
+import { stepper } from "./stepper.ts";
 
 const PLAY_MS = 800;
 const EASE_MS = 300;
@@ -42,7 +43,6 @@ export function emagramCard(
   let station: string | null = null;
   let sounding: Sounding | null | undefined;
   let position = 0;
-  let timer: ReturnType<typeof setInterval> | null = null;
   let easing = 0;
   let expanded = false;
 
@@ -102,11 +102,7 @@ export function emagramCard(
     if (n > 0) easeTo((Math.round(position) + delta + n) % n);
   }
 
-  function stop(): void {
-    if (timer !== null) clearInterval(timer);
-    timer = null;
-    playButton.classList.remove("playing");
-  }
+  const player = stepper(playButton, PLAY_MS, () => step(1));
 
   function setExpanded(on: boolean): void {
     expanded = on;
@@ -130,7 +126,7 @@ export function emagramCard(
     states.pick.hidden = station !== null;
     frame.hidden = station === null;
     if (station === null) {
-      stop();
+      player.stop();
       setExpanded(false);
       return;
     }
@@ -140,7 +136,7 @@ export function emagramCard(
     states.chart.hidden = n === 0;
     states.status.hidden = n > 0;
     if (n === 0) {
-      stop();
+      player.stop();
       q("[data-emagram-time]").textContent = "";
       q("[data-emagram-status]").textContent = fill(
         say(
@@ -170,10 +166,7 @@ export function emagramCard(
     const by = target.closest<HTMLElement>("[data-emagram-step-by]");
     if (by) return step(Number(by.dataset.emagramStepBy));
     if (target.closest("[data-emagram-play]")) {
-      if (timer !== null) return stop();
-      timer = setInterval(() => step(1), PLAY_MS);
-      playButton.classList.add("playing");
-      return;
+      return player.toggle();
     }
     if (target.closest("[data-emagram-expand]")) return setExpanded(!expanded);
     if (target.closest("[data-emagram-back]"))
@@ -191,7 +184,7 @@ export function emagramCard(
     if (!info.hidden) info.hidden = true;
     else if (expanded) setExpanded(false);
   });
-  window.addEventListener("pagehide", stop);
+  window.addEventListener("pagehide", player.stop);
 
   return {
     pick() {
@@ -200,7 +193,7 @@ export function emagramCard(
       render();
     },
     show(name, data) {
-      if (name !== station || data !== sounding) stop();
+      if (name !== station || data !== sounding) player.stop();
       station = name;
       sounding = data;
       position = data ? closestIndex(data.validTimes, Date.now()) : 0;

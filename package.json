@@ -11,6 +11,7 @@
     "preview": "wrangler pages dev dist",
     "typecheck": "astro check",
     "test": "node --experimental-strip-types --test 'src/scripts/**/*.test.ts'",
+    "e2e": "playwright test",
     "lint": "oxlint --deny-warnings . && prettier --check .",
     "format": "prettier --write .",
     "shot": "node --experimental-strip-types scripts/shot.ts",
@@ -25,6 +26,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
+    "@playwright/test": "^1.65.0",
     "@types/leaflet": "^1.9.22",
     "@types/node": "^24.19.2",
     "lefthook": "^2.2.2",

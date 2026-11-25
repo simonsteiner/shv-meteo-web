@@ -108,7 +108,7 @@ test("one call per parameter, its box holding its stations", () => {
 test("a failed series gives history [] with a 200", async () => {
   const calls: string[] = [];
   const res = await quietly(() =>
-    foehnResponse("GVE_GUT", fakeFetch({}, calls), () => NOW),
+    foehnResponse("GVE_GUT", 8_000, fakeFetch({}, calls), () => NOW),
   );
   assert.equal(res.status, 200);
   const body = await res.json();
@@ -150,6 +150,7 @@ test("a station missing from its answer leaves out its pair only", async () => {
   try {
     const res = await foehnResponse(
       "KLO_LUG",
+      8_000,
       fakeFetch({ missing: "meteo_swiss:MTR" }),
     );
     assert.equal(res.status, 200);
@@ -180,7 +181,7 @@ test("a failed measurements call gives the route's 503", async () => {
       ctx,
       ({ pair }) => (
         (pairSeen = pair),
-        foehnResponse(pair, fakeFetch({ failing: "temperature" }))
+        foehnResponse(pair, 8_000, fakeFetch({ failing: "temperature" }))
       ),
       undefined,
     ),
@@ -196,6 +197,7 @@ test("a failed measurements call gives the route's 503", async () => {
 test("a pressure station without an MSL value keeps its pair", async () => {
   const res = await foehnResponse(
     "GVE_GUT",
+    8_000,
     fakeFetch({ surfaceOnly: "meteo_swiss:GUT" }),
     () => NOW,
   );

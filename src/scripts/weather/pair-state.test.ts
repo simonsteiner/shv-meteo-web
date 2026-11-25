@@ -2,10 +2,11 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { FoehnReport, StationPair } from "../foehn/report.ts";
 import {
-  chartKey,
+  chartDraw,
   chartView,
   choosePair,
   initialPairState,
+  NOTHING_DRAWN,
   reportCame,
   retryButton,
   shownPair,
@@ -51,7 +52,6 @@ test("choosing the shown pair does nothing; another fetches it", () => {
   assert.equal(shownPair(state)?.id, "GVE_GUT");
   // the old history isn't drawn under the new pair's name
   assert.deepEqual(chartView(state, "GVE_GUT"), { kind: "pending" });
-  assert.equal(chartKey(chartView(state, "GVE_GUT"), "dark", "de"), "");
 });
 
 test("an answer for a pair no longer chosen is dropped", () => {
@@ -95,20 +95,54 @@ test("a report without history draws the empty chart", () => {
   });
 });
 
-test("the chart key follows the pair, history, theme and language", () => {
-  const view = chartView(loaded("KLO_LUG"), "KLO_LUG");
-  const key = chartKey(view, "dark", "de");
-  assert.equal(chartKey(view, "dark", "de"), key);
-  assert.notEqual(chartKey(view, "light", "de"), key);
-  assert.notEqual(chartKey(view, "dark", "fr"), key);
-  assert.notEqual(
-    chartKey(chartView(loaded("KLO_LUG", report(4)), "KLO_LUG"), "dark", "de"),
-    key,
+test("the chart redraws when the pair, history, theme or language change", () => {
+  const draw = (
+    s: PairState,
+    theme = "dark",
+    lang = "de",
+    from = NOTHING_DRAWN,
+  ) => chartDraw(chartView(s, "KLO_LUG"), theme, lang, from);
+  const first = draw(loaded("KLO_LUG"));
+  assert.equal(first.redraw, true);
+  assert.equal(first.drawn.pairId, "KLO_LUG");
+  assert.equal(
+    draw(loaded("KLO_LUG"), "dark", "de", first.drawn).redraw,
+    false,
   );
   assert.equal(
-    chartKey({ kind: "empty", pairId: "KLO_LUG" }, "dark", "de"),
-    "KLO_LUG|empty",
+    draw(loaded("KLO_LUG"), "light", "de", first.drawn).redraw,
+    true,
   );
+  assert.equal(draw(loaded("KLO_LUG"), "dark", "fr", first.drawn).redraw, true);
+  assert.equal(
+    draw(loaded("KLO_LUG", report(4)), "dark", "de", first.drawn).redraw,
+    true,
+  );
+  const empty = chartDraw(
+    { kind: "empty", pairId: "KLO_LUG" },
+    "dark",
+    "de",
+    first.drawn,
+  );
+  assert.equal(empty.redraw, true);
+  assert.equal(empty.drawn.pairId, "KLO_LUG");
+});
+
+test("a pending view keeps the drawn pair and its title", () => {
+  const first = chartDraw(
+    chartView(loaded("KLO_LUG"), "KLO_LUG"),
+    "dark",
+    "de",
+    NOTHING_DRAWN,
+  );
+  const next = choosePair(loaded("KLO_LUG"), "GVE_GUT").state;
+  const pending = chartDraw(
+    chartView(next, "GVE_GUT"),
+    "dark",
+    "de",
+    first.drawn,
+  );
+  assert.deepEqual(pending, { redraw: false, drawn: first.drawn });
 });
 
 test("a report without the chosen pair shows its first pair's empty chart", () => {
@@ -125,13 +159,23 @@ test("a report without the chosen pair shows its first pair's empty chart", () =
 
 test("the retry button shows only for a failed report it can retry", () => {
   const start = initialPairState("KLO_LUG");
-  assert.equal(retryButton(start, false), "hidden");
+  assert.equal(retryButton(start), "hidden");
   const failed = reportCame(start, "KLO_LUG", null);
-  assert.equal(retryButton(failed, false), "ready");
+  assert.equal(retryButton(failed), "ready");
   const again = choosePair(failed, "KLO_LUG").state;
-  assert.equal(retryButton(again, true), "busy");
+  assert.equal(retryButton(again), "busy");
   // a report with no pairs came: nothing to retry
   const empty = reportCame(start, "KLO_LUG", { ...report(0), pairs: [] });
-  assert.equal(retryButton(empty, false), "hidden");
-  assert.equal(retryButton(loaded("KLO_LUG"), false), "hidden");
+  assert.equal(retryButton(empty), "hidden");
+  assert.equal(retryButton(loaded("KLO_LUG")), "hidden");
+});
+
+test("a second retry while one loads fetches nothing", () => {
+  const failed = reportCame(initialPairState("KLO_LUG"), "KLO_LUG", null);
+  const again = choosePair(failed, "KLO_LUG").state;
+  assert.equal(choosePair(again, "KLO_LUG").fetch, false);
+  // its answer ends the retry, failed or not
+  assert.equal(again.retrying, true);
+  assert.equal(reportCame(again, "KLO_LUG", null).retrying, false);
+  assert.equal(reportCame(again, "KLO_LUG", report(2)).retrying, false);
 });

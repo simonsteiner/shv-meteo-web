@@ -125,9 +125,9 @@ test("a snapshot falls back to the CDN once, and retries after both fail", async
         ? new Response("", { status: 500 })
         : Response.json({ type: "FeatureCollection", features: [] }),
     async () => {
-      await assert.rejects(ShvApi.getAirspaces());
+      assert.equal(await ShvApi.getAirspaces(), null);
       down = false;
-      assert.deepEqual((await ShvApi.getAirspaces()).features, []);
+      assert.deepEqual((await ShvApi.getAirspaces())?.features, []);
     },
   );
   assert.equal(airspaces.length, 3);
@@ -167,7 +167,7 @@ test("the DABS date is Swiss, not UTC", () => {
   assert.equal(buildDabs(new Date("2026-01-14T23:30:00Z")).date, "2026-01-15");
 });
 
-test("getObstacles says when its index or a cell failed, and rethrows an abort", async (t) => {
+test("getObstacles says when its index or a cell failed, and answers null for an abort", async (t) => {
   t.mock.method(console, "error", () => {});
   const view = { minLon: 8, minLat: 46.5, maxLon: 8.1, maxLat: 46.6, zoom: 13 };
   const index = { generatedAt: "", tiers: { z13: ["32_186"] } };
@@ -184,21 +184,18 @@ test("getObstacles says when its index or a cell failed, and rethrows an abort",
   }) as typeof fetch;
   try {
     // no index: nothing drawn, and said
-    assert.deepEqual(await ShvApi.getObstacles(view), {
-      type: "FeatureCollection",
-      features: [],
-      failed: true,
-    });
+    assert.equal(await ShvApi.getObstacles(view), null);
     // the index came, its cell failed
     answers = { "/data/obstacles/index.json": index };
-    assert.equal((await ShvApi.getObstacles(view)).failed, true);
+    assert.equal((await ShvApi.getObstacles(view))?.incomplete, true);
     const abort = new AbortController();
     abort.abort();
-    await assert.rejects(ShvApi.getObstacles(view, { signal: abort.signal }), {
-      name: "AbortError",
-    });
+    assert.equal(
+      await ShvApi.getObstacles(view, { signal: abort.signal }),
+      null,
+    );
     answers = { "/data/obstacles/z13/32_186.json": cell };
-    assert.equal((await ShvApi.getObstacles(view)).failed, false);
+    assert.equal((await ShvApi.getObstacles(view))?.incomplete, false);
   } finally {
     globalThis.fetch = real;
   }

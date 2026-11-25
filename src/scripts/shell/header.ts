@@ -7,6 +7,7 @@
 import { ShvApi } from "../api.ts";
 import { must } from "../dom.ts";
 import { handoffUrl } from "../handoff.ts";
+import { isOneOf } from "../coerce.ts";
 import { applyText } from "../i18n/text.ts";
 import { locatePilot } from "../maps/locate.ts";
 import { LANGS, type Lang } from "../settings.ts";
@@ -15,7 +16,7 @@ import { foehnPill } from "./foehn-pill.ts";
 import { resetsMap } from "./nav.ts";
 
 function isLang(v: unknown): v is Lang {
-  return LANGS.includes(v as Lang);
+  return isOneOf(LANGS, v);
 }
 
 export function mountShell(header: HTMLElement): void {

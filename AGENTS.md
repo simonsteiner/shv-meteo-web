@@ -13,6 +13,7 @@ npm run build  # astro build into dist/
 npm run preview  # wrangler pages dev dist on 8788: the built pages and the Functions, as Pages serves them
 npm run typecheck  # astro check, also the pre-push hook
 npm test  # node --test over src/scripts/**/*.test.ts
+npm run e2e  # Playwright over the built site (e2e/), after npm run build; npx playwright install chromium once
 node --experimental-strip-types --test src/scripts/units.test.ts  # run one test file
 npm run lint  # oxlint and prettier --check, as in the pre-commit hook
 npx rumdl check .  # Markdown lint, as CI runs it; pass file paths to lint only those
@@ -27,13 +28,14 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 ### Data access
 
 - **`ShvApi` is the only caller of `fetch` in the browser.** Every endpoint the browser reads, direct or through `/api`, gets a method in `src/scripts/api.ts`; views and components never fetch directly.
+- **A `ShvApi` read never rejects.** It resolves to its typed value, or to null (an empty list for the station catalogue) after logging `[ShvApi.<method>]`; callers handle null and never `.catch` the read itself (a `.catch` after `.then` still catches a throw while drawing).
 - **Proxy only what has to be proxied.** The browser calls an upstream directly only when it allows CORS and the payload is light; anything with CORS limits (or a 403 to an `Origin` header), heavy data or multi-station math gets a Pages Function. Read `docs/architecture/data-queries.md` before adding or changing an endpoint.
 - **Upstream weather units are quirky.** Wind and gusts already arrive in km/h (never multiply by 3.6), a temperature above 200 is Kelvin, a pressure above 5000 is in tenths of hPa. Convert through `src/scripts/units.ts` (`toCelsius`, `toHpa`).
 
 ### Functions
 
-- **A Function is a one-line adapter over `src/scripts/upstream/`.** A proxied endpoint is three pieces: its route in `ROUTES` (`src/scripts/upstream/routes.ts`: upstream URL, TTL, timeout, German error body) with its checks in `src/scripts/upstream/params.ts`, the file under `functions/api/`, and the `ShvApi` method.
-- **The Function file calls `proxy`, `serve`, or a route helper that calls `serve`.** `proxy(name, ctx)` passes upstream's body through (`functions/api/webcams.ts`); `serve(name, ctx, compute)` answers what `compute` builds, which lives with its concern under `src/scripts/` (`functions/api/foehn.ts` over `src/scripts/foehn/fetch.ts`); a Function that also hands in build-time data calls a helper there that wraps `serve` (the sounding's `soundingRoute` in `src/scripts/emagram/fetch.ts`, which takes the generated grid). Logic never goes in `functions/`, so every test is under `src/scripts/`.
+- **A Function is a one-line adapter over `src/scripts/upstream/`.** A proxied endpoint is three pieces: its route in `ROUTES` (`src/scripts/upstream/routes.ts`: upstream URL, TTL, timeout, German error body, and its own `parse` of the path and query, 400 or 404 included, with the shared helpers in `params.ts`), the file under `functions/api/`, and the `ShvApi` method.
+- **The Function file calls `proxy`, `serve`, or a route helper that calls `serve`.** `proxy(name, ctx)` passes upstream's body through (`functions/api/webcams.ts`); `serve(name, ctx, compute)` answers what `compute(params, timeoutMs)` builds, which lives with its concern under `src/scripts/` (`functions/api/foehn.ts` over `src/scripts/foehn/fetch.ts`); a Function whose tests need to inject `fetch` calls a helper there that wraps `serve` (the sounding's `soundingRoute` in `src/scripts/emagram/fetch.ts`; the generated grid is imported by `emagram/grid.ts`, which the route's `parse` reads for its 404). Logic never goes in `functions/`, so every test is under `src/scripts/`.
 - **`respond.ts` owns caching and errors.** It streams the body unparsed, sets `Cache-Control`, keeps each 200 in the edge cache as the fallback for an upstream error (served only if it still looks like JSON), and answers anything else with a 503 that is never cached.
 - **Functions keep no memory between requests.** The edge cache (`caches.default`) is the only state.
 
@@ -62,7 +64,7 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 
 - **The code was written by LLMs without human review.** Treat comments and doc claims as hints and check them against the code.
 - **Everything under `src/` is TypeScript or `.astro`.** `astro check` covers both; keep new browser code there, never in `.js`.
-- **CI runs lint, rumdl, tests, typecheck and build on every push and pull request** (`.github/workflows/ci.yml`); `deploy.yml` deploys `main` to Cloudflare Pages once it passes. Check a change with those and by using it in the browser on `npm run dev`.
+- **CI runs lint, rumdl, tests, typecheck, build and the browser tests on every push and pull request** (`.github/workflows/ci.yml`); `deploy.yml` deploys `main` to Cloudflare Pages once it passes. Check a change with those and by using it in the browser on `npm run dev`.
 - **Every tab is its own page.** `src/pages/<tab>/index.astro` sets `<body data-view>` through `src/layouts/Base.astro`, which renders the header and bottom nav as real `<a href>` links and loads the shell script (`src/scripts/shell/shell.ts`) before the page's own.
 - **No inline scripts or handlers.** Each built page carries a meta CSP (`src/scripts/access/csp.ts`) whose `script-src` is `'self'` plus the hash of the one inline script, the theme script in `Base.astro`; attach handlers with `addEventListener`. `npm run dev` has no CSP, so check a change that loads something new on `npm run build && npm run preview`.
 - **Browser code stays at ES2020.** `astro.config.mjs` keeps the old build target (Safari 14, Chrome 87, Firefox 78); syntax is lowered but builtins are not polyfilled, so don't use newer ones (`Object.hasOwn`, `Array.prototype.at`, `structuredClone`).
@@ -76,6 +78,7 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 - `docs/setup.md`: local setup, checks, data scripts, screenshots tool, troubleshooting.
 - `docs/deployment.md`: Cloudflare Pages, deploying by hand, rollback, state and secrets.
 - `docs/architecture.md`: index of `docs/architecture/`: every upstream and `/api` route, what the data holds, how the code is organised.
+- `docs/adr/`: architecture decisions and why; read the one on a topic before proposing to undo it.
 - `docs/research/`: dated research notes with the measurements behind a decision; read the one on a topic before reopening it.
 - `docs/reference/shv-native-app.md`: reverse-engineered notes on the official app: its hosts, code layout and the Previtemps sounding.
 - `docs/reference/shv-native-auth.md`: the official app's Keycloak login and member web service; read before bringing back login or member data.

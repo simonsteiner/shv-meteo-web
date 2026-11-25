@@ -108,7 +108,8 @@ export function obstacleLayer(
         { signal: mine.signal },
       );
       if (request !== mine) return;
-      onLoad(data.failed);
+      if (!data) return onLoad(true);
+      onLoad(data.incomplete);
       const fresh = data.features.filter((f) => !drawn.has(obstacleKey(f)));
       if (fresh.length)
         layer.addData({
@@ -124,7 +125,6 @@ export function obstacleLayer(
           }
       }
     } catch (err) {
-      if ((err as { name?: string })?.name === "AbortError") return;
       console.error("[maps.obstacles] Cannot load the obstacles:", err);
     }
   }

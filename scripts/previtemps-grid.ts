@@ -8,7 +8,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { nearestGridPoint, tileUrl } from "../src/scripts/emagram/gridpoint.ts";
 import type { PrevitempsGrid, SoundingStation } from "../src/scripts/types.ts";
-import { USER_AGENT } from "../src/scripts/upstream/routes.ts";
+import { USER_AGENT } from "../src/scripts/upstream/fetch.ts";
 
 const STATIONS = "public/data/previtemps_stations.json";
 const OUT = "src/data/previtemps_grid.json";

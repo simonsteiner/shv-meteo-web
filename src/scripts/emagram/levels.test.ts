@@ -34,7 +34,7 @@ test("parsePointData reads levels x time steps, [] for a missing series", () => 
     parsePointData({ data: { levels: [{}, { ensembleMembers: [] }] } }),
     [[], []],
   );
-  assert.deepEqual(parsePointData(null), []);
+  assert.throws(() => parsePointData(null), /no levels array/);
   assert.deepEqual(pointValidTimes(raw([], [5, 6])), [5, 6]);
   assert.deepEqual(pointValidTimes({}), []);
 });

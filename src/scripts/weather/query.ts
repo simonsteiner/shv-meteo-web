@@ -2,6 +2,7 @@
 // the webcams list with that station pair's history. Unknown values are
 // ignored, so an old or mistyped link still opens the page.
 
+import { isOneOf } from "../coerce.ts";
 import { DEFAULT_PAIR, PAIRS } from "../foehn/pairs.ts";
 
 export const WEATHER_TABS = ["stations", "webcams"] as const;
@@ -18,7 +19,7 @@ export function readWeatherQuery(search: string): WeatherQuery {
   const tab = params.get("tab");
   const pair = params.get("pair");
   return {
-    tab: WEATHER_TABS.includes(tab as WeatherTab) ? (tab as WeatherTab) : null,
+    tab: isOneOf(WEATHER_TABS, tab) ? tab : null,
     pair: PAIRS.some((p) => p.id === pair) ? pair : null,
   };
 }

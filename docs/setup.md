@@ -34,7 +34,10 @@ npm run typecheck  # astro check; also the pre-push hook
 npm test           # node --test over src/scripts/**/*.test.ts
 node --experimental-strip-types --test src/scripts/units.test.ts  # one test file
 npx rumdl check .  # Markdown lint, as CI runs it; rumdl check --fix in the pre-commit hook
+npm run build && npm run e2e  # Playwright over the built site; see below
 ```
+
+`npm run e2e` runs the browser tests in `e2e/` against `npm run preview` (started for the run, or reused when one is already on 8788), so build first; `npx playwright install chromium` fetches the browser once. They load every page under its CSP and fail on an uncaught error or a CSP violation, and they drive the page wiring no unit test reaches: the map's load-status line and the weather page's retry. The browser reaches only the local site; map tiles and upstreams the browser would call directly are refused, and a test fakes only the failure it needs (a 404 for the obstacle shards, a 503 for `/api/foehn`). Logic still goes in pure modules with unit tests; add a browser test only for what the page script itself gets wrong.
 
 ## Data files
 

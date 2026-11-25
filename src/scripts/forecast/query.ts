@@ -2,6 +2,8 @@
 // `/forecast/?region=1`, `/forecast/outlooks/?type=...` and
 // `/forecast/emagram/?station=Sion`. An unknown value is ignored.
 
+import { isOneOf } from "../coerce.ts";
+
 /** The value of `key` in a query string when it is one of `allowed`. */
 export function readChoice<T extends string>(
   search: string,
@@ -9,7 +11,7 @@ export function readChoice<T extends string>(
   allowed: readonly T[],
 ): T | null {
   const v = new URLSearchParams(search).get(key);
-  return allowed.includes(v as T) ? (v as T) : null;
+  return isOneOf(allowed, v) ? v : null;
 }
 
 /** The station a query names, matched by name ignoring case, else null. */

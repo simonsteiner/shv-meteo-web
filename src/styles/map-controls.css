@@ -143,7 +143,7 @@
   color: var(--shv-red);
 }
 
-/* The data sets a shown layer lacks (src/scripts/maps/load-status.ts) */
+/* The data sets a shown layer lacks (src/scripts/maps/session.ts) */
 .map-load-status {
   align-self: center;
   margin: 0;

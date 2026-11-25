@@ -2,11 +2,13 @@
 // GIS snapshots come from public/data/ with the upstream CDN as fallback,
 // the outlooks and the isobar chart straight from upstream, the DABS card is
 // built here, and everything else goes through the Pages Functions under
-// /api (docs/architecture/data-queries.md). A failed call logs and resolves
-// to null (or an empty list), so a view shows its empty or error state.
+// /api (docs/architecture/data-queries.md). A read never rejects: a failed
+// one logs and resolves to null (or an empty list), so a view shows its
+// empty or error state.
 import type {
   Bbox,
   Dabs,
+  FlyingSiteFeature,
   MeasurementFeature,
   ObstacleFeature,
   Sounding,
@@ -15,6 +17,7 @@ import type {
   Webcam,
 } from "./types.ts";
 import type { FoehnReport } from "./foehn/report.ts";
+import { DEFAULT_PAIR } from "./foehn/pairs.ts";
 import {
   soundingFromForecast,
   type SoundingForecast,
@@ -87,14 +90,36 @@ async function getJson<T>(url: string, label: string): Promise<T | null> {
   return null;
 }
 
+/** `load` memoised per key: callers share one request, and a null answer
+ * is forgotten so the next call asks again. */
+function retryable<T>(
+  load: (key: string) => Promise<T | null>,
+): (key?: string) => Promise<T | null> {
+  const kept = new Map<string, Promise<T | null>>();
+  return (key = "") => {
+    let pending = kept.get(key);
+    if (!pending) {
+      pending = load(key).then((answer) => {
+        if (answer === null) kept.delete(key);
+        return answer;
+      });
+      kept.set(key, pending);
+    }
+    return pending;
+  };
+}
+
 /** A GIS snapshot from public/data/, else the upstream CDN; kept for the
- * page's lifetime. Rejects when both fail. */
-function snapshot(local: string, cdn: string, label: string) {
-  let kept: Promise<FeatureCollection> | null = null;
-  const load = async (): Promise<FeatureCollection> => {
+ * page's lifetime. Null (logged) when both fail. */
+function snapshot<T>(
+  local: string,
+  cdn: string,
+  label: string,
+): () => Promise<T | null> {
+  const memo = retryable<T>(async () => {
     try {
       const resp = await fetch(local);
-      if (resp.ok) return (await resp.json()) as FeatureCollection;
+      if (resp.ok) return (await resp.json()) as T;
       console.warn(
         `[ShvApi.${label}] Local fetch returned status:`,
         resp.status,
@@ -105,36 +130,41 @@ function snapshot(local: string, cdn: string, label: string) {
         e,
       );
     }
-    const resp = await fetch(cdn);
-    if (!resp.ok) throw new Error(`CDN status ${resp.status}`);
-    return (await resp.json()) as FeatureCollection;
-  };
-  return (): Promise<FeatureCollection> => {
-    kept ??= load().catch((err: unknown) => {
+    try {
+      const resp = await fetch(cdn);
+      if (resp.ok) return (await resp.json()) as T;
+      console.error(
+        `[ShvApi.${label}] Failed to load from both local and CDN: CDN status`,
+        resp.status,
+      );
+    } catch (e) {
       console.error(
         `[ShvApi.${label}] Failed to load from both local and CDN:`,
-        err,
+        e,
       );
-      kept = null;
-      throw err;
-    });
-    return kept;
-  };
+    }
+    return null;
+  });
+  return () => memo();
 }
 
 const CDN = "https://shv-app-static-prod.ubmeteo.io/v1";
 
-/** A view's obstacles, and whether reading them failed. */
-export interface ObstacleAnswer extends FeatureCollection<ObstacleFeature> {
-  failed: boolean;
+/** A view's obstacles; `incomplete` when some cells couldn't be read and
+ * the rest are drawn. */
+export interface ObstacleAnswer {
+  features: ObstacleFeature[];
+  incomplete: boolean;
 }
 
 // One request per page load: the header's Foehn badge and the view on the
 // same page share a call. Keyed by pair, so the pair switcher gets its own.
-// A failed call (null) is forgotten, so the next caller asks again.
-let measurementsPromise: Promise<FeatureCollection<MeasurementFeature> | null> | null =
-  null;
-const foehnPromises = new Map<string, Promise<FoehnReport | null>>();
+const measurements = retryable<FeatureCollection<MeasurementFeature>>(() =>
+  getJson("/api/measurements", "getMeasurements"),
+);
+const foehn = retryable<FoehnReport>((pair) =>
+  getJson(`/api/foehn?pair=${encodeURIComponent(pair)}`, "getFoehn"),
+);
 
 // The obstacle shards (obstacles/cells.ts): the index once per page load,
 // and the last cells read, so panning back costs nothing.
@@ -143,7 +173,9 @@ const OBSTACLES = "/data/obstacles";
  * of the densest area (Valais at z10 reads 22 MB), against up to 120 MB
  * when 64 cells of any size were kept. */
 const OBSTACLE_CACHE_BYTES = 32_000_000;
-let obstacleIndexPromise: Promise<ShardIndex> | null = null;
+const obstacleIndex = retryable<ShardIndex>(() =>
+  getJson(`${OBSTACLES}/index.json`, "getObstacles"),
+);
 
 async function fetchObstacleShard(
   path: string,
@@ -158,34 +190,32 @@ async function fetchObstacleShard(
 const fetchObstacleCell = keepRecent(OBSTACLE_CACHE_BYTES, fetchObstacleShard);
 
 export const ShvApi = {
-  getFlyingSites: snapshot(
+  getFlyingSites: snapshot<FeatureCollection<FlyingSiteFeature>>(
     "/data/flyingsites.geojson",
     `${CDN}/flyingsites.geojson`,
     "getFlyingSites",
   ),
-  getAirspaces: snapshot(
+  getAirspaces: snapshot<GeoJSON.FeatureCollection>(
     "/data/airspaces.geojson",
     `${CDN}/airspaces/shv.geojson`,
     "getAirspaces",
   ),
-  getWildschutz: snapshot(
+  getWildschutz: snapshot<GeoJSON.FeatureCollection>(
     "/data/wildschutz.geojson",
     `${CDN}/wildschutz/shv.geojson`,
     "getWildschutz",
   ),
 
-  /** The obstacles a map view shows, `failed` when its index or any of
-   * its cells couldn't be read (the rest still come); rejects only when
-   * `signal` aborts. */
+  /** The obstacles a map view shows, `incomplete` when some of its cells
+   * couldn't be read (the rest still come); null when its index couldn't
+   * be read, and, without a log, when `signal` aborted. */
   async getObstacles(
     { zoom, ...bbox }: Bbox & { zoom: number },
     options: { signal?: AbortSignal } = {},
-  ): Promise<ObstacleAnswer> {
+  ): Promise<ObstacleAnswer | null> {
+    const index = await obstacleIndex();
+    if (!index) return null;
     try {
-      obstacleIndexPromise ??= fetchObstacleShard("index.json").then(
-        (shard) => shard.value as ShardIndex,
-      );
-      const index = await obstacleIndexPromise;
       const { features, failed } = await loadObstacles(
         bbox,
         zoom,
@@ -193,53 +223,25 @@ export const ShvApi = {
         fetchObstacleCell,
         options.signal,
       );
-      // a failed cell leaves a gap: draw the rest, and say so
-      return { type: "FeatureCollection", features, failed };
+      return { features, incomplete: failed };
     } catch (err) {
-      if ((err as { name?: string })?.name === "AbortError") throw err;
+      if ((err as { name?: string })?.name === "AbortError") return null;
       console.error("[ShvApi.getObstacles] Failed to load obstacles:", err);
-      obstacleIndexPromise = null;
+      return null;
     }
-    // no obstacles drawn must not read as no obstacles there
-    return { type: "FeatureCollection", features: [], failed: true };
   },
 
   getMeasurements(): Promise<FeatureCollection<MeasurementFeature> | null> {
-    if (!measurementsPromise) {
-      const pending = getJson<FeatureCollection<MeasurementFeature>>(
-        "/api/measurements",
-        "getMeasurements",
-      ).then((result) => {
-        if (result === null && measurementsPromise === pending)
-          measurementsPromise = null;
-        return result;
-      });
-      measurementsPromise = pending;
-    }
-    return measurementsPromise;
+    return measurements();
   },
 
   getWebcams(): Promise<{ webcams: Webcam[] } | null> {
     return getJson("/api/webcams", "getWebcams");
   },
 
-  /** The Foehn report with `pairId`'s history; none is KLO_LUG. */
-  getFoehn(pairId: string | null = null): Promise<FoehnReport | null> {
-    const pair = pairId || "KLO_LUG";
-    let pending = foehnPromises.get(pair);
-    if (!pending) {
-      const request = getJson<FoehnReport>(
-        `/api/foehn?pair=${encodeURIComponent(pair)}`,
-        "getFoehn",
-      ).then((result) => {
-        if (result === null && foehnPromises.get(pair) === request)
-          foehnPromises.delete(pair);
-        return result;
-      });
-      pending = request;
-      foehnPromises.set(pair, pending);
-    }
-    return pending;
+  /** The Foehn report with `pairId`'s history. */
+  getFoehn(pairId: string = DEFAULT_PAIR): Promise<FoehnReport | null> {
+    return foehn(pairId);
   },
 
   getTextForecast(lang = "de"): Promise<unknown> {

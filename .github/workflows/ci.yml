@@ -1,6 +1,7 @@
 # The checks lefthook runs on staged files (not its token budget or dash
 # check, which need the hooks' remote scripts), over the whole tree, plus
-# the tests, the typecheck and the build. deploy.yml deploys main once this passes.
+# the tests, the typecheck, the build and the browser tests over that build
+# (e2e/). deploy.yml deploys main once this passes.
 name: ci
 
 on:
@@ -28,3 +29,5 @@ jobs:
       - run: npm test
       - run: npm run typecheck
       - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e

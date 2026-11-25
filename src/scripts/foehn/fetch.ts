@@ -5,11 +5,13 @@
 // pair's two series for its history, from 25 hours ago (about 6 KB each).
 // Parsing the unfiltered Swiss bbox and 14-day series instead (0.98 MB) took
 // 8 to 29 ms CPU per report on Pages, over the Free plan's 10 ms
-// (docs/architecture/data-queries.md). A failed measurements call fails the
-// route (its 503); a failed series only empties the history.
+// (docs/architecture/data-queries.md). Four calls, each with the route's
+// timeout (8 s): two filtered measurements and the pair's two series. A
+// failed measurements call fails the route (its 503); a failed series only
+// empties the history.
 import type { MeasurementFeature, TimeseriesResponse } from "../types.ts";
 import { fetchUpstream } from "../upstream/fetch.ts";
-import { ROUTES, startBefore, WEATHER } from "../upstream/routes.ts";
+import { startBefore, WEATHER } from "../upstream/routes.ts";
 import {
   historyParameter,
   PAIRS,
@@ -29,9 +31,6 @@ const BOX_MARGIN = 0.02;
 const CURRENT_PARAMETERS: Record<string, string> = {
   pressure_msl: "pressure_msl,pressure_standard_msl,pressure_surface",
 };
-
-/** Each call's timeout. */
-const TIMEOUT_MS = ROUTES.foehn.timeoutMs;
 
 /** The pair stations by the upstream parameter their pairs read. */
 export function stationsByParameter(): Map<string, string[]> {
@@ -67,13 +66,14 @@ export function measurementsUrl(
  * station missing from its answer is logged and left out, which drops its
  * pair from the report. */
 async function measurements(
+  timeoutMs: number,
   fetchFn: typeof fetch,
 ): Promise<MeasurementFeature[]> {
   const answers = await Promise.all(
     [...stationsByParameter()].map(async ([parameter, ids]) => {
       const res = await fetchUpstream(
         measurementsUrl(parameter, ids),
-        TIMEOUT_MS,
+        timeoutMs,
         fetchFn,
       );
       if (!res.ok)
@@ -117,11 +117,12 @@ async function series(
   stationId: string,
   parameter: string,
   since: number,
+  timeoutMs: number,
   fetchFn: typeof fetch,
 ): Promise<TimeseriesResponse | null> {
   const url = seriesUrl(stationId, parameter, since);
   try {
-    const res = await fetchUpstream(url, TIMEOUT_MS, fetchFn);
+    const res = await fetchUpstream(url, timeoutMs, fetchFn);
     if (!res.ok) throw new Error(`upstream answered ${res.status}`);
     return (await res.json()) as TimeseriesResponse;
   } catch (err) {
@@ -133,9 +134,11 @@ async function series(
   }
 }
 
-/** The report as a JSON Response; rejects when the measurements fail. */
+/** The report as a JSON Response; rejects when the measurements fail. Each
+ * of its four calls gets `timeoutMs`. */
 export async function foehnResponse(
   pairId: string,
+  timeoutMs: number,
   fetchFn: typeof fetch = fetch,
   now: () => Date = () => new Date(),
 ): Promise<Response> {
@@ -144,9 +147,9 @@ export async function foehnResponse(
   const at = now();
   const since = seriesStart(at.getTime());
   const [stations, start, end] = await Promise.all([
-    measurements(fetchFn),
-    series(cfg.startId, parameter, since, fetchFn),
-    series(cfg.endId, parameter, since, fetchFn),
+    measurements(timeoutMs, fetchFn),
+    series(cfg.startId, parameter, since, timeoutMs, fetchFn),
+    series(cfg.endId, parameter, since, timeoutMs, fetchFn),
   ]);
   const report = foehnReport(
     stations,

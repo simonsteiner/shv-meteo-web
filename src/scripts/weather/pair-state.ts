@@ -15,10 +15,18 @@ export interface PairState {
   reportPair: string | null;
   /** The chosen pair, when its report failed; a click on it retries. */
   failedPair: string | null;
+  /** A retry of the failed first report is loading. */
+  retrying: boolean;
 }
 
 export function initialPairState(pairId: string): PairState {
-  return { pairId, report: undefined, reportPair: null, failedPair: null };
+  return {
+    pairId,
+    report: undefined,
+    reportPair: null,
+    failedPair: null,
+    retrying: false,
+  };
 }
 
 /** The state once the reader chose `id`, and whether to fetch its report:
@@ -34,6 +42,8 @@ export function choosePair(
       ...s,
       pairId: id,
       failedPair: null,
+      // a failed first report has no pills, so a choice then is the retry
+      retrying: s.report === null,
       report: s.report ?? undefined,
     },
     fetch: true,
@@ -48,8 +58,9 @@ export function reportCame(
   report: FoehnReport | null,
 ): PairState {
   if (id !== s.pairId) return s;
-  if (!report) return { ...s, failedPair: id, report: s.report ?? null };
-  return { ...s, report, reportPair: id, failedPair: null };
+  if (!report)
+    return { ...s, failedPair: id, report: s.report ?? null, retrying: false };
+  return { ...s, report, reportPair: id, failedPair: null, retrying: false };
 }
 
 /** The pair to show from the report: the chosen one, else the report's
@@ -85,20 +96,42 @@ export function chartView(s: PairState, pairId: string): ChartView {
  * to click, "busy" while the retry it started loads (kept shown, so the
  * keyboard focus stays on it), else "hidden". A report that came with no
  * pairs isn't retried: its answer is cached. */
-export function retryButton(
-  s: PairState,
-  retrying: boolean,
-): "hidden" | "ready" | "busy" {
-  if (retrying && s.report === undefined) return "busy";
+export function retryButton(s: PairState): "hidden" | "ready" | "busy" {
+  if (s.retrying && s.report === undefined) return "busy";
   if (s.report === null && s.failedPair === s.pairId) return "ready";
   return "hidden";
 }
 
+/** What the chart last drew: its key, and the pair it was drawn for. */
+export interface DrawnChart {
+  key: string;
+  pairId: string | null;
+}
+
+export const NOTHING_DRAWN: DrawnChart = { key: "", pairId: null };
+
 /** A key that changes whenever the drawn chart would: its pair, history,
- * theme or language; "" when nothing is to be drawn. */
-export function chartKey(view: ChartView, theme: string, lang: string): string {
-  if (view.kind === "pending") return "";
+ * theme or language. */
+function chartKey(
+  view: Exclude<ChartView, { kind: "pending" }>,
+  theme: string,
+  lang: string,
+): string {
   if (view.kind === "empty") return `${view.pairId}|empty`;
   const last = view.history[view.history.length - 1]?.timestamp;
   return `${view.pairId}|${theme}|${lang}|${view.history.length}|${last}`;
+}
+
+/** Whether `view` needs drawing, given what was `drawn`, and what is drawn
+ * after. A pending view keeps the chart and its pair as they are. */
+export function chartDraw(
+  view: ChartView,
+  theme: string,
+  lang: string,
+  drawn: DrawnChart,
+): { redraw: boolean; drawn: DrawnChart } {
+  if (view.kind === "pending") return { redraw: false, drawn };
+  const key = chartKey(view, theme, lang);
+  if (key === drawn.key) return { redraw: false, drawn };
+  return { redraw: true, drawn: { key, pairId: view.pairId } };
 }

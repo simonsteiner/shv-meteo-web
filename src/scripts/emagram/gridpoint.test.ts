@@ -70,3 +70,19 @@ test("no ICON grid is an error naming the station", () => {
   );
   assert.throws(() => nearestGridPoint({}, station), /Interlaken/);
 });
+
+test("a misshapen tile is an error naming the station", () => {
+  const ch1 = [{ identifier: "meteo_swiss:icon_ch1" }];
+  assert.throws(
+    () => nearestGridPoint({ definitions: [null] }, station),
+    /Interlaken has a definition that is not an object/,
+  );
+  assert.throws(
+    () =>
+      nearestGridPoint(
+        { definitions: [{ products: ch1, gridPoints: [{ pointIndex: 1 }] }] },
+        station,
+      ),
+    /Interlaken has a grid point without pointIndex/,
+  );
+});

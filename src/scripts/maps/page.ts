@@ -7,9 +7,9 @@
 // taken out of it at once, so a reload doesn't select again.
 
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { store } from "../state.ts";
 import { ShvApi } from "../api.ts";
-import { settledInto } from "../settled.ts";
 import { must } from "../dom.ts";
 import {
   readHandoff,
@@ -17,28 +17,29 @@ import {
   withoutHandoff,
   type Handoff,
 } from "../handoff.ts";
+import { readPick } from "../data-pick.ts";
 import { applyText } from "../i18n/text.ts";
 import { mountSheet, selectionOf } from "../sheet/render.ts";
-import type {
-  BaseMap,
-  Compass,
-  Layers,
-  MapCategory,
-  MeteoMode,
+import {
+  BASE_MAPS,
+  COMPASS,
+  LAYER_KEYS,
+  MAP_CATEGORIES,
+  METEO_MODES,
+  type Layers,
 } from "../settings.ts";
-import type { FlyingSiteFeature, MeasurementFeature } from "../types.ts";
+import type { MeasurementFeature } from "../types.ts";
 import { DEFAULT_CENTER, DEFAULT_ZOOM, pilotZoom, viewFor } from "./basemap.ts";
 import type { LatLngTuple } from "./centroid.ts";
 import {
-  findHandoff,
   revealFor,
   stationModeFor,
   type HandoffTarget,
+  type Loaded,
 } from "./handoff-target.ts";
 import { drawFoehn, drawStations, drawWebcams } from "./layer-meteo.ts";
 import { obstacleLayer } from "./layer-obstacles.ts";
-import { NOTHING_DRAWN, redraws } from "./redraws.ts";
-import { failedShown, loadStatusText, type Dataset } from "./load-status.ts";
+import { createMapSession, type Dataset, type Plan } from "./session.ts";
 import { siteLayers } from "./layer-sites.ts";
 import { zoneLayers } from "./layer-zones.ts";
 import { locatePilot } from "./locate.ts";
@@ -57,12 +58,19 @@ const CONTROL_SELECTORS: [Control, string][] = [
   ["mapCategory", "[data-map-category]"],
 ];
 
-export function mountMap(root: HTMLElement): void {
+/** The drawer's pick attributes, in the order a click reads them. */
+const PICKS = {
+  mapCategory: MAP_CATEGORIES,
+  meteoMode: METEO_MODES,
+  base: BASE_MAPS,
+  wind: COMPASS,
+};
+const LAYER_PICK = { layer: LAYER_KEYS };
+
+function mountMap(root: HTMLElement): void {
   const handoff: Handoff | null = readHandoff(location.search);
   const zoom = readZoom(location.search);
-  // ?z sets the zoom of a ?locate handoff only, and only once, so the
-  // header's GPS button later keeps the zoom (pilotZoom)
-  let locateZoom = handoff && "locate" in handoff ? zoom : null;
+  const session = createMapSession({ handoff, zoom, say });
   if (handoff || zoom !== null)
     history.replaceState(history.state, "", withoutHandoff(location.href));
 
@@ -82,16 +90,11 @@ export function mountMap(root: HTMLElement): void {
   );
   const sites = siteLayers((f) => store.select("site", f));
   const zones = zoneLayers(say);
-  // the data sets that failed to load (load-status.ts)
-  const failed = new Set<Dataset>();
   const obstacles = obstacleLayer(
     map,
     (f) => store.select("obstacle", f),
     (bad) => {
-      if (bad === failed.has("obstacles")) return;
-      if (bad) failed.add("obstacles");
-      else failed.delete("obstacles");
-      renderControls();
+      if (session.obstacles(bad)) render();
     },
   );
   const stationsLayer = L.layerGroup();
@@ -118,9 +121,6 @@ export function mountMap(root: HTMLElement): void {
   let stations: MeasurementFeature[] = [];
   let foehn: FoehnReport | null = null;
   let pilotMarker: L.Marker | null = null;
-  let pilotFix = 0;
-  // what was drawn last, so a store change redraws only what it touched
-  let drawn = NOTHING_DRAWN;
 
   function redrawStations(): void {
     if (!store.state.layers.stations) return;
@@ -151,7 +151,7 @@ export function mountMap(root: HTMLElement): void {
     moveTo(target.at);
   }
 
-  function renderControls(): void {
+  function renderControls(statusText: string): void {
     const state = store.state;
     const view = controlsView(state, say);
     if (searchInput.value !== view.search) searchInput.value = view.search;
@@ -181,16 +181,16 @@ export function mountMap(root: HTMLElement): void {
       pane.classList.toggle("hidden", !on);
     }
     for (const box of all<HTMLInputElement>("input[data-layer]")) {
-      const key = box.dataset.layer as keyof Layers;
-      box.checked = state.layers[key] === true;
+      const pick = readPick(box.dataset, LAYER_PICK, "maps");
+      if (pick) box.checked = state.layers[pick.value];
     }
     const status = q("[data-map-status]");
-    status.textContent = loadStatusText(failedShown(failed, state.layers), say);
+    status.textContent = statusText;
     status.classList.toggle("hidden", !status.textContent);
   }
 
-  function renderPilot(): void {
-    const { pilotLocation: pilot, pilotFix: fix } = store.state;
+  function renderPilot(centre: Plan["pilot"]): void {
+    const pilot = store.state.pilotLocation;
     if (!pilot) return;
     const at: LatLngTuple = [pilot.lat, pilot.lng];
     if (pilotMarker) pilotMarker.setLatLng(at);
@@ -202,33 +202,29 @@ export function mountMap(root: HTMLElement): void {
           [24, 24],
         ),
       }).addTo(map);
-    // each new position, from the GPS button or ?locate, centres the map
-    if (fix === pilotFix) return;
-    pilotFix = fix;
-    map.setView(at, pilotZoom(locateZoom, map.getZoom()));
-    locateZoom = null;
+    if (centre) map.setView(at, pilotZoom(centre.zoom, map.getZoom()));
   }
 
   function render(): void {
     const state = store.state;
     const selection = selectionOf(state);
-    const next = redraws(drawn, state, selection);
-    const { redraw } = next;
-    drawn = next.drawn;
+    const { redraw, status, pilot } = session.plan(state, selection);
     if (redraw.text) applyText(root, store.t);
     setBaseMap(state.baseMap);
-    for (const key of Object.keys(layerOf) as (keyof Layers)[])
+    for (const key of LAYER_KEYS)
       showLayer(map, layerOf[key], state.layers[key] === true);
-    // the obstacles load when shown and as the map moves, and go when hidden
-    if (redraw.obstacles === "load") void obstacles.update();
-    else if (redraw.obstacles === "clear") obstacles.clear();
     if (redraw.stations) redrawStations();
     if (redraw.text) drawFoehn(foehnLayer, foehn, say, openWeather);
     if (redraw.sites)
       sites.draw(state.searchQuery, state.windFilter, say, state.lang);
-    renderControls();
-    renderPilot();
+    renderControls(status);
+    renderPilot(pilot);
     if (redraw.sheet) sheet.show(selection, sites.names);
+    // the obstacles load when shown and as the map moves, and go when hidden.
+    // Last, because below their minimum zoom update() answers onLoad at once,
+    // and the render that starts must not be overwritten by this one's status
+    if (redraw.obstacles === "load") void obstacles.update();
+    else if (redraw.obstacles === "clear") obstacles.clear();
   }
 
   function openWeather(pairId: string): void {
@@ -262,16 +258,18 @@ export function mountMap(root: HTMLElement): void {
       "[data-action], [data-map-category], [data-meteo-mode], [data-base], [data-wind]",
     );
     if (!el) return;
-    const { action, mapCategory, meteoMode, base, wind } = el.dataset;
-    if (action && actions[action]) actions[action]();
-    else if (mapCategory) store.setMapCategory(mapCategory as MapCategory);
-    else if (meteoMode) store.setMeteoMode(meteoMode as MeteoMode);
-    else if (base) store.setBaseMap(base as BaseMap);
-    else if (wind) store.toggleWindFilter(wind as Compass);
+    const { action } = el.dataset;
+    if (action && actions[action]) return actions[action]();
+    const pick = readPick(el.dataset, PICKS, "maps");
+    if (pick?.key === "mapCategory") store.setMapCategory(pick.value);
+    else if (pick?.key === "meteoMode") store.setMeteoMode(pick.value);
+    else if (pick?.key === "base") store.setBaseMap(pick.value);
+    else if (pick?.key === "wind") store.toggleWindFilter(pick.value);
   });
   root.addEventListener("change", (event) => {
-    const layer = (event.target as HTMLElement).dataset?.layer;
-    if (layer) store.toggleLayer(layer as keyof Layers);
+    const data = (event.target as HTMLElement).dataset ?? {};
+    const pick = readPick(data, LAYER_PICK, "maps");
+    if (pick) store.toggleLayer(pick.value);
   });
   searchInput.addEventListener("input", () =>
     store.setSearchQuery(searchInput.value),
@@ -299,21 +297,21 @@ export function mountMap(root: HTMLElement): void {
   });
 
   // Each data set loads on its own, so a slow or failed one holds up none
-  // of the others; a failure (logged) leaves its layer empty and says so
-  // while the layer is shown. That counts a throw while drawing the data,
-  // not only a failed call.
-  function fail(dataset: Dataset): void {
-    failed.add(dataset);
-    render();
-  }
-
+  // of the others; the session counts a failure (logged), a throw while
+  // drawing the data included, and the map says so while the layer is shown.
   function load<T>(
     dataset: Dataset,
     call: Promise<T | null>,
     label: string,
-    use: (data: T) => void,
+    use: (data: T) => Loaded | void,
   ): void {
-    void settledInto(call, label, use, () => fail(dataset));
+    void call.then((data) => {
+      try {
+        takeHandoff(session.settle(dataset, data, label, use));
+      } finally {
+        render();
+      }
+    });
   }
 
   load(
@@ -321,24 +319,26 @@ export function mountMap(root: HTMLElement): void {
     ShvApi.getFlyingSites(),
     "[maps] Cannot load the flying sites:",
     (data) => {
-      const features = (data.features ?? []) as FlyingSiteFeature[];
+      const features = data.features ?? [];
       sites.setData(features);
-      drawn = { ...drawn, sites: "" };
-      takeHandoff(findHandoff(handoff, { kind: "site", items: features }));
-      render();
+      return { kind: "site", items: features };
     },
   );
   load(
     "airspaces",
     ShvApi.getAirspaces(),
     "[maps] Cannot load the airspaces:",
-    (data) => zones.airspace.addData(data as GeoJSON.FeatureCollection),
+    (data) => {
+      zones.airspace.addData(data);
+    },
   );
   load(
     "wildlife",
     ShvApi.getWildschutz(),
     "[maps] Cannot load the wildlife reserves:",
-    (data) => zones.wildlife.addData(data as GeoJSON.FeatureCollection),
+    (data) => {
+      zones.wildlife.addData(data);
+    },
   );
   load(
     "measurements",
@@ -347,7 +347,7 @@ export function mountMap(root: HTMLElement): void {
     (data) => {
       stations = data.features ?? [];
       redrawStations();
-      takeHandoff(findHandoff(handoff, { kind: "station", items: stations }));
+      return { kind: "station", items: stations };
     },
   );
   load(
@@ -366,13 +366,13 @@ export function mountMap(root: HTMLElement): void {
     (data) => {
       const webcams = data.webcams ?? [];
       drawWebcams(webcamsLayer, webcams, (w) => store.select("webcam", w));
-      takeHandoff(findHandoff(handoff, { kind: "webcam", items: webcams }));
+      return { kind: "webcam", items: webcams };
     },
   );
   if (handoff && "locate" in handoff)
     void locatePilot().then((at) => {
       if (at) store.setPilotLocation(at);
-      locateZoom = null;
+      session.locateEnded();
     });
 
   store.subscribe(render);

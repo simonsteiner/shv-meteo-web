@@ -11,11 +11,10 @@
 // CPU for nothing. An unknown name is a 404; no usable run is the route's
 // 503, logged with the station (a station whose grid point moved shows the
 // 503 until `npm run grid` runs again).
-import type { Context, GridPoint, PrevitempsGrid } from "../types.ts";
+import type { Context, GridPoint } from "../types.ts";
 import { fetchUpstream } from "../upstream/fetch.ts";
 import { serve } from "../upstream/respond.ts";
-import { ROUTES } from "../upstream/routes.ts";
-import { gridPoint } from "./grid.ts";
+import { gridPoint, GRID } from "./grid.ts";
 import { SOUNDING_PARAMETERS } from "./levels.ts";
 import {
   pointProblem,
@@ -24,14 +23,11 @@ import {
 } from "./sounding.ts";
 
 const POINT_DATA = "https://weather-ws-prod.ubmeteo.io/v1/point-data";
-/** Each call's timeout. */
-const TIMEOUT_MS = ROUTES.sounding.timeoutMs;
-
 /** How many runs are tried, newest first: the newest and the one before. */
 const RUNS_TRIED = 2;
 
 /** The point's six series of `run` in one answer. */
-export function soundingUrl(point: GridPoint, run: number): string {
+function soundingUrl(point: GridPoint, run: number): string {
   return `${POINT_DATA}/${point.modelKey}/${run}/${point.pointIndex}?parameters=${SOUNDING_PARAMETERS.join(",")}`;
 }
 
@@ -40,10 +36,11 @@ export function soundingUrl(point: GridPoint, run: number): string {
 async function pointOfRun(
   point: GridPoint,
   run: number,
+  timeoutMs: number,
   fetchFn: typeof fetch,
 ): Promise<string> {
   const url = soundingUrl(point, run);
-  const res = await fetchUpstream(url, TIMEOUT_MS, fetchFn);
+  const res = await fetchUpstream(url, timeoutMs, fetchFn);
   if (!res.ok) throw new Error(`${url} answered ${res.status}`);
   const text = await res.text();
   // a run still being ingested, or a broken one: upstream failures, so
@@ -55,12 +52,13 @@ async function pointOfRun(
 
 /** The station's forecast from the newest run that makes a sounding, as
  * the route's JSON text. */
-export async function fetchForecast(
+async function fetchForecast(
   point: GridPoint,
+  timeoutMs: number,
   fetchFn: typeof fetch = fetch,
 ): Promise<string> {
   const url = `${POINT_DATA}/${point.modelKey}/runs`;
-  const res = await fetchUpstream(url, TIMEOUT_MS, fetchFn);
+  const res = await fetchUpstream(url, timeoutMs, fetchFn);
   if (!res.ok) throw new Error(`${url} answered ${res.status}`);
   const { runs } = (await res.json()) as { runs?: number[] };
   // newest first, whatever order upstream lists them in
@@ -68,7 +66,7 @@ export async function fetchForecast(
   if (list.length === 0) throw new Error(`no runs for ${point.modelKey}`);
   for (const [i, run] of list.entries()) {
     try {
-      const text = await pointOfRun(point, run, fetchFn);
+      const text = await pointOfRun(point, run, timeoutMs, fetchFn);
       const { name, model, elevation, latitude, longitude } = point;
       const envelope: Omit<SoundingForecast, "point"> = {
         station: { name, model, elevation, latitude, longitude },
@@ -89,34 +87,23 @@ export async function fetchForecast(
   throw new Error(`no runs for ${point.modelKey}`);
 }
 
-function unknownStation(): Response {
-  return Response.json(
-    { error: "Unbekannte Sondierungsstation" },
-    { status: 404, headers: { "Cache-Control": "no-store" } },
-  );
-}
-
-/** The whole route over `grid`: what the Function calls. */
+/** The whole route: what the Function calls. The route's `parse` has made
+ * sure the name is in the catalogue. */
 export function soundingRoute(
   ctx: Context,
-  grid: PrevitempsGrid,
   fetchFn: typeof fetch = fetch,
 ): Promise<Response> {
-  return serve(
-    "sounding",
-    ctx,
-    async ({ name }) => {
-      // check() below has made sure the name is in the catalogue
-      const point = gridPoint(name, grid) as GridPoint;
-      try {
-        return new Response(await fetchForecast(point, fetchFn), {
-          headers: { "Content-Type": "application/json" },
-        });
-      } catch (err) {
-        console.error(`[sounding] ${point.name} failed:`, err);
-        throw err;
-      }
-    },
-    { check: ({ name }) => (gridPoint(name, grid) ? null : unknownStation()) },
-  );
+  return serve("sounding", ctx, async ({ name }, timeoutMs) => {
+    // the route's `parse` has answered the 404 for a name not in the grid
+    const point = gridPoint(name, GRID);
+    if (!point) throw new Error(`no grid point for ${name}`);
+    try {
+      return new Response(await fetchForecast(point, timeoutMs, fetchFn), {
+        headers: { "Content-Type": "application/json" },
+      });
+    } catch (err) {
+      console.error(`[sounding] ${point.name} failed:`, err);
+      throw err;
+    }
+  });
 }

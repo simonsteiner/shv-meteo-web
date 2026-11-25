@@ -21,6 +21,7 @@ import {
   type Region,
   type TextCategory,
 } from "./text.ts";
+import { isOneOf } from "../coerce.ts";
 
 const TITLE: Record<TextCategory, string> = {
   weather_report: "forecast.titleWeatherReport",
@@ -59,16 +60,11 @@ export function mountTextForecast(root: HTMLElement): void {
     const forLang = store.state.lang;
     loadedLang = forLang;
     answer = undefined;
-    ShvApi.getTextForecast(forLang)
-      .catch((err: unknown) => {
-        console.error("[forecast] Cannot load the text forecast:", err);
-        return null;
-      })
-      .then((result) => {
-        if (loadedLang !== forLang) return;
-        answer = result;
-        render();
-      });
+    ShvApi.getTextForecast(forLang).then((result) => {
+      if (loadedLang !== forLang) return;
+      answer = result;
+      render();
+    });
   }
 
   function render(): void {
@@ -122,10 +118,8 @@ export function mountTextForecast(root: HTMLElement): void {
     const target = event.target as Element;
     const cat = target.closest<HTMLElement>("[data-cat]")?.dataset.cat;
     const reg = target.closest<HTMLElement>("[data-region]")?.dataset.region;
-    if (cat && (TEXT_CATEGORIES as readonly string[]).includes(cat))
-      category = cat as TextCategory;
-    else if (reg && (REGIONS as readonly string[]).includes(reg))
-      region = reg as Region;
+    if (isOneOf(TEXT_CATEGORIES, cat)) category = cat;
+    else if (isOneOf(REGIONS, reg)) region = reg;
     else return;
     history.replaceState(
       history.state,

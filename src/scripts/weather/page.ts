@@ -11,8 +11,8 @@ import { ShvApi } from "../api.ts";
 import { drawChart } from "../charts/draw.ts";
 import { foehnChartConfig } from "../charts/foehn.ts";
 import { chartColors } from "../charts/theme.ts";
+import { readPick } from "../data-pick.ts";
 import { must, useFallback } from "../dom.ts";
-import { settled } from "../settled.ts";
 import { alertLook, formatDelta } from "../foehn/look.ts";
 import { DEFAULT_PAIR } from "../foehn/pairs.ts";
 import type { StationPair } from "../foehn/report.ts";
@@ -22,10 +22,11 @@ import type { MeasurementFeature, Webcam } from "../types.ts";
 import { pairPillsHtml, stationCardHtml, webcamCardHtml } from "./cards.ts";
 import { stationModal } from "./modal.ts";
 import {
-  chartKey,
+  chartDraw,
   chartView,
   choosePair,
   initialPairState,
+  NOTHING_DRAWN,
   reportCame,
   retryButton,
   shownPair,
@@ -38,6 +39,7 @@ import {
 } from "./pair.ts";
 import {
   readWeatherQuery,
+  WEATHER_TABS,
   withWeatherQuery,
   type WeatherTab,
 } from "./query.ts";
@@ -46,7 +48,11 @@ import { PROVIDERS, type Provider } from "./stations.ts";
 
 const { say } = store;
 
-export function mountWeather(root: HTMLElement): void {
+/** The sub-tab buttons' and provider pills' attributes, checked. */
+const TAB_PICK = { weatherTab: WEATHER_TABS };
+const PROVIDER_PICK = { provider: PROVIDERS };
+
+function mountWeather(root: HTMLElement): void {
   const query = readWeatherQuery(location.search);
   let pairs = initialPairState(query.pair ?? DEFAULT_PAIR);
   let tab: WeatherTab = query.tab ?? "stations";
@@ -56,12 +62,9 @@ export function mountWeather(root: HTMLElement): void {
   let webcams: Webcam[] | null | undefined;
   let lang: string | null = null;
   let chart: Chart | null = null;
-  // what was drawn last: the chart's key and pair, and the pills
-  let drawnKey = "";
-  let drawnPair: string | null = null;
+  // what was drawn last: the chart, and the pills
+  let drawn = NOTHING_DRAWN;
   let pillsHtml = "";
-  // a retry of the failed first report is loading
-  let retrying = false;
 
   const q = <T extends Element = HTMLElement>(s: string) => must<T>(root, s);
   const foehnStatus = q("[data-foehn-status]");
@@ -106,7 +109,7 @@ export function mountWeather(root: HTMLElement): void {
           : "weather.foehnUnavailable",
       );
       // a failed first report has no pills to click, so it gets a button
-      const retry = retryButton(pairs, retrying);
+      const retry = retryButton(pairs);
       foehnRetry.hidden = retry === "hidden";
       foehnRetry.setAttribute("aria-disabled", String(retry === "busy"));
       foehnBody.hidden = true;
@@ -181,10 +184,9 @@ export function mountWeather(root: HTMLElement): void {
     const pending = view.kind === "pending";
     chartBox.classList.toggle("is-pending", pending);
     chartBox.setAttribute("aria-busy", String(pending));
-    const key = chartKey(view, store.state.theme, store.state.lang);
-    if (view.kind !== "pending" && key !== drawnKey) {
-      drawnKey = key;
-      drawnPair = view.pairId;
+    const next = chartDraw(view, store.state.theme, store.state.lang, drawn);
+    drawn = next.drawn;
+    if (next.redraw && view.kind !== "pending") {
       const history = view.kind === "chart" ? view.history : [];
       chartEmpty.hidden = history.length > 0;
       canvas.hidden = history.length === 0;
@@ -203,8 +205,10 @@ export function mountWeather(root: HTMLElement): void {
           chart,
         );
     }
-    if (drawnPair)
-      q("[data-pair-chart-title]").textContent = say(chartTitleKey(drawnPair));
+    if (drawn.pairId)
+      q("[data-pair-chart-title]").textContent = say(
+        chartTitleKey(drawn.pairId),
+      );
   }
 
   function renderLists(): void {
@@ -267,12 +271,8 @@ export function mountWeather(root: HTMLElement): void {
   }
 
   function loadPair(id: string): void {
-    void settled(
-      ShvApi.getFoehn(id),
-      "[weather] Cannot load the pair's report:",
-    ).then((report) => {
+    void ShvApi.getFoehn(id).then((report) => {
       pairs = reportCame(pairs, id, report);
-      retrying = false;
       render();
     });
   }
@@ -303,21 +303,20 @@ export function mountWeather(root: HTMLElement): void {
     const target = event.target as Element;
     const pair = target.closest<HTMLElement>("[data-pair-id]")?.dataset.pairId;
     if (pair) return selectPair(pair);
-    if (target.closest("[data-foehn-retry]")) {
-      if (retrying) return;
-      retrying = true;
-      return selectPair(pairs.pairId);
-    }
+    if (target.closest("[data-foehn-retry]")) return selectPair(pairs.pairId);
     const tabButton = target.closest<HTMLElement>("[data-weather-tab]");
     if (tabButton) {
-      tab = tabButton.dataset.weatherTab === "webcams" ? "webcams" : "stations";
+      const pick = readPick(tabButton.dataset, TAB_PICK, "weather");
+      if (!pick) return;
+      tab = pick.value;
       writeUrl();
       return renderLists();
     }
-    const pill =
-      target.closest<HTMLElement>("[data-provider]")?.dataset.provider;
-    if (pill && (PROVIDERS as readonly string[]).includes(pill)) {
-      provider = pill as Provider;
+    const pill = target.closest<HTMLElement>("[data-provider]");
+    if (pill) {
+      const pick = readPick(pill.dataset, PROVIDER_PICK, "weather");
+      if (!pick) return;
+      provider = pick.value;
       return renderLists();
     }
     activate(target);
@@ -350,19 +349,14 @@ export function mountWeather(root: HTMLElement): void {
   );
 
   loadPair(pairs.pairId);
-  void settled(
-    ShvApi.getMeasurements(),
-    "[weather] Cannot load the measurements:",
-  ).then((v) => {
+  void ShvApi.getMeasurements().then((v) => {
     stations = v?.features ?? null;
     render();
   });
-  void settled(ShvApi.getWebcams(), "[weather] Cannot load the webcams:").then(
-    (v) => {
-      webcams = v?.webcams ?? null;
-      render();
-    },
-  );
+  void ShvApi.getWebcams().then((v) => {
+    webcams = v?.webcams ?? null;
+    render();
+  });
 
   store.subscribe(render);
   render();

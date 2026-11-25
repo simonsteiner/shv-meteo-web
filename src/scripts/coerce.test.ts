@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { nonZeroNum, num, text } from "./coerce.ts";
+import { isOneOf, nonZeroNum, num, text } from "./coerce.ts";
 
 test("text keeps strings and gives an empty string for anything else", () => {
   assert.equal(text("Fiesch"), "Fiesch");
@@ -25,4 +25,12 @@ test("nonZeroNum also takes 0 as missing", () => {
   assert.equal(nonZeroNum(0), null);
   assert.equal(nonZeroNum("120"), null);
   assert.equal(nonZeroNum(Number.NaN), null);
+});
+
+test("isOneOf accepts a member and rejects a non-member or a non-string", () => {
+  const sizes = ["s", "m"] as const;
+  assert.equal(isOneOf(sizes, "m"), true);
+  assert.equal(isOneOf(sizes, "xl"), false);
+  assert.equal(isOneOf(sizes, undefined), false);
+  assert.equal(isOneOf(sizes, 1), false);
 });

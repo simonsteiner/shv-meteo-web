@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { fetchUpstream } from "./fetch.ts";
-import { USER_AGENT } from "./routes.ts";
+import { USER_AGENT } from "./fetch.ts";
 
 test("the User-Agent is set and no Origin goes upstream", async () => {
   let sent: Headers | undefined;

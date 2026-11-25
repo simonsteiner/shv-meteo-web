@@ -33,10 +33,15 @@ export interface SoundingForecast {
   point: PointAnswer;
 }
 
+/** A series upstream left out is [] (`pointProblem` names it); one that is
+ * there but misshapen throws. */
 function matrices(point: PointAnswer): Record<SoundingParameter, number[][]> {
   const series = point.parameters ?? {};
   return Object.fromEntries(
-    SOUNDING_PARAMETERS.map((p) => [p, parsePointData(series[p])]),
+    SOUNDING_PARAMETERS.map((p) => [
+      p,
+      series[p] === undefined ? [] : parsePointData(series[p]),
+    ]),
   ) as Record<SoundingParameter, number[][]>;
 }
 
