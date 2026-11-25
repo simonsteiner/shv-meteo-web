@@ -54,9 +54,12 @@ export function createMap(
   }
   setBaseMap(baseMap);
 
-  // the container gets its size from the page's CSS after the first frame
-  requestAnimationFrame(() => map.invalidateSize());
-  setTimeout(() => map.invalidateSize(), 200);
+  // the container gets its size from the page's CSS after the first frame,
+  // and changes it later (a sheet opening, the viewport turning); the
+  // observer reports the first size too
+  const resizes = new ResizeObserver(() => map.invalidateSize());
+  resizes.observe(el);
+  map.on("unload", () => resizes.disconnect());
   return { map, setBaseMap };
 }
 
