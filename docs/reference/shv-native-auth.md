@@ -92,7 +92,7 @@ The same host also serves the text forecast and the isobar chart, anonymously; s
 
 Nobody here has seen a real `v1/wms/person` answer: the capture kept no bodies. The fields below come from two readings that disagree, so check a live answer before relying on either.
 
-From the decompiled serialisers (`UserProfile` and its nested classes):
+From the example payload an earlier version of this note carried; where its field names came from was not recorded:
 
 | Field | Holds |
 | :--- | :--- |
