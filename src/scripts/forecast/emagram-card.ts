@@ -56,20 +56,27 @@ export function emagramCard(
     const step = interpolateStep(steps(), position);
     if (!step) return;
     // in Swiss time, whatever the device's zone (swiss-time.ts)
-    const when = step.timestamp;
-    q("[data-emagram-time]").textContent = formatSwiss(when, locale(), {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    q("[data-emagram-date]").textContent = formatSwiss(when, locale(), {
-      weekday: "short",
-      day: "2-digit",
-      month: "2-digit",
-    });
-    const time = formatSwiss(when, locale(), {
+    q("[data-emagram-time]").textContent = formatSwiss(
+      step.timestamp,
+      locale(),
+      {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      },
+    );
+    q("[data-emagram-date]").textContent = formatSwiss(
+      step.timestamp,
+      locale(),
+      {
+        weekday: "short",
+        day: "2-digit",
+        month: "2-digit",
+      },
+    );
+    const time = formatSwiss(step.timestamp, locale(), {
       hour: "2-digit",
       minute: "2-digit",
     });
