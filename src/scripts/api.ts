@@ -147,6 +147,15 @@ function snapshot<T>(
 
 const CDN = "https://shv-app-static-prod.ubmeteo.io/v1";
 
+/** The GIS snapshots' upstream copies, each a fallback for its file in
+ * public/data/; with OUTLOOKS_URL, all the browser reads without /api (the
+ * CSP's connect-src, access/csp.ts, allows their origins). */
+export const SNAPSHOT_CDN_URLS = [
+  `${CDN}/flyingsites.geojson`,
+  `${CDN}/airspaces/shv.geojson`,
+  `${CDN}/wildschutz/shv.geojson`,
+] as const;
+
 /** A view's obstacles; `incomplete` when some cells couldn't be read and
  * the rest are drawn. */
 export interface ObstacleAnswer {
@@ -190,17 +199,17 @@ const fetchObstacleCell = keepRecent(OBSTACLE_CACHE_BYTES, fetchObstacleShard);
 export const ShvApi = {
   getFlyingSites: snapshot<FeatureCollection<FlyingSiteFeature>>(
     "/data/flyingsites.geojson",
-    `${CDN}/flyingsites.geojson`,
+    SNAPSHOT_CDN_URLS[0],
     "getFlyingSites",
   ),
   getAirspaces: snapshot<GeoJSON.FeatureCollection>(
     "/data/airspaces.geojson",
-    `${CDN}/airspaces/shv.geojson`,
+    SNAPSHOT_CDN_URLS[1],
     "getAirspaces",
   ),
   getWildschutz: snapshot<GeoJSON.FeatureCollection>(
     "/data/wildschutz.geojson",
-    `${CDN}/wildschutz/shv.geojson`,
+    SNAPSHOT_CDN_URLS[2],
     "getWildschutz",
   ),
 
