@@ -43,6 +43,7 @@ The backlog, in rank order. After the scan only three parts of the report change
 | [S5](#s5--use-round1-from-unitsts) | Use `round1` from `units.ts` | - | ↔ two-way | maintainability | in-progress | `chore/arch-review-small-fixes` | | | |
 | [S6](#s6--drop-exports-nothing-imports) | Drop exports nothing imports | - | ↔ two-way | coupling | in-progress | `chore/arch-review-small-fixes` | | | |
 | [S7](#s7--replace-the-200-ms-resize-timer) | Replace the 200 ms resize timer | - | ↔ two-way | maintainability | in-progress | `chore/arch-review-small-fixes` | | | |
+| [S8](#s8--load-leafletcss-only-where-a-map-draws) | Load `leaflet.css` only where a map draws | - | ↔ two-way | coupling | in-progress | `chore/arch-review-small-fixes` | | | found by C7's Design |
 
 Strength: 🟢 Strong · 🟡 Worth exploring · ⚪ Speculative · 🔴 live defect (a bug reproduced during the scan).
 Door: ↔ two-way (a revert undoes it) · 🚪 one-way (a data migration, a published wire or file format, deleted user data; stops at Step 6 for the user).
@@ -118,6 +119,12 @@ Each is referenced only in its own file, and `mountMap` and `mountWeather` are e
 `src/scripts/maps/view.ts:58-59` · own PR
 
 `invalidateSize` runs on the next frame and again after a guessed 200 ms, in case the container's size arrives late. A `ResizeObserver` on the container calls it whenever the size changes, timer gone.
+
+### S8 · Load leaflet.css only where a map draws
+
+`src/layouts/Base.astro:9` · own PR
+
+Every page links `leaflet.css` (6.4 KB gzipped), though only the map and the forecast outlooks and emagram views draw a Leaflet map. It already links first, so importing it from those pages keeps its place in the cascade (C7, Q1 and Q6).
 
 ## Recommendation
 
