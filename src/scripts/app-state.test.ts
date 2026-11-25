@@ -182,18 +182,6 @@ test("the checklist lives in the session storage", () => {
   assert.ok(!Object.values(store.state.checklist).some(Boolean));
 });
 
-test("a new flight goes first; the vario rate rounds to 0.1", () => {
-  const { store, local } = make({ shv_flights: '[{"id":"a"}]' });
-  store.addFlight({ id: "b" });
-  assert.deepEqual(JSON.parse(local.get("shv_flights") ?? "[]"), [
-    { id: "b" },
-    { id: "a" },
-  ]);
-  store.setVarioRate(2.345);
-  assert.equal(store.state.varioRate, 2.3);
-  assert.equal(store.state.varioMuted, true);
-});
-
 test("switching tabs navigates to the tab's page", () => {
   const { store, visited } = make();
   store.setTab("weather");

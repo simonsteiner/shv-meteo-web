@@ -3,7 +3,6 @@ import { map } from "./map/fr.ts";
 
 export const fr: Strings = {
   appName: "Swiss Free Flight",
-  memberPortal: "Portail des membres FSVL",
   appSub: "Météo vol libre & sites · Source : FSVL SHV",
   tabs: {
     map: "Carte Live",
@@ -253,25 +252,6 @@ export const fr: Strings = {
     dabsTitle: "DABS - Daily Airspace Bulletin Switzerland",
     dabsSub: "Bulletin officiel quotidien de l'espace aérien suisse",
     dabsLink: "Consulter le DABS sur Skybriefing",
-    logbookTitle: "Carnet de vol numérique",
-    addFlight: "Ajouter un vol",
-    totalFlights: "Total des vols",
-    totalAirtime: "Temps de vol total",
-    longestFlight: "Vol le plus long",
-    date: "Date",
-    site: "Décollage",
-    landing: "Atterrissage",
-    glider: "Voile / Sellette",
-    duration: "Durée (minutes)",
-    distance: "Distance XC (km)",
-    notes: "Remarques",
-    saveFlight: "Enregistrer le vol",
-    exportLog: "Exporter (CSV)",
-    varioTitle: "Simulateur Variomètre Acoustique",
-    varioSub: "Bips vario réalistes pour entraînement thermique",
-    varioClimb: "Montée / Descente:",
-    varioMute: "Activer son",
-    varioUnmute: "Couper son",
     checklistBadge: "Pre-Flight",
     checklistSub:
       "Check de décollage standardisé de la Fédération Suisse de Vol Libre",
@@ -286,22 +266,18 @@ export const fr: Strings = {
     kRadioSub:
       "Touche « alarme » ou appel 5 tons 21414 (ZVEI), avec ou sans squelch (CTCSS) 123.0 Hz. Quittance : 3 longs tons. À utiliser seulement sans réseau mobile.",
     dabsBadge: "Espace aérien",
+    dabsScheduleTitle: "Heures de publication (Skybriefing)",
+    dabsFirstVersion: "Première version (version 1) pour le lendemain",
+    dabsUpdates:
+      "Mises à jour (version 2 / 3 / 4) pour le jour même, en vigueur immédiatement",
+    dabsNext: "Prochaine publication : {time} LT",
+    dabsNextTomorrow: "Prochaine publication : demain {time} LT",
+    dabsNextFirst:
+      "Prochaine publication : {time} LT, avec la première version pour demain",
     dabsNotes:
-      "Publication chaque jour à 16:00 LT pour le lendemain ; mises à jour pour le jour même à 09:00, 13:00 et 16:00 LT. Pour les détails, toujours consulter les NOTAM.",
+      "En complément des NOTAM, la carte DABS représente graphiquement les dangers, restrictions et modifications dans l'espace aérien suisse. Pour les détails, toujours consulter les NOTAM.",
+    dabsMandatory: "À consulter obligatoirement avant chaque vol de distance !",
     dabsPdfToday: "DABS aujourd'hui (PDF)",
     dabsPdfTomorrow: "DABS demain (PDF)",
-    varioSinkLabel: "Dégueulante",
-    varioLiftLabel: "Plafond !",
-    logbookBadge: "Carnet de vol",
-    logbookSub: "Vols enregistrés & statistiques",
-    emptyTitle: "Aucun vol enregistré dans le carnet",
-    emptyHint:
-      "Enregistre ton premier vol avec «Ajouter un vol» en haut à droite.",
-    newFlight: "Enregistrer un nouveau vol",
-    sitePlaceholder: "p. ex. Fiescheralp, Interlaken, Brunni...",
-    landingPlaceholder: "p. ex. atterrissage de Fiesch, Höhematte...",
-    distancePlaceholder: "p. ex. 25.4",
-    notesPlaceholder: "Thermique, conditions, itinéraire...",
-    cancel: "Annuler",
   },
 };

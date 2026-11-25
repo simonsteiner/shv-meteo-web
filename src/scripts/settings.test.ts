@@ -47,8 +47,6 @@ test("stored values load", () => {
     shv_mapCategory: "AIRSPACE",
     shv_meteoMode: "WEBCAM",
     shv_windFilter: '["N","SW"]',
-    shv_varioRate: "-2.5",
-    shv_flights: '[{"site":"Amisbühl"}]',
   });
   const s = loadSettings(storage);
   assert.equal(s.lang, "fr");
@@ -57,8 +55,6 @@ test("stored values load", () => {
   assert.equal(s.mapCategory, "AIRSPACE");
   assert.equal(s.meteoMode, "WEBCAM");
   assert.deepEqual(s.windFilter, ["N", "SW"]);
-  assert.equal(s.varioRate, -2.5);
-  assert.deepEqual(s.flights, [{ site: "Amisbühl" }]);
 });
 
 test("a missing, unparsable or unknown value falls back per key", () => {
@@ -69,15 +65,11 @@ test("a missing, unparsable or unknown value falls back per key", () => {
     shv_baseMap: "google",
     shv_mapCategory: "meteo",
     shv_windFilter: '["N","UP"]',
-    shv_varioRate: "{",
-    shv_flights: '{"not":"a list"}',
     shv_layers: "nope",
   });
   quiet(() => assert.deepEqual(loadSettings(storage), d));
   for (const [key, raw] of [
     ["windFilter", '["N","N"]'],
-    ["varioRate", "7"],
-    ["varioRate", '"1"'],
     ["layers", "[]"],
   ]) {
     const one = fakeStorage({ [`shv_${key}`]: raw }).storage;
@@ -210,4 +202,17 @@ test("purgeLegacyAuth leaves only the other keys", () => {
   });
   purgeLegacyAuth(storage);
   assert.deepEqual([...map.keys()], ["shv_lang"]);
+});
+
+test("the old logbook and vario keys are left as they were", () => {
+  // the web version has no logbook: a pilot's stored flights aren't read,
+  // and aren't deleted either
+  const { storage, map } = fakeStorage({
+    shv_flights: '[{"site":"Amisbühl"}]',
+    shv_varioRate: "-2.5",
+  });
+  const s = loadSettings(storage) as unknown as Record<string, unknown>;
+  assert.equal(s.flights, undefined);
+  assert.equal(s.varioRate, undefined);
+  assert.equal(map.get("shv_flights"), '[{"site":"Amisbühl"}]');
 });

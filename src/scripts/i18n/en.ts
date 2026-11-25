@@ -3,7 +3,6 @@ import { map } from "./map/en.ts";
 
 export const en: Strings = {
   appName: "Swiss Free Flight",
-  memberPortal: "SHV member portal",
   appSub: "Soaring Weather & Sites · Source: SHV FSVL",
   tabs: {
     map: "Live Map",
@@ -244,25 +243,6 @@ export const en: Strings = {
     dabsSub:
       "Official daily aeronautical chart from Swiss Air Force & Skyguide",
     dabsLink: "Open DABS on Skybriefing",
-    logbookTitle: "Digital Flight Logbook",
-    addFlight: "Add Flight",
-    totalFlights: "Total Flights",
-    totalAirtime: "Total Airtime",
-    longestFlight: "Longest Flight",
-    date: "Date",
-    site: "Launch Site",
-    landing: "Landing Site",
-    glider: "Glider / Harness",
-    duration: "Duration (min)",
-    distance: "XC Distance (km)",
-    notes: "Notes",
-    saveFlight: "Save Flight",
-    exportLog: "Export (CSV)",
-    varioTitle: "Acoustic Variometer Simulator",
-    varioSub: "Realistic beeping audio for thermal practice & testing",
-    varioClimb: "Climb / Sink Rate:",
-    varioMute: "Turn On Audio",
-    varioUnmute: "Mute Audio",
     checklistBadge: "Pre-Flight",
     checklistSub:
       "Standard pre-flight check of the Swiss Hang Gliding Association",
@@ -277,21 +257,18 @@ export const en: Strings = {
     kRadioSub:
       "Alarm button or 5-tone calling signal 21414 (ZVEI), with or without a 123.0 Hz tone squelch (CTCSS). Acknowledgement: 3 long tones. Use it only where there is no mobile network.",
     dabsBadge: "Airspace",
+    dabsScheduleTitle: "Publication times (Skybriefing)",
+    dabsFirstVersion: "First version (version 1) for the following day",
+    dabsUpdates:
+      "Updates (version 2 / 3 / 4) for the current day, in force immediately",
+    dabsNext: "Next publication: {time} LT",
+    dabsNextTomorrow: "Next publication: tomorrow {time} LT",
+    dabsNextFirst:
+      "Next publication: {time} LT, with the first version for tomorrow",
     dabsNotes:
-      "Published daily at 16:00 LT for the next day; updates for the current day at 09:00, 13:00 and 16:00 LT. For details always refer to the NOTAM.",
+      "In addition to the NOTAM, the DABS chart illustrates dangers, restrictions and changes in Swiss airspace. For detailed information always refer to the NOTAM.",
+    dabsMandatory: "Mandatory consultation prior to cross-country flights!",
     dabsPdfToday: "Today's DABS (PDF)",
     dabsPdfTomorrow: "Tomorrow's DABS (PDF)",
-    varioSinkLabel: "Heavy sink",
-    varioLiftLabel: "Rocket lift!",
-    logbookBadge: "Logbook",
-    logbookSub: "Logged flights & statistics",
-    emptyTitle: "No flights logged yet",
-    emptyHint: "Log your first flight with «Add Flight» at the top right.",
-    newFlight: "Log a new flight",
-    sitePlaceholder: "e.g. Fiescheralp, Interlaken, Brunni...",
-    landingPlaceholder: "e.g. Fiesch landing, Höhematte...",
-    distancePlaceholder: "e.g. 25.4",
-    notesPlaceholder: "Thermals, conditions, route...",
-    cancel: "Cancel",
   },
 };

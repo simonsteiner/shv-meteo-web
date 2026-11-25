@@ -27,7 +27,6 @@ import {
   type Settings,
   type Theme,
 } from "./settings.ts";
-import { round1 } from "./units.ts";
 
 export const TABS = ["map", "weather", "forecast", "safety"] as const;
 export type Tab = (typeof TABS)[number];
@@ -49,8 +48,6 @@ export interface State extends Settings {
   pilotFix: number;
   /** The ticked pre-flight checklist points, per browser tab. */
   checklist: Record<string, boolean>;
-  /** The vario starts muted on every page: audio may only start on a click. */
-  varioMuted: boolean;
 }
 
 export type Listener = (state: State) => void;
@@ -105,7 +102,6 @@ export class AppState {
       pilotLocation: null,
       pilotFix: 0,
       checklist: { ...checklist, ...loadChecklist(session) },
-      varioMuted: true,
     };
   }
 
@@ -245,20 +241,5 @@ export class AppState {
     for (const key of Object.keys(this.state.checklist))
       this.state.checklist[key] = false;
     this.saveChecklist();
-  }
-
-  addFlight(flight: unknown): void {
-    this.save("flights", [flight, ...this.state.flights]);
-    this.notify();
-  }
-
-  setVarioRate(rate: number): void {
-    this.save("varioRate", round1(rate));
-    this.notify();
-  }
-
-  setVarioMuted(muted: boolean): void {
-    this.state.varioMuted = muted;
-    this.notify();
   }
 }

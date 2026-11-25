@@ -1,13 +1,10 @@
 ---
-// The safety page: pre-flight check, emergency contacts, DABS, vario
-// simulator and logbook. Static markup; src/scripts/safety/page.ts
-// fills and drives it.
+// The safety page: pre-flight check, emergency contacts and DABS. Static
+// markup; src/scripts/safety/page.ts fills and drives it.
 import Base from "../../layouts/Base.astro";
 import Checklist from "../../components/safety/Checklist.astro";
 import Emergency from "../../components/safety/Emergency.astro";
 import Dabs from "../../components/safety/Dabs.astro";
-import Vario from "../../components/safety/Vario.astro";
-import Logbook from "../../components/safety/Logbook.astro";
 ---
 
 <Base view="safety">
@@ -15,8 +12,6 @@ import Logbook from "../../components/safety/Logbook.astro";
     <Checklist />
     <Emergency />
     <Dabs />
-    <Vario />
-    <Logbook />
   </div>
   <script>
     import "../../scripts/safety/page.ts";

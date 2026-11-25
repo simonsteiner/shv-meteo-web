@@ -1,6 +1,7 @@
 ---
 // The header: brand, the tab links (desktop), the Foehn pill, and the GPS,
-// member portal, theme and language controls. Links work without
+// theme and language controls. No member login button: the site can't log
+// a member in to do anything yet (AGENTS.md, hard constraints). Links work without
 // JavaScript and the current tab is marked at build time; the words are
 // German until src/scripts/shell/header.ts applies the saved language
 // through data-t, and that script wires the controls.
@@ -14,9 +15,6 @@ interface Props {
   view: Tab;
 }
 const { view } = Astro.props;
-
-/** Where SHV members log in; this site has no member login. */
-const MEMBER_PORTAL_URL = "https://www.shv-fsvl.ch/anmelden/login/";
 
 /** Each language in its own name, so it reads the same in every language. */
 const LANG_NAMES = {
@@ -105,24 +103,6 @@ const icon = {
         <line x1="20" y1="12" x2="22" y2="12"></line>
       </svg>
     </button>
-
-    <a
-      class="icon-btn"
-      href={MEMBER_PORTAL_URL}
-      target="_blank"
-      rel="noopener noreferrer"
-      title={de.memberPortal}
-      aria-label={de.memberPortal}
-      data-t-title="memberPortal"
-      data-t-aria-label="memberPortal"
-    >
-      <svg {...icon}>
-        <rect width="20" height="14" x="2" y="5" rx="2"></rect>
-        <circle cx="8" cy="12" r="2"></circle>
-        <path d="M14 10h4"></path>
-        <path d="M14 14h2"></path>
-      </svg>
-    </a>
 
     <button
       type="button"

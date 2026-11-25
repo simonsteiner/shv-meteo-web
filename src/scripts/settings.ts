@@ -1,8 +1,10 @@
 // The settings that outlive a page load. Every tab is its own page, so what
-// lived only in memory (the map's base map, layers and filters, the vario's
-// rate) would reset on each navigation; it persists in localStorage under
-// `shv_*` keys, beside the keys the app already stored (language, theme,
-// flight log). A missing, unparsable or unknown value falls back to its
+// lived only in memory (the map's base map, layers and filters) would reset
+// on each navigation; it persists in localStorage under `shv_*` keys,
+// beside the keys the app already stored (language, theme). The logbook
+// and the vario simulator are gone from the web version; their old
+// `shv_flights` and `shv_varioRate` keys are neither read nor cleared, so a
+// pilot's stored flights stay in their browser. A missing, unparsable or unknown value falls back to its
 // default, so an old or hand-edited value never breaks a page. The
 // pre-flight checklist lives in sessionStorage: it survives moving between
 // pages but not closing the tab. Storage is a parameter, for the tests.
@@ -27,9 +29,6 @@ export const METEO_MODES = [
   "NONE",
 ] as const;
 export const COMPASS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] as const;
-/** The vario slider's range in m/s (src/components/safety/Vario.astro). */
-export const VARIO_RANGE = [-5, 6] as const;
-
 export type Lang = (typeof LANGS)[number];
 export type Theme = (typeof THEMES)[number];
 export type BaseMap = (typeof BASE_MAPS)[number];
@@ -59,9 +58,6 @@ export interface Settings {
   meteoMode: MeteoMode;
   layers: Layers;
   windFilter: Compass[];
-  varioRate: number;
-  /** The flight log; its entries pass through unchanged. */
-  flights: unknown[];
 }
 
 /** Storage as the browser has it; only what this module calls. */
@@ -110,8 +106,6 @@ export function defaultSettings(): Settings {
       foehnAxis: false,
     },
     windFilter: [],
-    varioRate: 1.2,
-    flights: [],
   };
 }
 
@@ -161,14 +155,6 @@ const PARSERS: {
       ? dirs
       : undefined;
   },
-  varioRate: (v) =>
-    typeof v === "number" &&
-    Number.isFinite(v) &&
-    v >= VARIO_RANGE[0] &&
-    v <= VARIO_RANGE[1]
-      ? v
-      : undefined,
-  flights: (v) => (Array.isArray(v) ? v : undefined),
 };
 
 function read(storage: KeyValueStorage, key: string): string | null {
