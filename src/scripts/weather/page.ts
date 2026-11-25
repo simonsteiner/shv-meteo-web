@@ -27,6 +27,7 @@ import {
   choosePair,
   initialPairState,
   reportCame,
+  retryButton,
   shownPair,
 } from "./pair-state.ts";
 import {
@@ -59,6 +60,8 @@ export function mountWeather(root: HTMLElement): void {
   let drawnKey = "";
   let drawnPair: string | null = null;
   let pillsHtml = "";
+  // a retry of the failed first report is loading
+  let retrying = false;
 
   const q = <T extends Element = HTMLElement>(s: string) => must<T>(root, s);
   const foehnStatus = q("[data-foehn-status]");
@@ -103,12 +106,16 @@ export function mountWeather(root: HTMLElement): void {
           : "weather.foehnUnavailable",
       );
       // a failed first report has no pills to click, so it gets a button
-      foehnRetry.hidden = pairs.report === undefined;
+      const retry = retryButton(pairs, retrying);
+      foehnRetry.hidden = retry === "hidden";
+      foehnRetry.setAttribute("aria-disabled", String(retry === "busy"));
       foehnBody.hidden = true;
       gauge.hidden = true;
       return;
     }
     foehnStatus.hidden = true;
+    // a retry that worked hands its focus to the pair it loaded
+    const retryFocused = document.activeElement === foehnRetry;
     foehnRetry.hidden = true;
     foehnBody.hidden = false;
     gauge.hidden = false;
@@ -118,6 +125,7 @@ export function mountWeather(root: HTMLElement): void {
     q("[data-pair-delta]").textContent = delta;
     q("[data-pair-unit]").textContent = pair.unit;
     renderPills(pairs.report.pairs, pair.id);
+    if (retryFocused) focusPill(pair.id);
     q("[data-pair-banner]").className = `foehn-banner ${look.banner}`;
     q("[data-pair-icon]").textContent = look.icon;
     const status = pairStatusText(pair, say);
@@ -155,9 +163,14 @@ export function mountWeather(root: HTMLElement): void {
         ? active.dataset.pairId
         : undefined;
     row.innerHTML = html;
-    if (focused === undefined) return;
-    Array.from(row.querySelectorAll<HTMLElement>("[data-pair-id]"))
-      .find((el) => el.dataset.pairId === focused)
+    if (focused !== undefined) focusPill(focused);
+  }
+
+  function focusPill(id: string): void {
+    Array.from(
+      q("[data-pair-pills]").querySelectorAll<HTMLElement>("[data-pair-id]"),
+    )
+      .find((el) => el.dataset.pairId === id)
       ?.focus();
   }
 
@@ -259,6 +272,7 @@ export function mountWeather(root: HTMLElement): void {
       "[weather] Cannot load the pair's report:",
     ).then((report) => {
       pairs = reportCame(pairs, id, report);
+      retrying = false;
       render();
     });
   }
@@ -289,7 +303,11 @@ export function mountWeather(root: HTMLElement): void {
     const target = event.target as Element;
     const pair = target.closest<HTMLElement>("[data-pair-id]")?.dataset.pairId;
     if (pair) return selectPair(pair);
-    if (target.closest("[data-foehn-retry]")) return selectPair(pairs.pairId);
+    if (target.closest("[data-foehn-retry]")) {
+      if (retrying) return;
+      retrying = true;
+      return selectPair(pairs.pairId);
+    }
     const tabButton = target.closest<HTMLElement>("[data-weather-tab]");
     if (tabButton) {
       tab = tabButton.dataset.weatherTab === "webcams" ? "webcams" : "stations";

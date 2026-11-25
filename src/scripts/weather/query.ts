@@ -27,9 +27,12 @@ export function readWeatherQuery(search: string): WeatherQuery {
  * layer links there); an unknown or the default pair opens the page as is. */
 export function weatherUrl(pair: string): string {
   const known = PAIRS.some((p) => p.id === pair);
-  return known && pair !== DEFAULT_PAIR
-    ? `/weather/?pair=${encodeURIComponent(pair)}`
-    : "/weather/";
+  // the origin is only there for URL to parse; the path and query come back
+  return withWeatherQuery(
+    "https://localhost/weather/",
+    { tab: "stations", pair: known ? pair : DEFAULT_PAIR },
+    DEFAULT_PAIR,
+  );
 }
 
 /** `href`'s path and query with the page's state written in, any other
