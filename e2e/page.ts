@@ -1,6 +1,7 @@
 // What every browser test starts from: the browser reaches only the site
-// under test (map tiles, CDN snapshots and direct upstreams are refused, so
-// a run doesn't depend on them), and the errors that must fail a test are
+// under test (map tiles, CDN snapshots and direct upstreams are refused; the
+// Functions behind /api still call the live upstreams, so a page may take its
+// data path or its empty state), and the errors that must fail a test are
 // collected: uncaught errors, the shell's global error logs
 // (src/scripts/shell/errors.ts) and CSP violations. A data read that fails
 // and is logged (`[ShvApi.getFoehn] ...`) is the app's empty state at work,
