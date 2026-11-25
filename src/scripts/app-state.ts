@@ -27,6 +27,7 @@ import {
   type Settings,
   type Theme,
 } from "./settings.ts";
+import { round1 } from "./units.ts";
 
 export const TABS = ["map", "weather", "forecast", "safety"] as const;
 export type Tab = (typeof TABS)[number];
@@ -247,7 +248,7 @@ export class AppState {
   }
 
   setVarioRate(rate: number): void {
-    this.save("varioRate", Math.round(rate * 10) / 10);
+    this.save("varioRate", round1(rate));
     this.notify();
   }
 

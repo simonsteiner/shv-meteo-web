@@ -4,12 +4,13 @@
 // every function returns numbers or SVG markup built from numbers.
 
 import { escapeHtml } from "../escape.ts";
+import { round1 } from "../units.ts";
 import type { Sounding, SoundingLevel } from "../types.ts";
 
 export const SVG_W = 520;
 export const SVG_H = 620;
 export const PAD_L = 46;
-export const PAD_R = 18;
+const PAD_R = 18;
 export const PAD_T = 32;
 export const PAD_B = 60;
 export const PLOT_W = 340;
@@ -125,7 +126,6 @@ export function soundingCurves(levels: readonly SoundingLevel[]): Curves {
 }
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-const r1 = (v: number) => Math.round(v * 10) / 10;
 
 /** The sounding between two time steps, for a fractional index; the
  * wind direction turns the short way round. Null with no time steps. */
@@ -150,12 +150,12 @@ export function interpolateStep(
     if (turn > 180) turn -= 360;
     if (turn < -180) turn += 360;
     levels.push({
-      pressHpa: r1(lerp(la.pressHpa, lb.pressHpa, t)),
-      tempC: r1(lerp(la.tempC, lb.tempC, t)),
-      dewC: r1(lerp(la.dewC, lb.dewC, t)),
-      speedKmH: r1(lerp(la.speedKmH, lb.speedKmH, t)),
+      pressHpa: round1(lerp(la.pressHpa, lb.pressHpa, t)),
+      tempC: round1(lerp(la.tempC, lb.tempC, t)),
+      dewC: round1(lerp(la.dewC, lb.dewC, t)),
+      speedKmH: round1(lerp(la.speedKmH, lb.speedKmH, t)),
       heightM: Math.round(lerp(la.heightM, lb.heightM, t)),
-      lapseRate: r1(lerp(la.lapseRate, lb.lapseRate, t)),
+      lapseRate: round1(lerp(la.lapseRate, lb.lapseRate, t)),
       dirDeg: Math.round((la.dirDeg + turn * t + 360) % 360),
     });
   }
