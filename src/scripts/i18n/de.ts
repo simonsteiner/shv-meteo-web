@@ -225,7 +225,8 @@ export const de = {
     resetChecklist: "Checkliste zurücksetzen",
     sosTitle: "Notfallkontakte & Flugrettung Schweiz",
     rega: "Rega Notruf: 1414",
-    kRadio: "Rega-Funk / K-Funk: 161.300 MHz (CTCSS 151.4 Hz)",
+    // Rega's own wording (2026-11-25): https://www.rega.ch/im-einsatz/standorte-infrastruktur/notfunk/notfunk-alarmierung-der-rega
+    kRadio: "Rega-Notfunk, E-Kanal: 161.300 MHz",
     treeRescueTitle: "Verhalten bei Baumlandung",
     treeRescue1:
       "1. Ruhig bleiben! Sofort im Gurtzeug sichern (Schlinge/Karabiner an stabilem Ast).",
@@ -267,8 +268,9 @@ export const de = {
     regaSub: "Kostenlos aus allen Schweizer Netzen",
     euroName: "Europäischer Notruf",
     euroSub: "Funktioniert auch ohne SIM-Karte",
+    // Rega's own wording (2026-11-25): https://www.rega.ch/im-einsatz/standorte-infrastruktur/notfunk/notfunk-alarmierung-der-rega
     kRadioSub:
-      "Notfallfunkkanal für Bergrettung in der Schweiz. CTCSS-Rufton 151.4 Hz aktivieren!",
+      "Alarm-Taste oder 5-Ton-Ruf 21414 (ZVEI), mit oder ohne Tonsquelch (CTCSS) 123.0 Hz. Quittung: 3 lange Töne. Nur verwenden, wenn kein Mobilnetz da ist.",
     dabsBadge: "Luftraumstatus",
     dabsValidity: "Gültigkeit heute:",
     dabsNotes:

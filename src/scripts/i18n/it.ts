@@ -228,7 +228,8 @@ export const it: Strings = {
     resetChecklist: "Reimposta checklist",
     sosTitle: "Numeri di emergenza & Soccorso aereo Svizzera",
     rega: "Rega Emergenza: 1414",
-    kRadio: "Canale Radio Rega (Canale K): 161.300 MHz (CTCSS 151.4 Hz)",
+    // Rega's own wording (2026-11-25): https://www.rega.ch/it/in-missione/sedi-e-infrastrutture/radio-demergenza/rete-demergenza-allarmare-la-rega
+    kRadio: "Radio d'emergenza Rega, canale E: 161.300 MHz",
     treeRescueTitle: "Comportamento in caso di atterraggio su albero",
     treeRescue1:
       "1. Mantieni la calma! Assicurati subito con la longe a un ramo robusto.",
@@ -269,8 +270,9 @@ export const it: Strings = {
     regaSub: "Gratuito da tutte le reti svizzere",
     euroName: "Numero d'emergenza europeo",
     euroSub: "Funziona anche senza scheda SIM",
+    // Rega's own wording (2026-11-25): https://www.rega.ch/it/in-missione/sedi-e-infrastrutture/radio-demergenza/rete-demergenza-allarmare-la-rega
     kRadioSub:
-      "Canale radio d'emergenza per il soccorso alpino in Svizzera. Attivare il tono CTCSS 151.4 Hz!",
+      "Pulsante allarme o segnale pentatonale 21414 (ZVEI), con o senza squelch (CTCSS) 123.0 Hz. Segnale di ricevuto: 3 toni lunghi. Da usare solo senza rete mobile.",
     dabsBadge: "Stato dello spazio aereo",
     dabsValidity: "Validità oggi:",
     dabsNotes:

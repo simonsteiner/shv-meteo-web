@@ -221,7 +221,8 @@ export const en: Strings = {
     resetChecklist: "Reset Checklist",
     sosTitle: "Emergency Contacts & Swiss Air Rescue",
     rega: "Rega Air Rescue: 1414",
-    kRadio: "Rega Emergency Radio (Channel K): 161.300 MHz (CTCSS 151.4 Hz)",
+    // Rega's own wording (2026-11-25): https://www.rega.ch/en/our-missions/sites-and-infrastructure/emergency-radio/emergency-radio-calling-out-rega
+    kRadio: "Rega emergency radio, E-channel: 161.300 MHz",
     treeRescueTitle: "Tree Landing Protocol",
     treeRescue1:
       "1. Stay calm! Secure yourself immediately with your lanyard/sling to a thick branch.",
@@ -262,8 +263,9 @@ export const en: Strings = {
     regaSub: "Free from every Swiss network",
     euroName: "European emergency number",
     euroSub: "Works without a SIM card too",
+    // Rega's own wording (2026-11-25): https://www.rega.ch/en/our-missions/sites-and-infrastructure/emergency-radio/emergency-radio-calling-out-rega
     kRadioSub:
-      "Emergency radio channel for mountain rescue in Switzerland. Turn on the CTCSS tone 151.4 Hz!",
+      "Alarm button or 5-tone calling signal 21414 (ZVEI), with or without a 123.0 Hz tone squelch (CTCSS). Acknowledgement: 3 long tones. Use it only where there is no mobile network.",
     dabsBadge: "Airspace status",
     dabsValidity: "Valid today:",
     dabsNotes:
