@@ -7,6 +7,7 @@
 // taken out of it at once, so a reload doesn't select again.
 
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { store } from "../state.ts";
 import { ShvApi } from "../api.ts";
 import { must } from "../dom.ts";
