@@ -178,6 +178,8 @@
   gap: 8px;
 }
 
+/* keeps tomorrow's DABS link hidden before 16:00 even once a button class
+   sets a display, which would beat the user-agent [hidden] rule */
 .dabs-links a[hidden] {
   display: none;
 }
