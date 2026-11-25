@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { MeasurementFeature, Webcam } from "../types.ts";
-import { MAX_STATIONS, listView, type ListInput } from "./lists.ts";
+import {
+  MAX_STATIONS,
+  MAX_WEBCAMS,
+  listView,
+  type ListInput,
+} from "./lists.ts";
 
 function station(i: number, providerKey: string): MeasurementFeature {
   return {
@@ -36,6 +41,7 @@ test("the search narrows every count", () => {
   // "Station 10" and "Station 100" to "Station 104"
   assert.equal(view.counts.stations, 5);
   assert.equal(view.counts.allProviders, 6);
+  assert.equal(view.counts.webcams, 0);
 });
 
 test("the cards show the first matches and say how many there are", () => {
@@ -47,6 +53,17 @@ test("the cards show the first matches and say how many there are", () => {
   const cams = listView({ ...base, tab: "webcams" });
   assert.equal(cams.matches, 1);
   assert.equal(cams.shown, 1);
+});
+
+test("the webcam cards stop at their own limit", () => {
+  const many = Array.from(
+    { length: MAX_WEBCAMS + 7 },
+    (_, i) => ({ identifier: `cam:${i}`, name: `Cam ${i}` }) as Webcam,
+  );
+  const cams = listView({ ...base, tab: "webcams", webcams: many });
+  assert.equal(cams.webcams.length, MAX_WEBCAMS);
+  assert.equal(cams.shown, MAX_WEBCAMS);
+  assert.equal(cams.matches, MAX_WEBCAMS + 7);
 });
 
 test("the status line says loading, unavailable or no matches", () => {
