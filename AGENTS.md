@@ -13,6 +13,7 @@ npm run build  # astro build into dist/
 npm run preview  # wrangler pages dev dist on 8788: the built pages and the Functions, as Pages serves them
 npm run typecheck  # astro check, also the pre-push hook
 npm test  # node --test over src/scripts/**/*.test.ts
+npm run e2e  # Playwright over the built site (e2e/), after npm run build; npx playwright install chromium once
 node --experimental-strip-types --test src/scripts/units.test.ts  # run one test file
 npm run lint  # oxlint and prettier --check, as in the pre-commit hook
 npx rumdl check .  # Markdown lint, as CI runs it; pass file paths to lint only those
@@ -63,7 +64,7 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 
 - **The code was written by LLMs without human review.** Treat comments and doc claims as hints and check them against the code.
 - **Everything under `src/` is TypeScript or `.astro`.** `astro check` covers both; keep new browser code there, never in `.js`.
-- **CI runs lint, rumdl, tests, typecheck and build on every push and pull request** (`.github/workflows/ci.yml`); `deploy.yml` deploys `main` to Cloudflare Pages once it passes. Check a change with those and by using it in the browser on `npm run dev`.
+- **CI runs lint, rumdl, tests, typecheck, build and the browser tests on every push and pull request** (`.github/workflows/ci.yml`); `deploy.yml` deploys `main` to Cloudflare Pages once it passes. Check a change with those and by using it in the browser on `npm run dev`.
 - **Every tab is its own page.** `src/pages/<tab>/index.astro` sets `<body data-view>` through `src/layouts/Base.astro`, which renders the header and bottom nav as real `<a href>` links and loads the shell script (`src/scripts/shell/shell.ts`) before the page's own.
 - **No inline scripts or handlers.** Each built page carries a meta CSP (`src/scripts/access/csp.ts`) whose `script-src` is `'self'` plus the hash of the one inline script, the theme script in `Base.astro`; attach handlers with `addEventListener`. `npm run dev` has no CSP, so check a change that loads something new on `npm run build && npm run preview`.
 - **Browser code stays at ES2020.** `astro.config.mjs` keeps the old build target (Safari 14, Chrome 87, Firefox 78); syntax is lowered but builtins are not polyfilled, so don't use newer ones (`Object.hasOwn`, `Array.prototype.at`, `structuredClone`).
