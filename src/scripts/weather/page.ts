@@ -12,7 +12,6 @@ import { drawChart } from "../charts/draw.ts";
 import { foehnChartConfig } from "../charts/foehn.ts";
 import { chartColors } from "../charts/theme.ts";
 import { must, useFallback } from "../dom.ts";
-import { settled } from "../settled.ts";
 import { alertLook, formatDelta } from "../foehn/look.ts";
 import { DEFAULT_PAIR } from "../foehn/pairs.ts";
 import type { StationPair } from "../foehn/report.ts";
@@ -267,10 +266,7 @@ export function mountWeather(root: HTMLElement): void {
   }
 
   function loadPair(id: string): void {
-    void settled(
-      ShvApi.getFoehn(id),
-      "[weather] Cannot load the pair's report:",
-    ).then((report) => {
+    void ShvApi.getFoehn(id).then((report) => {
       pairs = reportCame(pairs, id, report);
       retrying = false;
       render();
@@ -350,19 +346,14 @@ export function mountWeather(root: HTMLElement): void {
   );
 
   loadPair(pairs.pairId);
-  void settled(
-    ShvApi.getMeasurements(),
-    "[weather] Cannot load the measurements:",
-  ).then((v) => {
+  void ShvApi.getMeasurements().then((v) => {
     stations = v?.features ?? null;
     render();
   });
-  void settled(ShvApi.getWebcams(), "[weather] Cannot load the webcams:").then(
-    (v) => {
-      webcams = v?.webcams ?? null;
-      render();
-    },
-  );
+  void ShvApi.getWebcams().then((v) => {
+    webcams = v?.webcams ?? null;
+    render();
+  });
 
   store.subscribe(render);
   render();

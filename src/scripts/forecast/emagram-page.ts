@@ -113,14 +113,9 @@ export function mountEmagram(root: HTMLElement): void {
     if (zoom) map?.setView([st.lat, st.lon], STATION_ZOOM, { animate: true });
     card.show(st.name, undefined);
     if (zoom) detail.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    ShvApi.getEmagramForecast(st.name)
-      .catch((err: unknown) => {
-        console.error("[forecast] Cannot load the sounding of", st.name, err);
-        return null;
-      })
-      .then((sounding) => {
-        if (selected === st) card.show(st.name, sounding);
-      });
+    ShvApi.getEmagramForecast(st.name).then((sounding) => {
+      if (selected === st) card.show(st.name, sounding);
+    });
   }
 
   function render(): void {
@@ -165,24 +160,19 @@ export function mountEmagram(root: HTMLElement): void {
   render();
   card.pick();
 
-  ShvApi.getPrevitempsStations()
-    .catch((err: unknown) => {
-      console.error("[forecast] Cannot load the station list:", err);
-      return [] as SoundingStation[];
-    })
-    .then((list) => {
-      stations = list;
-      const status = must<HTMLElement>(root, "[data-stations-status]");
-      status.hidden = list.length > 0;
-      if (list.length === 0) return;
-      // a linked station is a choice: zoom to it, the address already has it
-      const linked = readStation(location.search, list);
-      const initial =
-        linked ??
-        DEFAULTS.map((n) => list.find((s) => s.name === n)).find(Boolean) ??
-        list[0];
-      select(initial, { zoom: linked !== null, writeUrl: false });
-    });
+  ShvApi.getPrevitempsStations().then((list) => {
+    stations = list;
+    const status = must<HTMLElement>(root, "[data-stations-status]");
+    status.hidden = list.length > 0;
+    if (list.length === 0) return;
+    // a linked station is a choice: zoom to it, the address already has it
+    const linked = readStation(location.search, list);
+    const initial =
+      linked ??
+      DEFAULTS.map((n) => list.find((s) => s.name === n)).find(Boolean) ??
+      list[0];
+    select(initial, { zoom: linked !== null, writeUrl: false });
+  });
 }
 
 const root = document.querySelector<HTMLElement>("[data-forecast-emagram]");

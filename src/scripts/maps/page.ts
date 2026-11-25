@@ -9,7 +9,6 @@
 import L from "leaflet";
 import { store } from "../state.ts";
 import { ShvApi } from "../api.ts";
-import { settledInto } from "../settled.ts";
 import { must } from "../dom.ts";
 import {
   readHandoff,
@@ -26,7 +25,7 @@ import type {
   MapCategory,
   MeteoMode,
 } from "../settings.ts";
-import type { FlyingSiteFeature, MeasurementFeature } from "../types.ts";
+import type { MeasurementFeature } from "../types.ts";
 import { DEFAULT_CENTER, DEFAULT_ZOOM, pilotZoom, viewFor } from "./basemap.ts";
 import type { LatLngTuple } from "./centroid.ts";
 import {
@@ -313,7 +312,15 @@ export function mountMap(root: HTMLElement): void {
     label: string,
     use: (data: T) => void,
   ): void {
-    void settledInto(call, label, use, () => fail(dataset));
+    void call.then((data) => {
+      if (!data) return fail(dataset);
+      try {
+        use(data);
+      } catch (err) {
+        console.error(label, err);
+        fail(dataset);
+      }
+    });
   }
 
   load(
@@ -321,7 +328,7 @@ export function mountMap(root: HTMLElement): void {
     ShvApi.getFlyingSites(),
     "[maps] Cannot load the flying sites:",
     (data) => {
-      const features = (data.features ?? []) as FlyingSiteFeature[];
+      const features = data.features ?? [];
       sites.setData(features);
       drawn = { ...drawn, sites: "" };
       takeHandoff(findHandoff(handoff, { kind: "site", items: features }));
@@ -332,13 +339,13 @@ export function mountMap(root: HTMLElement): void {
     "airspaces",
     ShvApi.getAirspaces(),
     "[maps] Cannot load the airspaces:",
-    (data) => zones.airspace.addData(data as GeoJSON.FeatureCollection),
+    (data) => zones.airspace.addData(data),
   );
   load(
     "wildlife",
     ShvApi.getWildschutz(),
     "[maps] Cannot load the wildlife reserves:",
-    (data) => zones.wildlife.addData(data as GeoJSON.FeatureCollection),
+    (data) => zones.wildlife.addData(data),
   );
   load(
     "measurements",

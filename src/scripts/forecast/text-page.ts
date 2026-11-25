@@ -59,16 +59,11 @@ export function mountTextForecast(root: HTMLElement): void {
     const forLang = store.state.lang;
     loadedLang = forLang;
     answer = undefined;
-    ShvApi.getTextForecast(forLang)
-      .catch((err: unknown) => {
-        console.error("[forecast] Cannot load the text forecast:", err);
-        return null;
-      })
-      .then((result) => {
-        if (loadedLang !== forLang) return;
-        answer = result;
-        render();
-      });
+    ShvApi.getTextForecast(forLang).then((result) => {
+      if (loadedLang !== forLang) return;
+      answer = result;
+      render();
+    });
   }
 
   function render(): void {

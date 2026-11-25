@@ -221,16 +221,11 @@ export function mountOutlooks(root: HTMLElement): void {
   });
   window.addEventListener("pagehide", stop);
 
-  ShvApi.getOutlooks()
-    .catch((err: unknown) => {
-      console.error("[forecast] Cannot load the outlooks:", err);
-      return null;
-    })
-    .then((result) => {
-      answer = result;
-      frames = outlookFrames(result, type);
-      render();
-    });
+  ShvApi.getOutlooks().then((result) => {
+    answer = result;
+    frames = outlookFrames(result, type);
+    render();
+  });
 
   store.subscribe(render);
   render();
