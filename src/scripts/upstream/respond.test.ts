@@ -166,6 +166,19 @@ test("a stale copy is refetched, and served when the refetch fails", async () =>
   assert.equal(fresh.headers.get("x-cache"), "miss");
 });
 
+test("the stored copy is kept as long as the route may serve it stale", async () => {
+  const { cache, store } = fakeCache();
+  const { ctx, settled } = context();
+  await respond(route, KEY, upstream("{}"), ctx, cache);
+  await settled();
+  const [copy] = [...store.values()];
+  assert.equal(
+    copy?.headers.get("Cache-Control"),
+    `max-age=${route.maxStaleSeconds}`,
+  );
+  assert.equal(route.maxStaleSeconds, 1800);
+});
+
 test("a 503 is never stored", async () => {
   const { cache, store } = fakeCache();
   const { ctx, settled } = context();
@@ -464,6 +477,20 @@ test("a stale copy just past the route's limit is not served: the 503", async ()
   const { res } = await later("measurements", limit + 1);
   assert.equal(res.status, 503);
   assert.deepEqual(await res.json(), ROUTES.measurements.errorBody);
+});
+
+test("a stale copy with an unreadable fetch time is not served: the 503", async () => {
+  const { cache, store } = fakeCache();
+  const url = new URL(KEY, context().ctx.request.url).toString();
+  store.set(url, {
+    body: '{"v": 1}',
+    headers: new Headers({ "x-fetched-at": "not a time" }),
+  });
+  const { ctx } = context();
+  const res = await quietly(() =>
+    respond(route, KEY, upstream("", { status: 502 }), ctx, cache),
+  );
+  assert.equal(res.status, 503);
 });
 
 test("live values fall back at most an hour, a sounding a day", () => {

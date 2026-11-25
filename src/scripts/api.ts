@@ -231,7 +231,8 @@ export const ShvApi = {
 
   /** When `answer`, a value another read resolved to, was fetched and
    * whether it is a stale stand-in; null for one without that (a static
-   * file, an upstream read directly, null). */
+   * file, an upstream read directly, null) and for a read that builds a new
+   * object from its answer (`getEmagramForecast`'s sounding). */
   freshness(answer: unknown): Freshness | null {
     return typeof answer === "object" && answer !== null
       ? (freshness.get(answer) ?? null)
