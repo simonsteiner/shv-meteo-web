@@ -74,11 +74,37 @@ export interface FeatureCollection<F = unknown> {
   features: F[];
 }
 
+/** When an /api answer's body came from upstream, and whether it is the
+ * edge's stand-in for a failed upstream call (respond.ts sends both as
+ * `x-fetched-at` and `x-cache`). */
+export interface Freshness {
+  /** ms since the epoch. */
+  fetchedAt: number;
+  stale: boolean;
+}
+
+/** Each answer's freshness, keyed by the parsed answer itself, so the
+ * answers keep their types. */
+const freshness = new WeakMap<object, Freshness>();
+
+function noteFreshness(answer: unknown, resp: Response): void {
+  const fetchedAt = Number(resp.headers.get("x-fetched-at"));
+  if (typeof answer !== "object" || answer === null || !(fetchedAt > 0)) return;
+  freshness.set(answer, {
+    fetchedAt,
+    stale: resp.headers.get("x-cache") === "stale",
+  });
+}
+
 /** The JSON at `url`, or null after logging why not. */
 async function getJson<T>(url: string, label: string): Promise<T | null> {
   try {
     const resp = await fetch(url);
-    if (resp.ok) return (await resp.json()) as T;
+    if (resp.ok) {
+      const answer = (await resp.json()) as T;
+      noteFreshness(answer, resp);
+      return answer;
+    }
     console.error(
       `[ShvApi.${label}] HTTP error:`,
       resp.status,
@@ -229,6 +255,15 @@ export const ShvApi = {
       console.error("[ShvApi.getObstacles] Failed to load obstacles:", err);
       return null;
     }
+  },
+
+  /** When `answer`, a value another read resolved to, was fetched and
+   * whether it is a stale stand-in; null for one without that (a static
+   * file, an upstream read directly, null). */
+  freshness(answer: unknown): Freshness | null {
+    return typeof answer === "object" && answer !== null
+      ? (freshness.get(answer) ?? null)
+      : null;
   },
 
   getMeasurements(): Promise<FeatureCollection<MeasurementFeature> | null> {

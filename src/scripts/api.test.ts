@@ -200,3 +200,37 @@ test("getObstacles says when its index or a cell failed, and answers null for an
     globalThis.fetch = real;
   }
 });
+
+test("an answer says when it was fetched and whether it is a stand-in", async () => {
+  let answer = 0;
+  await withFetch(
+    (url) =>
+      url === "/api/webcams"
+        ? Response.json(
+            { webcams: [] },
+            {
+              headers:
+                answer++ === 0
+                  ? { "x-fetched-at": "1795625400000", "x-cache": "stale" }
+                  : { "x-fetched-at": "1795626000000", "x-cache": "miss" },
+            },
+          )
+        : Response.json({}),
+    async () => {
+      const stale = await ShvApi.getWebcams();
+      assert.deepEqual(ShvApi.freshness(stale), {
+        fetchedAt: 1795625400000,
+        stale: true,
+      });
+      const fresh = await ShvApi.getWebcams();
+      assert.deepEqual(ShvApi.freshness(fresh), {
+        fetchedAt: 1795626000000,
+        stale: false,
+      });
+      // a static file carries neither header
+      const outlooks = await ShvApi.getOutlooks();
+      assert.equal(ShvApi.freshness(outlooks), null);
+      assert.equal(ShvApi.freshness(null), null);
+    },
+  );
+});
