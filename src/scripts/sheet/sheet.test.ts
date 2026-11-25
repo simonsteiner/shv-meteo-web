@@ -58,6 +58,30 @@ test("siteKind counts areas and patterns with their take-off or landing", () => 
   assert.equal(siteKind(null), "general");
 });
 
+test("a site sheet shows the fee payment link even when the fee text is empty", () => {
+  // two take-offs on 2026-11-25: fees null, a TWINT payment link
+  const html = siteSheetHtml(
+    site({
+      siteName: "Kandersteg",
+      type: "launch",
+      fees: null,
+      feePaymentLink:
+        "https://pay.raisenow.io/kcmhc?analytics.channel=twint_button",
+      feeQrCodeUrl: null,
+    }),
+    say,
+  );
+  assert.ok(html.includes("[map.sheet.fees]"));
+  assert.ok(
+    html.includes(
+      'href="https://pay.raisenow.io/kcmhc?analytics.channel=twint_button"',
+    ),
+  );
+  assert.ok(!html.includes('<p class="section-text"></p>'));
+  const none = siteSheetHtml(site({ siteName: "X", type: "launch" }), say);
+  assert.ok(!none.includes("[map.sheet.fees]"));
+});
+
 test("a site sheet shows badges, suits, wind and sections", () => {
   const html = siteSheetHtml(
     site({

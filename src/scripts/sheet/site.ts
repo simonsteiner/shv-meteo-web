@@ -87,13 +87,17 @@ function badges(p: Props, kind: ReturnType<typeof siteKind>, say: Say): string {
   return `<div class="sheet-badges-row">${out.join("")}</div>`;
 }
 
+/** The fee section, when the site has a fee text, a payment link or a QR
+ * code (two take-offs have only the link); else "". */
 function fees(p: Props, say: Say): string {
   const pay = safeUrl(p.feePaymentLink);
   const qr = safeUrl(p.feeQrCodeUrl);
+  const about = text(p.fees);
+  if (!about && !pay && !qr) return "";
   return section(
     say("map.sheet.fees"),
     ICON.card,
-    `<p class="section-text">${paragraphs(text(p.fees))}</p>${
+    `${about ? `<p class="section-text">${paragraphs(about)}</p>` : ""}${
       pay
         ? `<div class="fee-action-row"><a href="${escapeHtml(pay)}" target="_blank" rel="noopener" class="btn-action btn-pay"><span>💳</span> ${escapeHtml(say("map.sheet.payFee"))}</a></div>`
         : ""
@@ -182,7 +186,7 @@ export function siteSheetHtml(
     block("siteDescription", "map.sheet.rules", ICON.rules),
     block("hazards", "map.sheet.hazards", ICON.warning, "section-warning"),
     block("access", "map.sheet.access", ICON.car),
-    text(p.fees) ? fees(p, say) : "",
+    fees(p, say),
     club
       ? section(
           say("map.sheet.responsible"),
