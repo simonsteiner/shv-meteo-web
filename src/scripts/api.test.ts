@@ -213,3 +213,19 @@ test("an answer says when it was fetched and whether it is a stand-in", async ()
     },
   );
 });
+
+test("a fresh getMeasurements asks again, and later reads share its answer", async () => {
+  let n = 0;
+  const calls = await withFetch(
+    () => Response.json({ type: "FeatureCollection", features: [], n: ++n }),
+    async () => {
+      const first = await ShvApi.getMeasurements();
+      assert.equal(await ShvApi.getMeasurements(), first);
+      const fresh = await ShvApi.getMeasurements({ fresh: true });
+      assert.notEqual(fresh, first);
+      assert.equal(await ShvApi.getMeasurements(), fresh);
+    },
+  );
+  assert.ok(calls.filter((u) => u === "/api/measurements").length >= 1);
+  assert.equal(calls.filter((u) => u === "/api/measurements").length, n);
+});

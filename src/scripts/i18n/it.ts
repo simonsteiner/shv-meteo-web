@@ -96,6 +96,8 @@ export const it: Strings = {
     dewPoint: "Punto di rugiada",
     humidityFull: "Umidità",
     qnhFull: "Pressione QNH",
+    measuredAt: "Ora della misura",
+    asOf: "Stato alle {time}: misure in tempo reale non disponibili, valori in cache",
     qffFull: "Pressione QFF",
     qfeFull: "Pressione stazione QFE",
     history24h: "Andamento 24h (vento & temperatura)",

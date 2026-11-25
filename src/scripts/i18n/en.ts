@@ -93,6 +93,8 @@ export const en: Strings = {
     dewPoint: "Dew point",
     humidityFull: "Humidity",
     qnhFull: "Pressure QNH",
+    measuredAt: "Measured at",
+    asOf: "As of {time}: live measurements unavailable, cached values",
     qffFull: "Pressure QFF",
     qfeFull: "Station pressure QFE",
     history24h: "24h history (wind & temperature)",

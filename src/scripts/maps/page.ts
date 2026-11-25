@@ -19,6 +19,7 @@ import {
 } from "../handoff.ts";
 import { readPick } from "../data-pick.ts";
 import { applyText } from "../i18n/text.ts";
+import { whileVisible } from "../live/refresh.ts";
 import { mountSheet, selectionOf } from "../sheet/render.ts";
 import {
   BASE_MAPS,
@@ -119,6 +120,8 @@ function mountMap(root: HTMLElement): void {
   );
 
   let stations: MeasurementFeature[] = [];
+  // when the stations were fetched, if they are the edge's stale copy
+  let stationsAsOf: number | null = null;
   let foehn: FoehnReport | null = null;
   let pilotMarker: L.Marker | null = null;
 
@@ -131,6 +134,13 @@ function mountMap(root: HTMLElement): void {
       stationModeFor(store.state.meteoMode),
       (f) => store.select("station", f),
     );
+  }
+
+  function takeStations(data: { features?: MeasurementFeature[] }): void {
+    stations = data.features ?? [];
+    const fresh = ShvApi.freshness(data);
+    stationsAsOf = fresh?.stale ? fresh.fetchedAt : null;
+    redrawStations();
   }
 
   function moveTo(at: LatLngTuple | null): void {
@@ -219,7 +229,11 @@ function mountMap(root: HTMLElement): void {
       sites.draw(state.searchQuery, state.windFilter, say, state.lang);
     renderControls(status);
     renderPilot(pilot);
-    if (redraw.sheet) sheet.show(selection, sites.names);
+    if (redraw.sheet)
+      sheet.show(selection, sites.names, {
+        now: Date.now(),
+        asOf: stationsAsOf,
+      });
     // the obstacles load when shown and as the map moves, and go when hidden.
     // Last, because below their minimum zoom update() answers onLoad at once,
     // and the render that starts must not be overwritten by this one's status
@@ -345,11 +359,16 @@ function mountMap(root: HTMLElement): void {
     ShvApi.getMeasurements(),
     "[maps] Cannot load the measurements:",
     (data) => {
-      stations = data.features ?? [];
-      redrawStations();
+      takeStations(data);
       return { kind: "station", items: stations };
     },
   );
+  // every 90 s while the page is visible; a failed refresh keeps the arrows
+  whileVisible(() => {
+    void ShvApi.getMeasurements({ fresh: true }).then((data) => {
+      if (data) takeStations(data);
+    });
+  });
   load(
     "foehn",
     ShvApi.getFoehn(),

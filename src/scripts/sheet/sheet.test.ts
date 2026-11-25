@@ -198,6 +198,26 @@ test("a station sheet shows an MSL-only station's QFF and its QFE", () => {
   assert.ok(!html.includes("[map.sheet.pressure]"));
 });
 
+test("a station sheet says when it measured, and when that is over an hour ago", () => {
+  const at = Date.UTC(2026, 10, 25, 17, 40);
+  const sheet = (now: number, asOf: number | null = null) =>
+    stationSheetHtml(
+      station({ name: "Pilatus", windSpeedValue: 20, windSpeedTime: at }),
+      say,
+      { now, asOf },
+    );
+  const fresh = sheet(at + 60_000);
+  assert.ok(fresh.includes("[map.sheet.measuredAt]"));
+  assert.ok(fresh.includes("18:40"));
+  assert.ok(!fresh.includes("[map.sheet.oldMeasurement]"));
+  assert.ok(sheet(at + 2 * 3_600_000).includes("[map.sheet.oldMeasurement]"));
+  // a stale copy from the edge says how old it is
+  const stale = sheet(at + 60_000, at - 20 * 60_000);
+  assert.ok(stale.includes("[map.sheet.asOf]"));
+  assert.ok(stale.includes("18:20"));
+  assert.ok(!fresh.includes("[map.sheet.asOf]"));
+});
+
 test("a station without values or a position says so instead of inventing them", () => {
   const html = stationSheetHtml(station({ name: EVIL }, [Number.NaN, 0]), say);
   inert(html);

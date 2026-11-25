@@ -9,6 +9,7 @@ const text = {
   gust: "Böe",
   temp: "Temp",
   windDirection: "Windrichtung",
+  measuredAt: "Messzeit",
 };
 const evil = `<img src=x onerror="alert(1)">`;
 
@@ -73,6 +74,26 @@ test("the card's arrow points downwind, as on the map, and is left out without a
   const none = card({ windSpeedValue: 20 });
   assert.ok(!none.includes("st-card-arrow"));
   assert.ok(!none.includes("rotate("));
+});
+
+test("a card shows its measurement time in Swiss time and greys out an old one", () => {
+  const at = Date.UTC(2026, 10, 25, 17, 40);
+  const card = (windSpeedTime: number) =>
+    stationCardHtml(
+      {
+        id: "meteo_swiss:PIL",
+        geometry: { type: "Point", coordinates: [8, 47] },
+        properties: { windSpeedValue: 20, windSpeedTime },
+      },
+      text,
+      at + 30 * 60_000,
+    );
+  const fresh = card(at);
+  assert.ok(fresh.includes("18:40"));
+  assert.ok(!fresh.includes("is-old"));
+  const old = card(at - 3 * 3_600_000);
+  assert.ok(old.includes("15:40"));
+  assert.ok(old.includes("is-old"));
 });
 
 test("the cards hide an altitude of 0", () => {

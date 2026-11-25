@@ -230,6 +230,16 @@
   line-height: 1.2;
 }
 
+.sheet-measured {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.sheet-measured.is-old {
+  color: var(--text-warning);
+}
+
 .sheet-meta {
   display: flex;
   align-items: center;

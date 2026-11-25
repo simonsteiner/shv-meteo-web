@@ -3,6 +3,8 @@
 // come in from the dictionary.
 
 import { downwindRotation } from "../wind-arrow.ts";
+import { swissTime } from "../foehn/pairs.ts";
+import { isOldMeasurement, measurementTime } from "../live/measured.ts";
 import { escapeHtml } from "../escape.ts";
 import type { StationPair } from "../foehn/report.ts";
 import type { MeasurementFeature, Webcam } from "../types.ts";
@@ -33,13 +35,20 @@ export interface StationCardText {
   gust: string;
   temp: string;
   windDirection: string;
+  /** The measurement time's tooltip. */
+  measuredAt: string;
 }
 
+/** A station's card at `now`: its measurement time in Swiss time, greyed
+ * out (`is-old`) when over an hour old. */
 export function stationCardHtml(
   st: MeasurementFeature,
   text: StationCardText,
+  now: number = Date.now(),
 ): string {
   const p = st.properties;
+  const measured = measurementTime(p);
+  const old = isOldMeasurement(measured, now);
   const v = stationValues(st);
   const wind = v.windKmh === null ? null : Math.round(v.windKmh);
   const gust = v.gustKmh === null ? null : Math.round(v.gustKmh);
@@ -66,11 +75,16 @@ export function stationCardHtml(
   ]
     .filter(Boolean)
     .join(" · ");
-  return `<div class="station-card-item" role="button" tabindex="0" data-station-id="${escapeHtml(st.id)}">
+  const time =
+    measured === null
+      ? ""
+      : `<span class="st-card-time" title="${escapeHtml(text.measuredAt)}">${swissTime(measured)}</span>`;
+  return `<div class="station-card-item${old ? " is-old" : ""}" role="button" tabindex="0" data-station-id="${escapeHtml(st.id)}">
   <div class="st-card-top">
     <div>
       <h4 class="st-card-name">${escapeHtml(p.name || st.id)}</h4>
       <span class="st-card-alt">${escapeHtml(meta)}</span>
+      ${time}
     </div>
     ${arrow}
   </div>

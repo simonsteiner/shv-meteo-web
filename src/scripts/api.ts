@@ -86,12 +86,14 @@ async function getJson<T>(url: string, label: string): Promise<T | null> {
 }
 
 /** `load` memoised per key: callers share one request, and a null answer
- * is forgotten so the next call asks again. */
+ * is forgotten so the next call asks again; `fresh` asks again anyway, and
+ * later calls share that answer. */
 function retryable<T>(
   load: (key: string) => Promise<T | null>,
-): (key?: string) => Promise<T | null> {
+): (key?: string, fresh?: boolean) => Promise<T | null> {
   const kept = new Map<string, Promise<T | null>>();
-  return (key = "") => {
+  return (key = "", fresh = false) => {
+    if (fresh) kept.delete(key);
     let pending = kept.get(key);
     if (!pending) {
       pending = load(key).then((answer) => {
@@ -153,7 +155,8 @@ export interface ObstacleAnswer {
 }
 
 // One request per page load: the header's Foehn badge and the view on the
-// same page share a call. Keyed by pair, so the pair switcher gets its own.
+// same page share a call; the measurements are asked again every 90 s
+// while the page is visible (live/refresh.ts). Keyed by pair, so the pair switcher gets its own.
 const measurements = retryable<FeatureCollection<MeasurementFeature>>(() =>
   getJson("/api/measurements", "getMeasurements"),
 );
@@ -235,8 +238,14 @@ export const ShvApi = {
       : null;
   },
 
-  getMeasurements(): Promise<FeatureCollection<MeasurementFeature> | null> {
-    return measurements();
+  /** The current measurements, shared by every caller on the page; `fresh`
+   * asks /api again (the pages' live refresh, live/refresh.ts). */
+  getMeasurements({
+    fresh = false,
+  }: {
+    fresh?: boolean;
+  } = {}): Promise<FeatureCollection<MeasurementFeature> | null> {
+    return measurements("", fresh);
   },
 
   getWebcams(): Promise<{ webcams: Webcam[] } | null> {

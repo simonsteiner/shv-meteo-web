@@ -13,7 +13,7 @@ import type {
 } from "../types.ts";
 import { obstacleSheetHtml } from "./obstacle.ts";
 import { siteSheetHtml } from "./site.ts";
-import { stationSheetHtml } from "./station.ts";
+import { stationSheetHtml, type StationSheetContext } from "./station.ts";
 import { noImageHtml, webcamSheetHtml } from "./webcam.ts";
 
 export type Selection =
@@ -52,12 +52,13 @@ function sheetFor(
   sel: Selection,
   say: Say,
   names: ReadonlyMap<string, string>,
+  station?: StationSheetContext,
 ): string {
   switch (sel.kind) {
     case "site":
       return siteSheetHtml(sel.value, say, names);
     case "station":
-      return stationSheetHtml(sel.value, say);
+      return stationSheetHtml(sel.value, say, station);
     case "webcam":
       return webcamSheetHtml(sel.value, say);
     case "obstacle":
@@ -66,8 +67,13 @@ function sheetFor(
 }
 
 export interface Sheet {
-  /** Shows `sel`, or hides the sheet for null. */
-  show(sel: Selection | null, names: ReadonlyMap<string, string>): void;
+  /** Shows `sel`, or hides the sheet for null; a station's sheet takes its
+   * time and the measurements' stale age from `station`. */
+  show(
+    sel: Selection | null,
+    names: ReadonlyMap<string, string>,
+    station?: StationSheetContext,
+  ): void;
 }
 
 /** `say` reads the current language's strings (store.say). */
@@ -123,10 +129,10 @@ export function mountSheet(
   });
 
   return {
-    show(sel, names) {
+    show(sel, names, station) {
       open = sel !== null;
       container.classList.toggle("hidden", !open);
-      container.innerHTML = sel ? sheetFor(sel, say, names) : "";
+      container.innerHTML = sel ? sheetFor(sel, say, names, station) : "";
     },
   };
 }

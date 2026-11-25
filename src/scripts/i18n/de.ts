@@ -93,6 +93,8 @@ export const de = {
     dewPoint: "Taupunkt",
     humidityFull: "Luftfeuchte",
     qnhFull: "Luftdruck QNH",
+    measuredAt: "Messzeit",
+    asOf: "Stand {time}: Live-Messwerte nicht erreichbar, zwischengespeicherte Werte",
     qffFull: "Luftdruck QFF",
     qfeFull: "Stationsdruck QFE",
     history24h: "24h Verlauf (Wind & Temperatur)",
