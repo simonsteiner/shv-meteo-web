@@ -77,6 +77,7 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 - `docs/setup.md`: local setup, checks, data scripts, screenshots tool, troubleshooting.
 - `docs/deployment.md`: Cloudflare Pages, deploying by hand, rollback, state and secrets.
 - `docs/architecture.md`: index of `docs/architecture/`: every upstream and `/api` route, what the data holds, how the code is organised.
+- `docs/adr/`: architecture decisions and why; read the one on a topic before proposing to undo it.
 - `docs/research/`: dated research notes with the measurements behind a decision; read the one on a topic before reopening it.
 - `docs/reference/shv-native-app.md`: reverse-engineered notes on the official app: its hosts, code layout and the Previtemps sounding.
 - `docs/reference/shv-native-auth.md`: the official app's Keycloak login and member web service; read before bringing back login or member data.
