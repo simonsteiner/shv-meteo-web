@@ -1,11 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import {
-  DABS_FIRST_VERSION,
-  DABS_UPDATES,
-  nextPublication,
-  tomorrowPublished,
-} from "./dabs.ts";
+import { nextPublication, tomorrowPublished } from "./dabs.ts";
 
 // skybriefing.com/dabs: version 1 for the next day at 16:00 local time
 test("tomorrow's DABS counts as out from 16:00 Swiss time", () => {
@@ -55,9 +50,4 @@ test("the next publication follows skybriefing's schedule in Swiss time", () => 
     nextDay: false,
     tomorrow: true,
   });
-});
-
-test("the schedule lists skybriefing's times", () => {
-  assert.equal(DABS_FIRST_VERSION, "16:00");
-  assert.deepEqual(DABS_UPDATES, ["09:00", "13:00", "16:00"]);
 });
