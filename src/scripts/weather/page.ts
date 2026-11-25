@@ -11,7 +11,7 @@ import { ShvApi } from "../api.ts";
 import { drawChart } from "../charts/draw.ts";
 import { foehnChartConfig } from "../charts/foehn.ts";
 import { chartColors } from "../charts/theme.ts";
-import { isOneOf } from "../coerce.ts";
+import { readPick } from "../data-pick.ts";
 import { must, useFallback } from "../dom.ts";
 import { alertLook, formatDelta } from "../foehn/look.ts";
 import { DEFAULT_PAIR } from "../foehn/pairs.ts";
@@ -47,6 +47,10 @@ import { listView } from "./lists.ts";
 import { PROVIDERS, type Provider } from "./stations.ts";
 
 const { say } = store;
+
+/** The sub-tab buttons' and provider pills' attributes, checked. */
+const TAB_PICK = { weatherTab: WEATHER_TABS };
+const PROVIDER_PICK = { provider: PROVIDERS };
 
 function mountWeather(root: HTMLElement): void {
   const query = readWeatherQuery(location.search);
@@ -302,19 +306,17 @@ function mountWeather(root: HTMLElement): void {
     if (target.closest("[data-foehn-retry]")) return selectPair(pairs.pairId);
     const tabButton = target.closest<HTMLElement>("[data-weather-tab]");
     if (tabButton) {
-      const next = tabButton.dataset.weatherTab;
-      if (!isOneOf(WEATHER_TABS, next))
-        return console.error(`[weather] Unknown data-weather-tab "${next}"`);
-      tab = next;
+      const pick = readPick(tabButton.dataset, TAB_PICK, "weather");
+      if (!pick) return;
+      tab = pick.value;
       writeUrl();
       return renderLists();
     }
-    const pill =
-      target.closest<HTMLElement>("[data-provider]")?.dataset.provider;
-    if (pill !== undefined) {
-      if (!isOneOf(PROVIDERS, pill))
-        return console.error(`[weather] Unknown data-provider "${pill}"`);
-      provider = pill;
+    const pill = target.closest<HTMLElement>("[data-provider]");
+    if (pill) {
+      const pick = readPick(pill.dataset, PROVIDER_PICK, "weather");
+      if (!pick) return;
+      provider = pick.value;
       return renderLists();
     }
     activate(target);

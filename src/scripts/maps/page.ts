@@ -17,7 +17,7 @@ import {
   withoutHandoff,
   type Handoff,
 } from "../handoff.ts";
-import { isOneOf } from "../coerce.ts";
+import { readPick } from "../data-pick.ts";
 import { applyText } from "../i18n/text.ts";
 import { mountSheet, selectionOf } from "../sheet/render.ts";
 import {
@@ -58,10 +58,14 @@ const CONTROL_SELECTORS: [Control, string][] = [
   ["mapCategory", "[data-map-category]"],
 ];
 
-/** A markup value the store has no member for: ignored, and logged. */
-function logUnknown(attribute: string, value: unknown): void {
-  console.error(`[maps] Unknown ${attribute} "${String(value)}"`);
-}
+/** The drawer's pick attributes, in the order a click reads them. */
+const PICKS = {
+  mapCategory: MAP_CATEGORIES,
+  meteoMode: METEO_MODES,
+  base: BASE_MAPS,
+  wind: COMPASS,
+};
+const LAYER_PICK = { layer: LAYER_KEYS };
 
 function mountMap(root: HTMLElement): void {
   const handoff: Handoff | null = readHandoff(location.search);
@@ -177,9 +181,8 @@ function mountMap(root: HTMLElement): void {
       pane.classList.toggle("hidden", !on);
     }
     for (const box of all<HTMLInputElement>("input[data-layer]")) {
-      const key = box.dataset.layer;
-      if (isOneOf(LAYER_KEYS, key)) box.checked = state.layers[key];
-      else logUnknown("data-layer", key);
+      const pick = readPick(box.dataset, LAYER_PICK, "maps");
+      if (pick) box.checked = state.layers[pick.value];
     }
     const status = q("[data-map-status]");
     status.textContent = statusText;
@@ -255,28 +258,18 @@ function mountMap(root: HTMLElement): void {
       "[data-action], [data-map-category], [data-meteo-mode], [data-base], [data-wind]",
     );
     if (!el) return;
-    const { action, mapCategory, meteoMode, base, wind } = el.dataset;
-    if (action && actions[action]) actions[action]();
-    else if (mapCategory !== undefined) {
-      if (isOneOf(MAP_CATEGORIES, mapCategory))
-        store.setMapCategory(mapCategory);
-      else logUnknown("data-map-category", mapCategory);
-    } else if (meteoMode !== undefined) {
-      if (isOneOf(METEO_MODES, meteoMode)) store.setMeteoMode(meteoMode);
-      else logUnknown("data-meteo-mode", meteoMode);
-    } else if (base !== undefined) {
-      if (isOneOf(BASE_MAPS, base)) store.setBaseMap(base);
-      else logUnknown("data-base", base);
-    } else if (wind !== undefined) {
-      if (isOneOf(COMPASS, wind)) store.toggleWindFilter(wind);
-      else logUnknown("data-wind", wind);
-    }
+    const { action } = el.dataset;
+    if (action && actions[action]) return actions[action]();
+    const pick = readPick(el.dataset, PICKS, "maps");
+    if (pick?.key === "mapCategory") store.setMapCategory(pick.value);
+    else if (pick?.key === "meteoMode") store.setMeteoMode(pick.value);
+    else if (pick?.key === "base") store.setBaseMap(pick.value);
+    else if (pick?.key === "wind") store.toggleWindFilter(pick.value);
   });
   root.addEventListener("change", (event) => {
-    const layer = (event.target as HTMLElement).dataset?.layer;
-    if (layer === undefined) return;
-    if (isOneOf(LAYER_KEYS, layer)) store.toggleLayer(layer);
-    else logUnknown("data-layer", layer);
+    const data = (event.target as HTMLElement).dataset ?? {};
+    const pick = readPick(data, LAYER_PICK, "maps");
+    if (pick) store.toggleLayer(pick.value);
   });
   searchInput.addEventListener("input", () =>
     store.setSearchQuery(searchInput.value),
