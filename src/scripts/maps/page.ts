@@ -201,9 +201,6 @@ export function mountMap(root: HTMLElement): void {
     setBaseMap(state.baseMap);
     for (const key of Object.keys(layerOf) as (keyof Layers)[])
       showLayer(map, layerOf[key], state.layers[key] === true);
-    // the obstacles load when shown and as the map moves, and go when hidden
-    if (redraw.obstacles === "load") void obstacles.update();
-    else if (redraw.obstacles === "clear") obstacles.clear();
     if (redraw.stations) redrawStations();
     if (redraw.text) drawFoehn(foehnLayer, foehn, say, openWeather);
     if (redraw.sites)
@@ -211,6 +208,11 @@ export function mountMap(root: HTMLElement): void {
     renderControls(status);
     renderPilot(pilot);
     if (redraw.sheet) sheet.show(selection, sites.names);
+    // the obstacles load when shown and as the map moves, and go when hidden.
+    // Last, because below their minimum zoom update() answers onLoad at once,
+    // and the render that starts must not be overwritten by this one's status
+    if (redraw.obstacles === "load") void obstacles.update();
+    else if (redraw.obstacles === "clear") obstacles.clear();
   }
 
   function openWeather(pairId: string): void {
@@ -290,8 +292,11 @@ export function mountMap(root: HTMLElement): void {
     use: (data: T) => Loaded | void,
   ): void {
     void call.then((data) => {
-      takeHandoff(session.settle(dataset, data, label, use));
-      render();
+      try {
+        takeHandoff(session.settle(dataset, data, label, use));
+      } finally {
+        render();
+      }
     });
   }
 
