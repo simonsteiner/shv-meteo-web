@@ -26,6 +26,7 @@ import {
 } from "./outlooks.ts";
 import { page } from "./page.ts";
 import { readChoice, withParams } from "./query.ts";
+import { stepper } from "./stepper.ts";
 import { localeFor } from "./text.ts";
 
 const SWISS_BOUNDS: L.LatLngBoundsExpression = [
@@ -93,7 +94,6 @@ export function mountOutlooks(root: HTMLElement): void {
   // undefined while loading, null when the call failed
   let answer: unknown;
   let lang: string | null = null;
-  let timer: ReturnType<typeof setInterval> | null = null;
   let map: L.Map | null = null;
   let overlay: L.ImageOverlay | null = null;
   const status = must<HTMLElement>(root, "[data-outlook-status]");
@@ -170,7 +170,6 @@ export function mountOutlooks(root: HTMLElement): void {
     );
     slider.max = String(frames.length - 1);
     slider.value = String(index);
-    playButton.classList.toggle("playing", timer !== null);
     must<HTMLElement>(root, "[data-outlook-legend-title]").textContent = say(
       LEGEND[type],
     );
@@ -185,10 +184,7 @@ export function mountOutlooks(root: HTMLElement): void {
     render();
   }
 
-  function stop(): void {
-    if (timer !== null) clearInterval(timer);
-    timer = null;
-  }
+  const stepping = stepper(playButton, PLAY_MS, () => step(1));
 
   root.addEventListener("click", (event) => {
     const target = event.target as Element;
@@ -209,9 +205,7 @@ export function mountOutlooks(root: HTMLElement): void {
     const by = target.closest<HTMLElement>("[data-outlook-step-by]");
     if (by) return step(Number(by.dataset.outlookStepBy));
     if (target.closest("[data-outlook-play]")) {
-      if (timer === null) timer = setInterval(() => step(1), PLAY_MS);
-      else stop();
-      return render();
+      return stepping.toggle();
     }
     if (target.closest("[data-outlook-center]")) map?.fitBounds(SWISS_BOUNDS);
   });
@@ -219,7 +213,7 @@ export function mountOutlooks(root: HTMLElement): void {
     index = Number(slider.value);
     render();
   });
-  window.addEventListener("pagehide", stop);
+  window.addEventListener("pagehide", stepping.stop);
 
   ShvApi.getOutlooks().then((result) => {
     answer = result;
