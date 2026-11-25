@@ -15,6 +15,7 @@ exclude = [
     "apk_analysis/**",
 ]
 
-# The data-flow table in docs/architecture.md breaks cells with <br/>.
+# The data-flow table in docs/architecture.md breaks cells with <br/>; the
+# arch-review reports fold their legend and decisions in <details>.
 [MD033]
-allowed-elements = ["br"]
+allowed-elements = ["br", "details", "summary"]
