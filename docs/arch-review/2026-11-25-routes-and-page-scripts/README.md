@@ -33,7 +33,7 @@ The backlog, in rank order. After the scan only three parts of the report change
 | [C2](C2-one-failure-mode-for-shvapi.md) | One failure mode and typed answers for `ShvApi` | 🟢 Strong | ↔ two-way | maintainability | pr-open | `refactor/one-failure-mode-for-shvapi` | #67 | no | |
 | [C3](C3-map-session-module.md) | Move the map page's loading, handoff and redraw into one module | 🟢 Strong | ↔ two-way | deepening | pr-open | `refactor/map-session-module` | #68 | no | builds on C2 |
 | [C4](C4-weather-view-state.md) | Let the pair state own retry and what was drawn | 🟡 Worth exploring | ↔ two-way | deepening | pr-open | `refactor/weather-view-state` | #69 | no | |
-| [C5](C5-checked-data-dispatch.md) | Check `data-*` values before they reach the store | 🟡 Worth exploring | ↔ two-way | maintainability | in-progress | `refactor/checked-data-dispatch` | | | |
+| [C5](C5-checked-data-dispatch.md) | Check `data-*` values before they reach the store | 🟡 Worth exploring | ↔ two-way | maintainability | pr-open | `refactor/checked-data-dispatch` | [#70](https://github.com/simonsteiner/shv-meteo-web/pull/70) | no | |
 | [C6](C6-forecast-stepper.md) | One stepper for the forecast play buttons | 🟡 Worth exploring | ↔ two-way | maintainability | in-progress | `refactor/forecast-stepper` | | | |
 | [C7](C7-per-tab-stylesheets.md) | Each tab imports its own stylesheets | ⚪ Speculative | ↔ two-way | coupling | in-progress | `refactor/per-tab-stylesheets` | | | cascade order risk |
 | [S1](#s1--one-station-id-pattern) | One station id pattern | - | ↔ two-way | coupling | pr-open | rides with C1 | #66 | no | |
