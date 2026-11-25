@@ -36,14 +36,14 @@ test("temperatureColor steps at 0, 8, 15 and 22 °C", () => {
   assert.equal(temperatureColor(22), "#EF4444");
 });
 
-test("measurements convert Kelvin and tenths of hPa and keep km/h", () => {
+test("measurements convert Kelvin and keep hPa and km/h", () => {
   const r = stationMeasurements(
     station({
       windSpeedValue: 18.26,
       windGustValue: 30,
       windDirectionValue: 270,
       temperature2mValue: 278.15,
-      pressureStandardMslValue: 10132,
+      pressureStandardMslValue: 1013.2,
     }),
   );
   assert.deepEqual(r, {

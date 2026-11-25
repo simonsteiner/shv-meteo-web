@@ -15,7 +15,7 @@ export interface Context {
 /** A weather station's latest values (`/api/measurements`), a GeoJSON Point
  * feature whose id is `<provider>:<id>`, e.g. `meteo_swiss:KLO`. Wind and
  * gusts arrive in km/h; a temperature above 200 is Kelvin, a pressure above
- * 5000 is in tenths of hPa. */
+ * 20,000 is in pascals (units.ts). */
 export interface MeasurementFeature {
   type?: "Feature";
   id: string;

@@ -30,7 +30,7 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 - **`ShvApi` is the only caller of `fetch` in the browser.** Every endpoint the browser reads, direct or through `/api`, gets a method in `src/scripts/api.ts`; views and components never fetch directly.
 - **A `ShvApi` read never rejects.** It resolves to its typed value, or to null (an empty list for the station catalogue) after logging `[ShvApi.<method>]`; callers handle null and never `.catch` the read itself (a `.catch` after `.then` still catches a throw while drawing).
 - **Proxy only what has to be proxied.** The browser calls an upstream directly only when it allows CORS and the payload is light; anything with CORS limits (or a 403 to an `Origin` header), heavy data or multi-station math gets a Pages Function. Read `docs/architecture/data-queries.md` before adding or changing an endpoint.
-- **Upstream weather units are quirky.** Wind and gusts already arrive in km/h (never multiply by 3.6), a temperature above 200 is Kelvin, a pressure above 5000 is in tenths of hPa. Convert through `src/scripts/units.ts` (`toCelsius`, `toHpa`).
+- **Upstream weather units are quirky.** Wind and gusts already arrive in km/h (never multiply by 3.6), a temperature above 200 is Kelvin, a pressure above 20,000 is in pascals (Holfuy's and Mistral's `pressureSurfaceValue`) and one outside 300 to 1100 hPa is missing. Convert through `src/scripts/units.ts` (`toCelsius`, `toHpa`).
 
 ### Functions
 

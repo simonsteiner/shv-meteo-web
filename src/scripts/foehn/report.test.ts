@@ -48,18 +48,18 @@ test("a gradient alert has its own status, not CALM", () => {
   assert.equal(assess(cfg, 2.9).status, "CALM");
 });
 
-test("station values accept Kelvin and tenths of hPa", () => {
+test("station values accept Kelvin and pascals", () => {
   assert.equal(
     stationTemperature(station("A", { temperature2mValue: 279.65 })),
     6.5,
   );
   assert.equal(stationTemperature(station("A", { temperature2mValue: 0 })), 0);
   assert.equal(
-    stationPressure(station("A", { pressureMslValue: 10213 })),
+    stationPressure(station("A", { pressureMslValue: 1021.3 })),
     1021.3,
   );
   assert.equal(
-    stationPressure(station("A", { pressureSurfaceValue: 969.1 })),
+    stationPressure(station("A", { pressureSurfaceValue: 96910 })),
     969.1,
   );
   assert.equal(stationPressure(station("A", {})), null);

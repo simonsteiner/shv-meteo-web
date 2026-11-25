@@ -14,7 +14,7 @@ function station(
   };
 }
 
-test("stationValues converts Kelvin and tenths of hPa, keeps km/h", () => {
+test("stationValues converts Kelvin and pascals, keeps km/h", () => {
   assert.deepEqual(
     stationValues(
       station("meteo_swiss:PIL", {
@@ -24,7 +24,8 @@ test("stationValues converts Kelvin and tenths of hPa, keeps km/h", () => {
         temperature2mValue: 279.65,
         dewPoint2mValue: 270.15,
         relativeHumidity2mValue: 81.6,
-        pressureMslValue: 10213,
+        pressureMslValue: 1021.3,
+        pressureSurfaceValue: 98730,
       }),
     ),
     {
@@ -35,7 +36,7 @@ test("stationValues converts Kelvin and tenths of hPa, keeps km/h", () => {
       dewC: -3,
       humidity: 82,
       qnhHpa: 1021,
-      surfaceHpa: null,
+      surfaceHpa: 987,
     },
   );
 });

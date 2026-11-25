@@ -36,7 +36,7 @@ Ubique's weather service (`weather-ws-prod.ubmeteo.io`) uses these units, as the
 
 - **Wind and gusts** (`windSpeedValue`, `windGustValue`): already km/h. Never multiply by 3.6 (Uetliberg's 40.3 km/h would show as 145).
 - **Temperatures** (`temperatureValue`, `temperature2mValue`, `dewPointValue`, `dewPoint2mValue`): a value above 200 is Kelvin.
-- **Pressure** (`pressureMslValue`, `pressureStandardMslValue`): a value above 5000 is in tenths of hPa.
+- **Pressure** (`pressureMslValue`, `pressureStandardMslValue`, `pressureSurfaceValue`): hPa, except that a value above 20,000 is in pascals. On 2026-11-25 the 258 Holfuy and Mistral stations sent `pressureSurfaceValue` in pascals (Pallanza 98730) and no station sent tenths of hPa. 83 of the 258 sent a pressure no station can measure (82 Mistral stations 163820 Pa, Holfuy's Bälmeten at 2414 m 137000 Pa), so a pressure outside 300 to 1100 hPa counts as missing. `toHpa` in [units.ts](../../src/scripts/units.ts) converts.
 
 The Functions pass the bodies through unparsed; the browser converts through `toCelsius` and `toHpa` in [src/scripts/units.ts](../../src/scripts/units.ts), on the weather page in [src/scripts/weather/stations.ts](../../src/scripts/weather/stations.ts) and on the map in [src/scripts/maps/stations.ts](../../src/scripts/maps/stations.ts).
 

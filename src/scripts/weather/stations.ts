@@ -1,5 +1,5 @@
 // A station's latest values as the weather page shows them, converted
-// through units.ts (upstream sends Kelvin and tenths of hPa at times; wind
+// through units.ts (upstream sends Kelvin and pascals at times; wind
 // and gusts already arrive in km/h), and the station list's filters.
 
 import type { MeasurementFeature } from "../types.ts";

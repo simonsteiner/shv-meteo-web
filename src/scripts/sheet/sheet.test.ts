@@ -165,7 +165,7 @@ test("a station sheet shows converted measurements", () => {
       windSpeedValue: 22.04,
       windGustValue: 40,
       temperature2mValue: 270.15,
-      pressureStandardMslValue: 10180,
+      pressureStandardMslValue: 1018.1,
     }),
     say,
   );

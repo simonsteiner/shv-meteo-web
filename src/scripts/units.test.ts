@@ -11,9 +11,19 @@ test("toCelsius takes Kelvin above 200 and Celsius below", () => {
   assert.equal(toCelsius(Number.NaN), null);
 });
 
-test("toHpa takes tenths of hPa above 5000 and hPa below", () => {
-  assert.equal(toHpa(10213), 1021.3);
+test("toHpa takes pascals above 20,000 and hPa below", () => {
+  // Holfuy and Mistral send pressureSurfaceValue in pascals (Pallanza 98730)
+  assert.equal(toHpa(98730), 987.3);
+  assert.equal(toHpa(69850), 698.5);
   assert.equal(toHpa(1021.3), 1021.3);
-  assert.equal(toHpa(0), 0);
   assert.equal(toHpa(null), null);
+});
+
+test("toHpa drops a pressure no station can measure", () => {
+  // 82 Mistral stations sent 163820 Pa, Holfuy's Bälmeten (2414 m) 137000
+  assert.equal(toHpa(163820), null);
+  assert.equal(toHpa(137000), null);
+  assert.equal(toHpa(0), null);
+  assert.equal(toHpa(299), null);
+  assert.equal(toHpa(56760), 567.6);
 });

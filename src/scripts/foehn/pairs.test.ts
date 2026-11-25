@@ -50,7 +50,7 @@ test("the history pairs matching times within 24 hours", () => {
   const north = ts("pressure_msl", [
     [h(25), 1020],
     [h(2), 1021],
-    [h(1), 10215],
+    [h(1), 102150],
     [h(0.5), null],
   ]);
   const south = ts("pressure_msl", [
