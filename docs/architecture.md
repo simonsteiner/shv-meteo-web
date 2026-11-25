@@ -1,6 +1,6 @@
 # Architecture
 
-How this web app gets, processes and shows its data. Static Astro pages with TypeScript page scripts on Cloudflare Pages, and Pages Functions for the upstream calls a browser can't make. For how the official native app and its backends work (Keycloak, member web service, `UserProfile` payload), see [reference/shv-native-app.md](reference/shv-native-app.md).
+How this web app gets, processes and shows its data. Static Astro pages with TypeScript page scripts on Cloudflare Pages, and Pages Functions for the upstream calls a browser can't make. The diagram below is our runtime; the official native app's hosts, and which of them we use, are in [reference/shv-native-app.md](reference/shv-native-app.md), and its login and member data in [reference/shv-native-auth.md](reference/shv-native-auth.md).
 
 ```mermaid
 flowchart LR

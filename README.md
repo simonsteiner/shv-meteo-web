@@ -86,6 +86,7 @@ Without `npm run obstacles` (a 128 MB download) the obstacle layer stays empty l
 * [docs/research/](docs/research/): dated notes with the measurements behind a decision.
 * [docs/plan/2026-11-24-follow-ups/](docs/plan/2026-11-24-follow-ups/README.md): what is shipped and what is left.
 * [docs/reference/shv-native-app.md](docs/reference/shv-native-app.md): reverse-engineered notes on the official SHV FSVL app and its backends.
+* [docs/reference/shv-native-auth.md](docs/reference/shv-native-auth.md): how the official app logs members in and reads their profile.
 * [docs/reference/shv-app-emulator.md](docs/reference/shv-app-emulator.md): running the official app on an Android emulator to compare with it.
 * [docs/reference/shv-app-traffic-capture.md](docs/reference/shv-app-traffic-capture.md): capturing its HTTPS calls with mitmproxy.
 * [GLOSSARY.md](GLOSSARY.md): domain terms (German and English).
