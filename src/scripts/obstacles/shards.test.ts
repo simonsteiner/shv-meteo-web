@@ -135,7 +135,7 @@ async function readBack(features: ObstacleFeature[], view: Bbox) {
     if (!written.has(path)) throw new Error(`${path} was not written`);
     return written.get(path);
   });
-  return { ids: got.map((f) => f.properties.sourceId).sort(), read };
+  return { ids: got.features.map((f) => f.properties.sourceId).sort(), read };
 }
 
 test("a line across a quarter's edge comes back from either side alone", async () => {

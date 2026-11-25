@@ -174,8 +174,9 @@ export const ShvApi = {
     "getWildschutz",
   ),
 
-  /** The obstacles a map view shows, `failed` (and none) when the shards
-   * couldn't be read; rejects only when `signal` aborts. */
+  /** The obstacles a map view shows, `failed` when its index or any of
+   * its cells couldn't be read (the rest still come); rejects only when
+   * `signal` aborts. */
   async getObstacles(
     { zoom, ...bbox }: Bbox & { zoom: number },
     options: { signal?: AbortSignal } = {},
@@ -185,14 +186,15 @@ export const ShvApi = {
         (shard) => shard.value as ShardIndex,
       );
       const index = await obstacleIndexPromise;
-      const features = await loadObstacles(
+      const { features, failed } = await loadObstacles(
         bbox,
         zoom,
         index,
         fetchObstacleCell,
         options.signal,
       );
-      return { type: "FeatureCollection", features, failed: false };
+      // a failed cell leaves a gap: draw the rest, and say so
+      return { type: "FeatureCollection", features, failed };
     } catch (err) {
       if ((err as { name?: string })?.name === "AbortError") throw err;
       console.error("[ShvApi.getObstacles] Failed to load obstacles:", err);

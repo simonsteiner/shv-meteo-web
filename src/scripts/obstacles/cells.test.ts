@@ -100,9 +100,10 @@ test("a feature in two cells comes back once, cut to the view, from indexed cell
     fetchJson,
   );
   assert.deepEqual(
-    got.map((f) => f.properties._uid),
+    got.features.map((f) => f.properties._uid),
     ["across"],
   );
+  assert.equal(got.failed, false);
   assert.deepEqual(asked.sort(), [
     "z11/31_186.json",
     "z11/32_186.0.json",
@@ -115,11 +116,11 @@ test("a feature in two cells comes back once, cut to the view, from indexed cell
       index,
       fetchJson,
     ),
-    [],
+    { features: [], failed: false },
   );
 });
 
-test("a cell that fails counts as empty", async () => {
+test("a cell that fails counts as empty and as failed", async () => {
   const index: ShardIndex = { generatedAt: "", tiers: { z13: ["32_186"] } };
   const original = console.error;
   console.error = () => {};
@@ -132,7 +133,7 @@ test("a cell that fails counts as empty", async () => {
         throw new Error("500");
       },
     );
-    assert.deepEqual(got, []);
+    assert.deepEqual(got, { features: [], failed: true });
   } finally {
     console.error = original;
   }
@@ -183,7 +184,7 @@ test("a split cell loads only the quarters the view touches", async () => {
     fetchJson,
   );
   assert.deepEqual(
-    got.map((f) => f.properties._uid),
+    got.features.map((f) => f.properties._uid),
     ["sw"],
   );
   assert.deepEqual(asked, ["z10/16_94.json", "z10/16_94.0.json"]);
