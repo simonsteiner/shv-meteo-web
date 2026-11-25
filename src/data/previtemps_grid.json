@@ -3,10 +3,10 @@
     "name": "Tuttlingen",
     "modelKey": "meteo_swiss:icon_ch1",
     "model": "ICON-CH1",
-    "pointIndex": 612913,
-    "elevation": 656,
-    "latitude": 47.98910903930664,
-    "longitude": 8.820058822631836
+    "pointIndex": 612924,
+    "elevation": 668,
+    "latitude": 47.98105239868164,
+    "longitude": 8.823476791381836
   },
   "menzenschwand": {
     "name": "Menzenschwand",
@@ -102,19 +102,19 @@
     "name": "Delémont",
     "modelKey": "meteo_swiss:icon_ch1",
     "model": "ICON-CH1",
-    "pointIndex": 781540,
-    "elevation": 420,
-    "latitude": 47.35800552368164,
-    "longitude": 7.344472408294678
+    "pointIndex": 781545,
+    "elevation": 418,
+    "latitude": 47.36313247680664,
+    "longitude": 7.350331783294678
   },
   "appenzell": {
     "name": "Appenzell",
     "modelKey": "meteo_swiss:icon_ch1",
     "model": "ICON-CH1",
-    "pointIndex": 795525,
-    "elevation": 800,
-    "latitude": 47.32675552368164,
-    "longitude": 9.413320541381836
+    "pointIndex": 795528,
+    "elevation": 809,
+    "latitude": 47.33188247680664,
+    "longitude": 9.419668197631836
   },
   "matzendorf": {
     "name": "Matzendorf",
@@ -129,19 +129,19 @@
     "name": "Wald",
     "modelKey": "meteo_swiss:icon_ch1",
     "model": "ICON-CH1",
-    "pointIndex": 792659,
-    "elevation": 636,
-    "latitude": 47.27035903930664,
-    "longitude": 8.915761947631836
+    "pointIndex": 792658,
+    "elevation": 681,
+    "latitude": 47.27548599243164,
+    "longitude": 8.922109603881836
   },
   "besançon": {
     "name": "Besançon",
     "modelKey": "meteo_swiss:icon_ch1",
     "model": "ICON-CH1",
-    "pointIndex": 594144,
-    "elevation": 260,
-    "latitude": 47.23227310180664,
-    "longitude": 6.022695064544678
+    "pointIndex": 594189,
+    "elevation": 265,
+    "latitude": 47.24008560180664,
+    "longitude": 6.018788814544678
   },
   "ermensee": {
     "name": "Ermensee",
@@ -345,10 +345,10 @@
     "name": "Scuol",
     "modelKey": "meteo_swiss:icon_ch1",
     "model": "ICON-CH1",
-    "pointIndex": 583845,
-    "elevation": 1405,
-    "latitude": 46.80478286743164,
-    "longitude": 10.301015853881836
+    "pointIndex": 583839,
+    "elevation": 1345,
+    "latitude": 46.79990005493164,
+    "longitude": 10.294668197631836
   },
   "davos": {
     "name": "Davos",
@@ -408,10 +408,10 @@
     "name": "Disentis/Mustér",
     "modelKey": "meteo_swiss:icon_ch1",
     "model": "ICON-CH1",
-    "pointIndex": 786116,
-    "elevation": 1135,
-    "latitude": 46.69906997680664,
-    "longitude": 8.852773666381836
+    "pointIndex": 786121,
+    "elevation": 1126,
+    "latitude": 46.70395278930664,
+    "longitude": 8.859121322631836
   },
   "interlaken": {
     "name": "Interlaken",
@@ -606,10 +606,10 @@
     "name": "Cevio",
     "modelKey": "meteo_swiss:icon_ch1",
     "model": "ICON-CH1",
-    "pointIndex": 767861,
-    "elevation": 692,
-    "latitude": 46.32284927368164,
-    "longitude": 8.598379135131836
+    "pointIndex": 767864,
+    "elevation": 819,
+    "latitude": 46.31796646118164,
+    "longitude": 8.592519760131836
   },
   "orcier": {
     "name": "Orcier",
@@ -651,10 +651,10 @@
     "name": "Bellinzona",
     "modelKey": "meteo_swiss:icon_ch1",
     "model": "ICON-CH1",
-    "pointIndex": 765733,
-    "elevation": 249,
-    "latitude": 46.18466567993164,
-    "longitude": 9.020254135131836
+    "pointIndex": 765727,
+    "elevation": 228,
+    "latitude": 46.18588638305664,
+    "longitude": 9.007558822631836
   },
   "sondrio": {
     "name": "Sondrio",
@@ -714,10 +714,10 @@
     "name": "Orsières",
     "modelKey": "meteo_swiss:icon_ch1",
     "model": "ICON-CH1",
-    "pointIndex": 780772,
-    "elevation": 965,
-    "latitude": 46.03696060180664,
-    "longitude": 7.146718502044678
+    "pointIndex": 780777,
+    "elevation": 1022,
+    "latitude": 46.03183364868164,
+    "longitude": 7.140859127044678
   },
   "zermatt": {
     "name": "Zermatt",

@@ -6,7 +6,10 @@
 // a day (the grid moved). A station with no ICON-CH1 or ICON-CH2 grid fails
 // the script, naming it.
 import { readFileSync, writeFileSync } from "node:fs";
-import { nearestGridPoint, tileUrl } from "../src/scripts/emagram/gridpoint.ts";
+import {
+  nearestGridPoint,
+  tileUrlsNear,
+} from "../src/scripts/emagram/gridpoint.ts";
 import type { PrevitempsGrid, SoundingStation } from "../src/scripts/types.ts";
 import { USER_AGENT } from "../src/scripts/upstream/fetch.ts";
 
@@ -40,7 +43,7 @@ function tile(url: string): Promise<unknown> {
 const grid: PrevitempsGrid = {};
 for (const station of stations) {
   const point = nearestGridPoint(
-    await tile(tileUrl(station.lat, station.lon)),
+    await Promise.all(tileUrlsNear(station.lat, station.lon).map(tile)),
     station,
   );
   grid[station.name.toLowerCase()] = point;
