@@ -35,7 +35,7 @@ The backlog, in rank order. After the scan only three parts of the report change
 | [C4](C4-weather-view-state.md) | Let the pair state own retry and what was drawn | 🟡 Worth exploring | ↔ two-way | deepening | pr-open | `refactor/weather-view-state` | #69 | no | |
 | [C5](C5-checked-data-dispatch.md) | Check `data-*` values before they reach the store | 🟡 Worth exploring | ↔ two-way | maintainability | pr-open | `refactor/checked-data-dispatch` | [#70](https://github.com/simonsteiner/shv-meteo-web/pull/70) | no | |
 | [C6](C6-forecast-stepper.md) | One stepper for the forecast play buttons | 🟡 Worth exploring | ↔ two-way | maintainability | pr-open | `refactor/forecast-stepper` | [#71](https://github.com/simonsteiner/shv-meteo-web/pull/71) | no | |
-| [C7](C7-per-tab-stylesheets.md) | Each tab imports its own stylesheets | ⚪ Speculative | ↔ two-way | coupling | in-progress | `refactor/per-tab-stylesheets` | | | cascade order risk |
+| [C7](C7-per-tab-stylesheets.md) | Each tab imports its own stylesheets | ⚪ Speculative | ↔ two-way | coupling | dropped | `refactor/per-tab-stylesheets` | | no | Astro links page CSS before layout CSS, `@layer` is above the build target, and `weather.css` / `forms.css` / `meteo-extras.css` serve several tabs; ADR 0001 |
 | [S1](#s1--one-station-id-pattern) | One station id pattern | - | ↔ two-way | coupling | pr-open | rides with C1 | #66 | no | |
 | [S2](#s2--hand-the-compute-its-timeout) | Hand the compute its timeout | - | ↔ two-way | coupling | pr-open | rides with C1 | #66 | no | |
 | [S3](#s3--one-default-pair-and-one-retryable-memo-in-shvapi) | One default pair and one retryable memo in `ShvApi` | - | ↔ two-way | maintainability | pr-open | rides with C2 | #67 | no | |

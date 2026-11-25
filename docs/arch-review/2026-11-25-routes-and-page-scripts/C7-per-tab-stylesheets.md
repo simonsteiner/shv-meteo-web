@@ -49,4 +49,11 @@ Speculative: the sheets are main.css cut at its banners "so every rule keeps its
 
 <!-- filled during implementation, one line each -->
 
+- Q1: Where does Astro put CSS a page imports relative to CSS the layout imports? → before it, because moving `weather.css` and `safety.css` into their pages and running `npm run build` linked `index.*.css`, then `leaflet.*.css`, then `Base.*.css` on those pages; a moved sheet leaves its main.css place and loses every equal-specificity tie with `tokens.css`, `chrome.css`, the map sheets, `sheet.css` and leaflet.
+- Q2: Can the old order be pinned regardless of link order? → no, because `@layer` needs Safari 15.4 / Chrome 99 / Firefox 97 and `astro.config.mjs` targets Safari 14 / Chrome 87 / Firefox 78, which Lightning CSS does not lower `@layer` for.
+- Q3: Is each tab sheet one tab's module? → no, because a class-name grep over `src/components`, `src/scripts`, `src/pages` finds `weather.css` styling forecast and safety (5 names each, e.g. `.forecast-section`, `.section-header-row`), `forms.css` used by safety, weather, forecast and the sheet, `meteo-extras.css` by map, weather, forecast and safety, and `forecast.css`'s only used names (`.metric-card` and kin) in the bottom sheet; the seam the card draws does not exist in the sheets.
+- Q4: Which later sheets override a tab sheet on the same selector? → `meteo-extras.css` over `weather.css` (`.provider-filter-pills`) and over `forms.css` (`.modal-header`, `.modal-close`), `responsive.css` only over shared sheets (tokens, chrome, sheet), from a postcss pass over all 15 sheets; those keep their direction under a split, so Q1 and Q3, not these, are the risk.
+- Q5: Is the win worth re-cutting the sheets? → no, because the whole layout bundle is 12.9 KB gzipped and the largest tab sheets are 1.0 to 2.2 KB gzipped each (lightningcss minify + gzip), so a page would save a few KB for a cascade reorder no test covers.
+- Q6: Outcome → dropped, recorded in `docs/adr/0001-stylesheets-load-from-the-layout.md`. Side fact for a later look: `leaflet.css` (6.4 KB gzipped, used by map and forecast outlooks/emagram only) already links first, so moving it to those pages would keep its order.
+
 </details>
