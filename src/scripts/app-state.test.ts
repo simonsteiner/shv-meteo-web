@@ -140,6 +140,17 @@ for (const mode of METEO_MODES)
       assert.equal(local.get("shv_meteoMode"), mode);
     });
 
+test("back on METEO, the layers are the current meteo mode's", () => {
+  for (const mode of ["WEBCAM", "PRESSURE_DIFFERENCE", "NONE"] as const) {
+    const { store } = make();
+    store.setMeteoMode(mode);
+    store.setMapCategory("AIRSPACE");
+    store.setMapCategory("METEO");
+    assert.equal(store.state.meteoMode, mode);
+    assert.deepEqual(shown(store.state.layers), [...MODE_SHOWS[mode]].sort());
+  }
+});
+
 test("the wind filter toggles a direction and clears", () => {
   const { store, local } = make();
   store.toggleWindFilter("N");

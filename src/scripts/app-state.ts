@@ -162,7 +162,12 @@ export class AppState {
   setMapCategory(category: MapCategory): void {
     this.state.mapCategory = category;
     saveSetting(this.local, "mapCategory", category);
-    const shown = CATEGORY_LAYERS[category];
+    // METEO shows what its current meteo mode shows, so the mode's button
+    // and the layers on the map agree
+    const shown =
+      category === "METEO"
+        ? MODE_LAYERS[this.state.meteoMode]
+        : CATEGORY_LAYERS[category];
     const layers = { ...this.state.layers };
     for (const key of LAYER_KEYS) layers[key] = shown.includes(key);
     this.save("layers", layers);
