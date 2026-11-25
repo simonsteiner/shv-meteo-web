@@ -4,7 +4,7 @@
 
 🟡 **Worth exploring** · `in-process` · ↔ `two-way` · builds on: none
 
-`src/scripts/maps/page.ts:259-279` · `src/scripts/weather/page.ts:303-324` · `src/scripts/settings.ts:159`
+`src/scripts/maps/page.ts:184,259-279` · `src/scripts/weather/page.ts:303-324` · `src/scripts/settings.ts:159`
 
 ```mermaid
 flowchart LR

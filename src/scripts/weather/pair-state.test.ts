@@ -174,6 +174,8 @@ test("a second retry while one loads fetches nothing", () => {
   const failed = reportCame(initialPairState("KLO_LUG"), "KLO_LUG", null);
   const again = choosePair(failed, "KLO_LUG").state;
   assert.equal(choosePair(again, "KLO_LUG").fetch, false);
-  // its answer ends the retry
-  assert.equal(retryButton(reportCame(again, "KLO_LUG", null)), "ready");
+  // its answer ends the retry, failed or not
+  assert.equal(again.retrying, true);
+  assert.equal(reportCame(again, "KLO_LUG", null).retrying, false);
+  assert.equal(reportCame(again, "KLO_LUG", report(2)).retrying, false);
 });

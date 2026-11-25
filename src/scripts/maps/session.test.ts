@@ -178,6 +178,7 @@ test("failed obstacles count until a load succeeds", () => {
   const shown = { ...state, layers: { ...state.layers, obstacles: true } };
   assert.equal(s.obstacles(true), true);
   assert.equal(s.obstacles(true), false);
+  assert.equal(s.plan(state, null).status, "", "hidden layer, no word");
   assert.equal(s.plan(shown, null).status, "Not loaded: obstacles");
   assert.equal(s.obstacles(false), true);
   assert.equal(s.obstacles(false), false);
