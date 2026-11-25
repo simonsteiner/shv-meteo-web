@@ -19,7 +19,8 @@ const MAP_PATH = "/map/";
 /** Upstream station ids are `<provider>:<id>`: `meteo_swiss:KLO`,
  * `mistral:dpcn-piemonte:46.30361,8.36639`, `abufdalp:bielen-startplatz`;
  * never a `/`. The Function's timeseries route accepts the same, so no id
- * passes the browser to get a 400 there. */
+ * passes the browser to get a 400 there. Webcam ids reach no Function, but
+ * every live one has the same shape, so `?webcam` uses it too. */
 export const STATION_ID = /^[a-z_]+:[^/\s]{1,100}$/;
 
 /** A flying site's `siteId`, a UUID in today's data. */
