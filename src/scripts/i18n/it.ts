@@ -285,9 +285,9 @@ export const it: Strings = {
       "Pulsante allarme o segnale pentatonale 21414 (ZVEI), con o senza squelch (CTCSS) 123.0 Hz. Segnale di ricevuto: 3 toni lunghi. Da usare solo senza rete mobile.",
     dabsBadge: "Spazio aereo",
     dabsNotes:
-      "Pubblicato ogni giorno dalle 16:00 LT per il giorno seguente da Skybriefing. Da consultare obbligatoriamente prima di ogni volo di distanza!",
+      "Pubblicazione ogni giorno alle 16:00 LT per il giorno seguente; aggiornamenti per il giorno corrente alle 09:00, 13:00 e 16:00 LT. Per i dettagli consultare sempre i NOTAM.",
     dabsPdfToday: "DABS oggi (PDF)",
-    dabsPdfTomorrow: "DABS domani (PDF, dalle 16:00 LT)",
+    dabsPdfTomorrow: "DABS domani (PDF)",
     varioSinkLabel: "Discendenza",
     varioLiftLabel: "Bomba!",
     logbookBadge: "Libretto di volo",

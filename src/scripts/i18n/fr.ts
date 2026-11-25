@@ -287,9 +287,9 @@ export const fr: Strings = {
       "Touche « alarme » ou appel 5 tons 21414 (ZVEI), avec ou sans squelch (CTCSS) 123.0 Hz. Quittance : 3 longs tons. À utiliser seulement sans réseau mobile.",
     dabsBadge: "Espace aérien",
     dabsNotes:
-      "Publié chaque jour dès 16:00 LT pour le lendemain par Skybriefing. À consulter obligatoirement avant chaque vol de distance !",
+      "Publication chaque jour à 16:00 LT pour le lendemain ; mises à jour pour le jour même à 09:00, 13:00 et 16:00 LT. Pour les détails, toujours consulter les NOTAM.",
     dabsPdfToday: "DABS aujourd'hui (PDF)",
-    dabsPdfTomorrow: "DABS demain (PDF, dès 16:00 LT)",
+    dabsPdfTomorrow: "DABS demain (PDF)",
     varioSinkLabel: "Dégueulante",
     varioLiftLabel: "Plafond !",
     logbookBadge: "Carnet de vol",

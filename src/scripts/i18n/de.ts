@@ -282,9 +282,9 @@ export const de = {
       "Alarm-Taste oder 5-Ton-Ruf 21414 (ZVEI), mit oder ohne Tonsquelch (CTCSS) 123.0 Hz. Quittung: 3 lange Töne. Nur verwenden, wenn kein Mobilnetz da ist.",
     dabsBadge: "Luftraum",
     dabsNotes:
-      "Täglich ab 16:00 LT für den Folgetag durch Skybriefing publiziert. Vor jedem Streckenflug obligatorisch zu konsultieren!",
+      "Publikation täglich um 16:00 LT für den Folgetag; Aktualisierungen für den laufenden Tag um 09:00, 13:00 und 16:00 LT. Für Details immer die NOTAM konsultieren.",
     dabsPdfToday: "DABS heute (PDF)",
-    dabsPdfTomorrow: "DABS morgen (PDF, ab 16:00 LT)",
+    dabsPdfTomorrow: "DABS morgen (PDF)",
     varioSinkLabel: "Saufen",
     varioLiftLabel: "Hammer!",
     logbookBadge: "Flugbuch",
