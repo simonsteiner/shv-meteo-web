@@ -37,6 +37,8 @@ export interface StationCardText {
   windDirection: string;
   /** The measurement time's tooltip. */
   measuredAt: string;
+  /** Said beside the time of a reading over an hour old. */
+  old: string;
 }
 
 /** A station's card at `now`: its measurement time in Swiss time, greyed
@@ -78,7 +80,7 @@ export function stationCardHtml(
   const time =
     measured === null
       ? ""
-      : `<span class="st-card-time" title="${escapeHtml(text.measuredAt)}">${swissTime(measured)}</span>`;
+      : `<span class="st-card-time" title="${escapeHtml(text.measuredAt)}">${swissTime(measured)}${old ? ` \u00b7 ${escapeHtml(text.old)}` : ""}</span>`;
   return `<div class="station-card-item${old ? " is-old" : ""}" role="button" tabindex="0" data-station-id="${escapeHtml(st.id)}">
   <div class="st-card-top">
     <div>

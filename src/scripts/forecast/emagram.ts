@@ -109,12 +109,13 @@ export function gridSvg(): string {
 }
 
 /** Where an altitude lies: between the two levels around it, linear in
- * height and so in log pressure; outside the levels on a linear 0 to
- * 5000 m scale. */
+ * height and so in log pressure. Null below the lowest level, above the
+ * highest, or off the plot: there the sounding gives it no pressure, and a
+ * scale of its own would put it on the wrong side of a level. */
 export function altitudeY(
   alt: number,
   levels: readonly SoundingLevel[],
-): number {
+): number | null {
   const sorted = [...levels].sort((a, b) => a.heightM - b.heightM);
   for (let i = 1; i < sorted.length; i++) {
     const lo = sorted[i - 1];
@@ -124,15 +125,19 @@ export function altitudeY(
       hi.heightM === lo.heightM
         ? 0
         : (alt - lo.heightM) / (hi.heightM - lo.heightM);
-    return pToY(lo.pressHpa) + (pToY(hi.pressHpa) - pToY(lo.pressHpa)) * t;
+    const y = yOf(lo.pressHpa) + (yOf(hi.pressHpa) - yOf(lo.pressHpa)) * t;
+    return y >= PAD_T && y <= PAD_T + PLOT_H ? y : null;
   }
-  return PAD_T + PLOT_H - (alt / 5000) * PLOT_H;
+  return null;
 }
 
-/** The altitude lines in the wind column. */
+/** The altitude lines in the wind column, for the altitudes the sounding
+ * spans inside the plot. */
 export function altitudeSvg(levels: readonly SoundingLevel[]): string {
   return ALTITUDE_TICKS.map((alt) => {
-    const y = f1(altitudeY(alt, levels));
+    const at = altitudeY(alt, levels);
+    if (at === null) return "";
+    const y = f1(at);
     return `<line x1="${PAD_L + PLOT_W}" y1="${y}" x2="${SVG_W - PAD_R}" y2="${y}" ${GRID} stroke-dasharray="3,3"/><text x="${PAD_L + PLOT_W + 6}" y="${f1(Number(y) - 4)}" ${LABEL}>${alt} m</text>`;
   }).join("");
 }
@@ -151,6 +156,12 @@ export function soundingCurves(levels: readonly SoundingLevel[]): Curves {
   const wind: string[] = [];
   let temp = "";
   let barbs = "";
+  // the top level is past the plot (levels run to 550 hPa): tick the
+  // highest one inside it instead
+  let lastInRange = -1;
+  levels.forEach((l, i) => {
+    if (inRange(l.pressHpa)) lastInRange = i;
+  });
   levels.forEach((l, i) => {
     const y = yOf(l.pressHpa);
     dew.push(`${f1(tToX(l.dewC, y))},${f1(y)}`);
@@ -160,7 +171,7 @@ export function soundingCurves(levels: readonly SoundingLevel[]): Curves {
       temp += `<line x1="${f1(tToX(prev.tempC, py))}" y1="${f1(py)}" x2="${f1(tToX(l.tempC, y))}" y2="${f1(y)}" stroke="${lapseColor(l.lapseRate)}" stroke-width="3.6" stroke-linecap="round"/>`;
     }
     wind.push(`${f1(windX(l.speedKmH))},${f1(y)}`);
-    if ((i % 3 === 0 || i === levels.length - 1) && inRange(l.pressHpa)) {
+    if ((i % 3 === 0 || i === lastInRange) && inRange(l.pressHpa)) {
       const rad = ((l.dirDeg - 90) * Math.PI) / 180;
       barbs += `<g transform="translate(${PAD_L + PLOT_W + 12}, ${f1(y)})"><circle cx="0" cy="0" r="2.5" fill="#0284C7"/><line x1="0" y1="0" x2="${f1(Math.cos(rad) * 16)}" y2="${f1(Math.sin(rad) * 16)}" stroke="#0284C7" stroke-width="1.8"/></g>`;
     }

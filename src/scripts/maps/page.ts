@@ -143,6 +143,15 @@ function mountMap(root: HTMLElement): void {
     redrawStations();
   }
 
+  /** The open station sheet, if any, shown again with the station's new
+   * values: a new object, so render redraws the sheet; the map stays. */
+  function reselectStation(): void {
+    const open = store.state.selectedStation as MeasurementFeature | null;
+    if (!open) return;
+    const now = stations.find((f) => f.id === open.id);
+    if (now) store.select("station", now);
+  }
+
   function moveTo(at: LatLngTuple | null): void {
     const view = viewFor(at, zoom, map.getZoom());
     if (view) map.setView(view.center, view.zoom);
@@ -363,10 +372,34 @@ function mountMap(root: HTMLElement): void {
       return { kind: "station", items: stations };
     },
   );
-  // every 90 s while the page is visible; a failed refresh keeps the arrows
+  // every 90 s while the page is visible and the stations are shown, one
+  // request at a time. A failed refresh keeps the arrows; one that works
+  // goes through the session like the first load, so it clears a failed
+  // first load and acts on its ?station handoff, and an open station
+  // sheet is shown again with the new values
+  let refreshing = false;
   whileVisible(() => {
+    if (refreshing || !store.state.layers.stations) return;
+    refreshing = true;
     void ShvApi.getMeasurements({ fresh: true }).then((data) => {
-      if (data) takeStations(data);
+      refreshing = false;
+      if (!data) return;
+      try {
+        takeHandoff(
+          session.settle(
+            "measurements",
+            data,
+            "[maps] Cannot draw the refreshed measurements:",
+            (fresh) => {
+              takeStations(fresh);
+              return { kind: "station", items: stations };
+            },
+          ),
+        );
+        reselectStation();
+      } finally {
+        render();
+      }
     });
   });
   load(

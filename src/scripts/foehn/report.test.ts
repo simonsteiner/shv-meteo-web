@@ -79,14 +79,14 @@ test("a pair missing one station's QNH has no difference and no alert", () => {
   );
   assert.equal(r.primaryPair?.diffHpa, null);
   assert.equal(r.primaryPair?.status, "NO_DATA");
-  assert.equal(r.primaryPair?.alertLevel, "NONE");
+  assert.equal(r.primaryPair?.alertLevel, "UNKNOWN");
 });
 
 test("no difference is no data, never calm", () => {
   for (const id of ["KLO_LUG", "GVE_GUT", "PIL_MTR"])
     assert.deepEqual(assess(pairConfig(id), null), {
       status: "NO_DATA",
-      alertLevel: "NONE",
+      alertLevel: "UNKNOWN",
     });
 });
 

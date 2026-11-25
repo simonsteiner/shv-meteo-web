@@ -10,15 +10,23 @@ export interface AlertLook {
   /** The map's line colour. */
   color: string;
   /** The badge class (src/styles/chrome.css), as on the header's pill. */
-  badge: "badge-safe" | "badge-warning" | "badge-danger";
+  badge: "badge-unknown" | "badge-safe" | "badge-warning" | "badge-danger";
   /** The weather page's banner class. */
-  banner: "banner-safe" | "banner-warning" | "banner-danger";
+  banner: "banner-unknown" | "banner-safe" | "banner-warning" | "banner-danger";
   /** The text class of a pill's value; none when all is calm. */
   text: "" | "text-warning" | "text-danger";
   icon: string;
 }
 
 const LOOKS: Record<AlertLevel, AlertLook> = {
+  // a pair without a difference: neither calm nor an alert
+  UNKNOWN: {
+    color: "#94A3B8",
+    badge: "badge-unknown",
+    banner: "banner-unknown",
+    text: "",
+    icon: "\u2754",
+  },
   NONE: {
     color: "#0089CF",
     badge: "badge-safe",

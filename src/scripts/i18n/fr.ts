@@ -98,6 +98,7 @@ export const fr: Strings = {
     humidityFull: "Humidité",
     qnhFull: "Pression QNH",
     measuredAt: "Heure de mesure",
+    oldMeasurement: "plus d'une heure",
     asOf: "État à {time} : mesures en direct indisponibles, valeurs en cache",
     qffFull: "Pression QFF",
     qfeFull: "Pression station QFE",
