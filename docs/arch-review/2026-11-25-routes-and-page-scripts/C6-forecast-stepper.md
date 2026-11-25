@@ -37,7 +37,7 @@ Two copies of a play/step timer have drifted: one adds the playing class by hand
 
 | Problem | Solution | Wins |
 |---|---|---|
-| Each forecast view keeps its own interval, step and stop, so the play buttons behave differently and neither is tested. | One stepper module owns the interval and the playing state; each view gives it a length, a delay and what to do on a step. | locality: playback in one module<br>one behaviour for both buttons |
+| Each forecast view keeps its own interval, step and stop, so the play buttons behave differently and neither is tested. | One stepper module owns the interval and the playing state; each view gives it its button, a delay and what one step does. | locality: playback in one module<br>one behaviour for both buttons |
 
 <details>
 <summary>Decisions</summary>
