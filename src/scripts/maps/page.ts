@@ -51,6 +51,7 @@ import type { LatLngTuple } from "./centroid.ts";
 import {
   findHandoff,
   revealFor,
+  stationModeFor,
   type HandoffTarget,
 } from "./handoff-target.ts";
 import { drawFoehn, drawStations, drawWebcams } from "./layer-meteo.ts";
@@ -128,15 +129,15 @@ export function mountMap(root: HTMLElement): void {
   let shownSelection: Selection | null = null;
   let sheetLang: string | null = null;
 
-  function stationMode(): "WIND" | "TEMPERATURE" {
-    return store.state.meteoMode === "TEMPERATURE" ? "TEMPERATURE" : "WIND";
-  }
-
   function redrawStations(): void {
     if (!store.state.layers.stations) return;
     stationsMode = store.state.meteoMode;
-    drawStations(stationsLayer, map, stations, stationMode(), (f) =>
-      select("station", f),
+    drawStations(
+      stationsLayer,
+      map,
+      stations,
+      stationModeFor(store.state.meteoMode),
+      (f) => select("station", f),
     );
   }
 
@@ -149,8 +150,10 @@ export function mountMap(root: HTMLElement): void {
   function takeHandoff(target: HandoffTarget | null): void {
     if (!target) return;
     const { kind, value } = target.selection;
-    const reveal = revealFor(kind, store.state);
+    const reveal = revealFor(target.selection, store.state);
     if (reveal.meteoMode) store.setMeteoMode(reveal.meteoMode);
+    if (reveal.clearSearch) store.setSearchQuery("");
+    if (reveal.clearWind) store.clearWindFilter();
     for (const key of reveal.layers) store.toggleLayer(key);
     select(kind, value);
     moveTo(target.at);
