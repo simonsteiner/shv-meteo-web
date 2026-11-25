@@ -129,3 +129,5 @@ Each is referenced only in its own file, and `mountMap` and `mountWeather` are e
 ## Departures
 
 <!-- filled during implementation: where a PR deliberately differs from this report, and why -->
+
+- **C2, Q5:** the obstacle index read goes through `getJson` inside `retryable`, so a failed index read now logs under `[ShvApi.getObstacles]` as an HTTP or network error like every other read, not as "Failed to load obstacles". The answer (null) and the retry on the next call are as decided.
