@@ -1,6 +1,6 @@
 // The logbook as CSV (RFC 4180): every field quoted, quotes doubled,
 // rows ended with CRLF, so a comma, quote or line break in a note stays in
-// its cell.
+// its cell, and a text cell can't start a formula.
 
 import type { Flight } from "./flights.ts";
 
@@ -15,8 +15,14 @@ export interface CsvHeadings {
   notes: string;
 }
 
+/** A text cell a spreadsheet would run as a formula (one starting with
+ * `=`, `+`, `-`, `@`, a tab or a CR) gets a leading `'`, OWASP's advice for
+ * CSV injection; numbers stay as they are. */
 function cell(v: string | number | null): string {
-  return `"${v === null ? "" : String(v).replace(/"/g, '""')}"`;
+  const text = v === null ? "" : String(v);
+  const safe =
+    typeof v === "string" && /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
+  return `"${safe.replace(/"/g, '""')}"`;
 }
 
 export function flightsCsv(

@@ -41,3 +41,28 @@ test("flightsCsv with no flights is the heading row", () => {
 test("csvFileName names the day", () => {
   assert.equal(csvFileName("2026-07-14"), "shv_flugbuch_2026-07-14.csv");
 });
+
+test("a text cell a spreadsheet would run as a formula starts with a quote mark", () => {
+  const row = flightsCsv(
+    [
+      {
+        ...flight,
+        site: '=HYPERLINK("http://x")',
+        landing: "+41 79",
+        glider: "-1",
+        notes: "@SUM(A1)",
+      },
+      { ...flight, site: "\tTab", landing: "\rCR", notes: "fine" },
+    ],
+    headings,
+  ).split("\r\n");
+  assert.ok(
+    row[1].startsWith(
+      '"2026-07-14","\'=HYPERLINK(""http://x"")","\'+41 79","95","\'-1"',
+    ),
+  );
+  assert.ok(row[1].endsWith('"\'@SUM(A1)"'));
+  assert.ok(row[2].startsWith('"2026-07-14","\'\tTab","\'\rCR"'));
+  // numbers stay numbers
+  assert.ok(row[1].includes(',"95",'));
+});
