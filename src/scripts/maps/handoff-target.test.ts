@@ -6,7 +6,7 @@ import type {
   MeasurementFeature,
   Webcam,
 } from "../types.ts";
-import { findHandoff, revealFor } from "./handoff-target.ts";
+import { findHandoff, revealFor, stationModeFor } from "./handoff-target.ts";
 
 const launch: FlyingSiteFeature = {
   type: "Feature",
@@ -78,34 +78,66 @@ test("a handed-over id the data lacks is logged, not selected", (t) => {
   assert.match(String(error.mock.calls[0].arguments[0]), /\[maps\.handoff\]/);
 });
 
+const mapState = () => ({ ...defaultSettings(), searchQuery: "" });
+const none = {
+  meteoMode: null,
+  layers: [],
+  clearSearch: false,
+  clearWind: false,
+};
+
 test("a hidden station or webcam layer is turned on through its meteo mode", () => {
-  const state = defaultSettings();
-  assert.deepEqual(revealFor("station", state), {
-    meteoMode: null,
-    layers: [],
-  });
-  assert.deepEqual(revealFor("webcam", state), {
+  const state = mapState();
+  const atStation = { kind: "station", value: station } as const;
+  assert.deepEqual(revealFor(atStation, state), none);
+  assert.deepEqual(revealFor({ kind: "webcam", value: webcam }, state), {
+    ...none,
     meteoMode: "WEBCAM",
-    layers: [],
   });
   const hidden = { ...state, layers: { ...state.layers, stations: false } };
-  assert.deepEqual(revealFor("station", hidden).meteoMode, "WIND");
-  assert.deepEqual(
-    revealFor("station", { ...hidden, meteoMode: "TEMPERATURE" }).meteoMode,
+  assert.equal(revealFor(atStation, hidden).meteoMode, "WIND");
+  assert.equal(
+    revealFor(atStation, { ...hidden, meteoMode: "TEMPERATURE" }).meteoMode,
     "TEMPERATURE",
   );
 });
 
 test("a handed-over site turns on the take-offs and landings it lacks", () => {
-  const state = defaultSettings();
-  assert.deepEqual(revealFor("site", state), {
-    meteoMode: null,
+  const state = mapState();
+  const atSite = { kind: "site", value: launch } as const;
+  assert.deepEqual(revealFor(atSite, state), {
+    ...none,
     layers: ["launches", "landings"],
   });
   const shown = { ...state, layers: { ...state.layers, launches: true } };
-  assert.deepEqual(revealFor("site", shown).layers, ["landings"]);
-  assert.deepEqual(revealFor("obstacle", state), {
-    meteoMode: null,
-    layers: [],
-  });
+  assert.deepEqual(revealFor(atSite, shown).layers, ["landings"]);
+});
+
+test("a handed-over site clears the search and wind filter that hide it", () => {
+  const state = { ...mapState(), searchQuery: "Niesen", windFilter: ["N"] };
+  const south: FlyingSiteFeature = {
+    ...launch,
+    properties: { ...launch.properties, launchDirections: ["S"] },
+  };
+  const reveal = revealFor({ kind: "site", value: south }, state);
+  assert.equal(reveal.clearSearch, true);
+  assert.equal(reveal.clearWind, true);
+  const suited = { ...state, searchQuery: "schwand", windFilter: ["S"] };
+  const kept = revealFor({ kind: "site", value: south }, suited);
+  assert.equal(kept.clearSearch, false);
+  assert.equal(kept.clearWind, false);
+  // the wind filter only hides take-offs
+  const landing: FlyingSiteFeature = {
+    ...launch,
+    properties: { ...launch.properties, type: "landing" },
+  };
+  assert.equal(
+    revealFor({ kind: "site", value: landing }, state).clearWind,
+    false,
+  );
+});
+
+test("stations show in temperature mode, else in wind mode", () => {
+  assert.equal(stationModeFor("TEMPERATURE"), "TEMPERATURE");
+  assert.equal(stationModeFor("WEBCAM"), "WIND");
 });

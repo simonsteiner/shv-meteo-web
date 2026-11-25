@@ -74,7 +74,24 @@ export function chartView(s: PairState, pairId: string): ChartView {
       ? { kind: "chart", pairId, history: s.report.history }
       : { kind: "empty", pairId };
   if (s.failedPair === pairId) return { kind: "empty", pairId };
+  // the chosen pair's report came without that pair, so the one shown in
+  // its place has no history in it
+  if (s.report && s.reportPair === s.pairId && pairId !== s.pairId)
+    return { kind: "empty", pairId };
   return { kind: "pending" };
+}
+
+/** The retry button for a report that failed with none to show: "ready"
+ * to click, "busy" while the retry it started loads (kept shown, so the
+ * keyboard focus stays on it), else "hidden". A report that came with no
+ * pairs isn't retried: its answer is cached. */
+export function retryButton(
+  s: PairState,
+  retrying: boolean,
+): "hidden" | "ready" | "busy" {
+  if (retrying && s.report === undefined) return "busy";
+  if (s.report === null && s.failedPair === s.pairId) return "ready";
+  return "hidden";
 }
 
 /** A key that changes whenever the drawn chart would: its pair, history,

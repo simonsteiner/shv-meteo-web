@@ -7,6 +7,7 @@ import {
   choosePair,
   initialPairState,
   reportCame,
+  retryButton,
   shownPair,
   type PairState,
 } from "./pair-state.ts";
@@ -108,4 +109,29 @@ test("the chart key follows the pair, history, theme and language", () => {
     chartKey({ kind: "empty", pairId: "KLO_LUG" }, "dark", "de"),
     "KLO_LUG|empty",
   );
+});
+
+test("a report without the chosen pair shows its first pair's empty chart", () => {
+  const r = report(3);
+  r.pairs = r.pairs.filter((p) => p.id !== "GVE_GUT");
+  const s = loaded("GVE_GUT", r);
+  const shown = shownPair(s);
+  assert.equal(shown?.id, "KLO_LUG");
+  assert.deepEqual(chartView(s, "KLO_LUG"), {
+    kind: "empty",
+    pairId: "KLO_LUG",
+  });
+});
+
+test("the retry button shows only for a failed report it can retry", () => {
+  const start = initialPairState("KLO_LUG");
+  assert.equal(retryButton(start, false), "hidden");
+  const failed = reportCame(start, "KLO_LUG", null);
+  assert.equal(retryButton(failed, false), "ready");
+  const again = choosePair(failed, "KLO_LUG").state;
+  assert.equal(retryButton(again, true), "busy");
+  // a report with no pairs came: nothing to retry
+  const empty = reportCame(start, "KLO_LUG", { ...report(0), pairs: [] });
+  assert.equal(retryButton(empty, false), "hidden");
+  assert.equal(retryButton(loaded("KLO_LUG"), false), "hidden");
 });
