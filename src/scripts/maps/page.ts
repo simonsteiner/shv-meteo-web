@@ -58,7 +58,7 @@ const CONTROL_SELECTORS: [Control, string][] = [
 ];
 
 /** A markup value the store has no member for: ignored, and logged. */
-function unknown(attribute: string, value: unknown): void {
+function logUnknown(attribute: string, value: unknown): void {
   console.error(`[maps] Unknown ${attribute} "${String(value)}"`);
 }
 
@@ -178,7 +178,7 @@ export function mountMap(root: HTMLElement): void {
     for (const box of all<HTMLInputElement>("input[data-layer]")) {
       const key = box.dataset.layer;
       if (isOneOf(LAYER_KEYS, key)) box.checked = state.layers[key];
-      else unknown("data-layer", key);
+      else logUnknown("data-layer", key);
     }
     const status = q("[data-map-status]");
     status.textContent = statusText;
@@ -209,9 +209,6 @@ export function mountMap(root: HTMLElement): void {
     setBaseMap(state.baseMap);
     for (const key of LAYER_KEYS)
       showLayer(map, layerOf[key], state.layers[key] === true);
-    // the obstacles load when shown and as the map moves, and go when hidden
-    if (redraw.obstacles === "load") void obstacles.update();
-    else if (redraw.obstacles === "clear") obstacles.clear();
     if (redraw.stations) redrawStations();
     if (redraw.text) drawFoehn(foehnLayer, foehn, say, openWeather);
     if (redraw.sites)
@@ -219,6 +216,11 @@ export function mountMap(root: HTMLElement): void {
     renderControls(status);
     renderPilot(pilot);
     if (redraw.sheet) sheet.show(selection, sites.names);
+    // the obstacles load when shown and as the map moves, and go when hidden.
+    // Last, because below their minimum zoom update() answers onLoad at once,
+    // and the render that starts must not be overwritten by this one's status
+    if (redraw.obstacles === "load") void obstacles.update();
+    else if (redraw.obstacles === "clear") obstacles.clear();
   }
 
   function openWeather(pairId: string): void {
@@ -257,23 +259,23 @@ export function mountMap(root: HTMLElement): void {
     else if (mapCategory !== undefined) {
       if (isOneOf(MAP_CATEGORIES, mapCategory))
         store.setMapCategory(mapCategory);
-      else unknown("data-map-category", mapCategory);
+      else logUnknown("data-map-category", mapCategory);
     } else if (meteoMode !== undefined) {
       if (isOneOf(METEO_MODES, meteoMode)) store.setMeteoMode(meteoMode);
-      else unknown("data-meteo-mode", meteoMode);
+      else logUnknown("data-meteo-mode", meteoMode);
     } else if (base !== undefined) {
       if (isOneOf(BASE_MAPS, base)) store.setBaseMap(base);
-      else unknown("data-base", base);
+      else logUnknown("data-base", base);
     } else if (wind !== undefined) {
       if (isOneOf(COMPASS, wind)) store.toggleWindFilter(wind);
-      else unknown("data-wind", wind);
+      else logUnknown("data-wind", wind);
     }
   });
   root.addEventListener("change", (event) => {
     const layer = (event.target as HTMLElement).dataset?.layer;
     if (layer === undefined) return;
     if (isOneOf(LAYER_KEYS, layer)) store.toggleLayer(layer);
-    else unknown("data-layer", layer);
+    else logUnknown("data-layer", layer);
   });
   searchInput.addEventListener("input", () =>
     store.setSearchQuery(searchInput.value),
@@ -310,8 +312,11 @@ export function mountMap(root: HTMLElement): void {
     use: (data: T) => Loaded | void,
   ): void {
     void call.then((data) => {
-      takeHandoff(session.settle(dataset, data, label, use));
-      render();
+      try {
+        takeHandoff(session.settle(dataset, data, label, use));
+      } finally {
+        render();
+      }
     });
   }
 
