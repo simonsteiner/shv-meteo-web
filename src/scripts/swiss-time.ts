@@ -36,12 +36,14 @@ export function formatSwiss(
 /** A naive Zurich time as upstream's outlooks send it
  * (`2026-11-25T06:00`, no offset), read as text: its day in `locale`
  * ("Mi., 25.11.") and its HH:MM as given, never shifted by the device's
- * zone. Null for anything else. */
+ * zone. Null for anything else, an offset included: that is no naive
+ * time. */
 export function naiveSwiss(
   text: string,
   locale: string,
 ): { day: string; time: string } | null {
-  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(text);
+  const m =
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::\d{2}(?:\.\d+)?)?$/.exec(text);
   if (!m) return null;
   // the calendar day alone, at noon UTC, formatted in UTC: no zone moves it
   const noon = Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12);

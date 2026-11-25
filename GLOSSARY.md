@@ -66,7 +66,7 @@ _Avoid_: Delta p, pressure gradient
 
 **QNH**:
 A station's pressure reduced to sea level through the standard atmosphere, what pilots set on the altimeter; upstream's `pressure_standard_msl`.
-_Avoid_: Sea-level pressure (when QFF is meant), MSL
+_Avoid_: MSL, sea-level pressure (in UI text)
 
 **QFF**:
 A station's pressure reduced to sea level with its actual temperature, the meteorologists' sea-level pressure; upstream's `pressure_msl`, labelled QFF, never QNH.

@@ -104,6 +104,15 @@
   transform: scale(1.08);
 }
 
+.foehn-map-badge.badge-unknown {
+  border-color: #64748b;
+  background: #0f172a;
+}
+
+.foehn-map-badge.badge-unknown .foehn-badge-val {
+  color: #94a3b8;
+}
+
 .foehn-map-badge.badge-safe {
   border-color: #10b981;
   background: #0f172a;

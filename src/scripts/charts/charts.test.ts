@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { foehnChartConfig } from "./foehn.ts";
 import { stationChartConfig, stationSeries } from "./station.ts";
 import { chartColors, signed } from "./theme.ts";
+import { inZone } from "../test-zone.ts";
 
 const colors = chartColors("dark");
 
@@ -109,9 +110,7 @@ test("stationChartConfig draws no dew point line for a station without one", () 
 });
 
 test("the station chart's times are Swiss, wherever the browser is", () => {
-  const before = process.env.TZ;
-  process.env.TZ = "America/New_York";
-  try {
+  inZone("America/New_York", () => {
     const t = Date.UTC(2026, 10, 25, 17, 40);
     const series = stationSeries({
       id: "meteo_swiss:KLO",
@@ -120,8 +119,5 @@ test("the station chart's times are Swiss, wherever the browser is", () => {
       ],
     });
     assert.deepEqual(series.labels, ["18:40"]);
-  } finally {
-    if (before === undefined) delete process.env.TZ;
-    else process.env.TZ = before;
-  }
+  });
 });

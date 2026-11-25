@@ -48,9 +48,10 @@ export function dewPoint(qKg: number, pressHpa: number): number {
   return Math.max(-60, Math.min(45, (243.5 * logE) / (17.67 - logE)));
 }
 
-/** One time step's values per parameter, one per model level (top first).
- * The height is a constant field: a single value per level serves every
- * time step. */
+/** One time step's values per parameter, top first: one per model level,
+ * except `height_half_level`, which holds the N + 1 layer boundaries of
+ * the N levels. The height is a constant field: a single value per row
+ * serves every time step. */
 export function valuesAt(
   matrices: Record<SoundingParameter, number[][]>,
   t: number,
@@ -91,9 +92,14 @@ export function soundingLevels(
   byParam: Record<SoundingParameter, (number | undefined)[]>,
 ): SoundingLevel[] {
   const levels: SoundingLevel[] = [];
+  if (!halfLevelsFit(byParam)) {
+    console.error(
+      `[soundingLevels] ${byParam.height_half_level.length} half levels for ${byParam.temperature.length} levels, not one more: no levels drawn`,
+    );
+    return levels;
+  }
   // each level's unrounded height and temperature, for its lapse rate
   const raw = new Map<SoundingLevel, { heightM: number; tempC: number }>();
-  if (!halfLevelsFit(byParam)) return levels;
   const half = byParam.height_half_level;
   for (let l = byParam.temperature.length - 1; l >= 0; l--) {
     const tempK = byParam.temperature[l];

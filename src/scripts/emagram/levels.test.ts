@@ -190,7 +190,18 @@ test("heights that aren't one more than the levels give no level", () => {
     [0, 1000, 2000],
   );
   m.height_half_level = m.height_half_level.slice(1);
-  assert.deepEqual(soundingLevels(valuesAt(m, 0)), []);
+  const logged: unknown[] = [];
+  const original = console.error;
+  console.error = (...args: unknown[]) => void logged.push(args[0]);
+  try {
+    assert.deepEqual(soundingLevels(valuesAt(m, 0)), []);
+  } finally {
+    console.error = original;
+  }
+  assert.match(
+    String(logged[0]),
+    /^\[soundingLevels\] 2 half levels for 2 levels/,
+  );
 });
 
 test("the lapse rate comes from unrounded heights and temperatures", () => {

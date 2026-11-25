@@ -103,8 +103,9 @@ type MapState = Pick<
 export interface MapSession {
   /** A data set's answer: null (the call failed) or its data, which `use`
    * draws and may return as the items a handoff searches. A null answer or
-   * a throw from `use` (logged with `label`) fails the data set. Answers
-   * the handed-over selection when this data set holds it, once. */
+   * a throw from `use` (logged with `label`) fails the data set; one drawn
+   * clears an earlier failure. Answers the handed-over selection when this
+   * data set holds it, once. */
   settle<T>(
     dataset: Dataset,
     data: T | null,
@@ -165,6 +166,9 @@ export function createMapSession(opts: {
         console.error(label, err);
         return fail(dataset);
       }
+      // a later answer that worked (the measurements' refresh) clears a
+      // failed first one
+      failed.delete(dataset);
       if (dataset === "sites") drawn = { ...drawn, sites: "" };
       return loaded ? takeHandoff(loaded) : null;
     },

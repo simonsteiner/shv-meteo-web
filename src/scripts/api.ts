@@ -96,10 +96,12 @@ function retryable<T>(
     if (fresh) kept.delete(key);
     let pending = kept.get(key);
     if (!pending) {
-      pending = load(key).then((answer) => {
-        if (answer === null) kept.delete(key);
+      const asked: Promise<T | null> = load(key).then((answer) => {
+        // a later fresh call may have replaced this one: forget only our own
+        if (answer === null && kept.get(key) === asked) kept.delete(key);
         return answer;
       });
+      pending = asked;
       kept.set(key, pending);
     }
     return pending;
@@ -164,11 +166,12 @@ export interface ObstacleAnswer {
 }
 
 // One request per page load: the header's Foehn badge and the view on the
-// same page share a call; the measurements are asked again every 90 s
-// while the page is visible (live/refresh.ts). Keyed by pair, so the pair switcher gets its own.
+// same page share a call. The measurements are asked again every 90 s
+// while the page is visible (live/refresh.ts).
 const measurements = retryable<FeatureCollection<MeasurementFeature>>(() =>
   getJson("/api/measurements", "getMeasurements"),
 );
+// Keyed by pair, so the pair switcher gets its own.
 const foehn = retryable<FoehnReport>((pair) =>
   getJson(`/api/foehn?pair=${encodeURIComponent(pair)}`, "getFoehn"),
 );
@@ -240,7 +243,8 @@ export const ShvApi = {
 
   /** When `answer`, a value another read resolved to, was fetched and
    * whether it is a stale stand-in; null for one without that (a static
-   * file, an upstream read directly, null). */
+   * file, an upstream read directly, null) and for a read that builds a new
+   * object from its answer (`getEmagramForecast`'s sounding). */
   freshness(answer: unknown): Freshness | null {
     return typeof answer === "object" && answer !== null
       ? (freshness.get(answer) ?? null)
