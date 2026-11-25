@@ -91,6 +91,8 @@ export function soundingLevels(
   byParam: Record<SoundingParameter, (number | undefined)[]>,
 ): SoundingLevel[] {
   const levels: SoundingLevel[] = [];
+  // each level's unrounded height and temperature, for its lapse rate
+  const raw = new Map<SoundingLevel, { heightM: number; tempC: number }>();
   if (!halfLevelsFit(byParam)) return levels;
   const half = byParam.height_half_level;
   for (let l = byParam.temperature.length - 1; l >= 0; l--) {
@@ -114,7 +116,7 @@ export function soundingLevels(
       continue;
     const pressHpa = pressPa / 100;
     if (pressHpa < 550) break;
-    levels.push({
+    const level: SoundingLevel = {
       heightM: Math.round(heightM),
       pressHpa: round1(pressHpa),
       tempC: round1(tempK - 273.15),
@@ -123,12 +125,16 @@ export function soundingLevels(
       // where the wind comes from, in degrees
       dirDeg: Math.round(((Math.atan2(-u, -v) * 180) / Math.PI + 360) % 360),
       lapseRate: 0,
-    });
+    };
+    levels.push(level);
+    raw.set(level, { heightM, tempC: tempK - 273.15 });
   }
   levels.sort((a, b) => a.heightM - b.heightM);
   for (let i = 1; i < levels.length; i++) {
-    const dz = levels[i].heightM - levels[i - 1].heightM;
-    const dt = levels[i].tempC - levels[i - 1].tempC;
+    const lo = raw.get(levels[i - 1])!;
+    const hi = raw.get(levels[i])!;
+    const dz = hi.heightM - lo.heightM;
+    const dt = hi.tempC - lo.tempC;
     levels[i].lapseRate = dz > 10 ? round1(dt / (dz / 100)) : 0;
   }
   return levels;

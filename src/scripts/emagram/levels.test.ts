@@ -192,3 +192,19 @@ test("heights that aren't one more than the levels give no level", () => {
   m.height_half_level = m.height_half_level.slice(1);
   assert.deepEqual(soundingLevels(valuesAt(m, 0)), []);
 });
+
+test("the lapse rate comes from unrounded heights and temperatures", () => {
+  // levels at 500.4 and 515.6 m, 10.04 and 9.86 °C: -0.18 °C over 15.2 m is
+  // -1.2 °C per 100 m; rounded first (500, 516 m; 10.0, 9.9 °C) it was -0.6
+  const m = column(
+    [
+      { t: 283.19, p: 95000 },
+      { t: 283.01, p: 94820 },
+    ],
+    [490.8, 510, 521.2],
+  );
+  assert.deepEqual(
+    soundingLevels(valuesAt(m, 0)).map((l) => l.lapseRate),
+    [0, -1.2],
+  );
+});

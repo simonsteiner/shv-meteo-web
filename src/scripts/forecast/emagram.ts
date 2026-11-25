@@ -27,12 +27,44 @@ export const PRESSURE_TICKS = [1000, 900, 800, 700, 600];
 export const TEMP_TICKS = [-10, 0, 10, 20, 30];
 export const ALTITUDE_TICKS = [1000, 2000, 3000, 4000];
 
-export function pToY(p: number): number {
-  const c = Math.max(P_MIN, Math.min(P_MAX, p));
+/** A pressure's height on the chart, unclamped: past 600 or 1000 hPa it
+ * leaves the plot, where the clip paths cut it off. */
+function yOf(p: number): number {
   return (
-    PAD_T + PLOT_H - (Math.log(P_MAX / c) / Math.log(P_MAX / P_MIN)) * PLOT_H
+    PAD_T + PLOT_H - (Math.log(P_MAX / p) / Math.log(P_MAX / P_MIN)) * PLOT_H
   );
 }
+
+/** A pressure's height on the chart, clamped to the plot. */
+export function pToY(p: number): number {
+  return yOf(Math.max(P_MIN, Math.min(P_MAX, p)));
+}
+
+const inRange = (p: number) => p >= P_MIN && p <= P_MAX;
+
+/** Where the wind column draws `kmh`: from 20 px right of the plot, 75 px
+ * for the full scale. The curve and its axis labels both use it. */
+function windX(kmh: number): number {
+  return PAD_L + PLOT_W + 20 + Math.min(1, Math.max(0, kmh / WIND_MAX)) * 75;
+}
+
+/** The wind axis's labels, placed where the curve draws their speeds. */
+export const WIND_LABELS = [15, 30, 45].map((kmh) => ({ kmh, x: windX(kmh) }));
+
+/** The ids of the clip paths EmagramCard.astro defines from PLOT_CLIP and
+ * WIND_CLIP. */
+export const PLOT_CLIP_ID = "emagram-plot-clip";
+export const WIND_CLIP_ID = "emagram-wind-clip";
+
+/** The plot's area and the wind column's, for the clip paths that keep the
+ * curves and the isotherms inside them (EmagramCard.astro). */
+export const PLOT_CLIP = { x: PAD_L, y: PAD_T, width: PLOT_W, height: PLOT_H };
+export const WIND_CLIP = {
+  x: PAD_L + PLOT_W,
+  y: PAD_T,
+  width: SVG_W - PAD_R - PAD_L - PLOT_W,
+  height: PLOT_H,
+};
 
 export function tToX(t: number, y: number): number {
   return (
@@ -63,22 +95,38 @@ export function gridSvg(): string {
     const y = f1(pToY(p));
     return `<line x1="${PAD_L}" y1="${y}" x2="${PAD_L + PLOT_W}" y2="${y}" ${GRID} stroke-dasharray="3,3"/><text x="${PAD_L - 6}" y="${f1(pToY(p) + 4)}" ${LABEL} text-anchor="end">${p}</text>`;
   });
-  const isotherms = TEMP_TICKS.map((t) => {
-    const y1 = PAD_T + PLOT_H;
-    const x1 = tToX(t, y1);
-    return `<line x1="${f1(x1)}" y1="${y1}" x2="${f1(tToX(t, PAD_T))}" y2="${PAD_T}" ${GRID} opacity="0.75"/><text x="${f1(x1)}" y="${y1 + 18}" ${LABEL} text-anchor="middle">${t}</text>`;
-  });
-  return isobars.join("") + isotherms.join("");
+  const y1 = PAD_T + PLOT_H;
+  // the skewed isotherms run past the plot's right edge: clipped to it
+  const isotherms = TEMP_TICKS.map(
+    (t) =>
+      `<line x1="${f1(tToX(t, y1))}" y1="${y1}" x2="${f1(tToX(t, PAD_T))}" y2="${PAD_T}" ${GRID} opacity="0.75"/>`,
+  );
+  const labels = TEMP_TICKS.map(
+    (t) =>
+      `<text x="${f1(tToX(t, y1))}" y="${y1 + 18}" ${LABEL} text-anchor="middle">${t}</text>`,
+  );
+  return `${isobars.join("")}<g clip-path="url(#${PLOT_CLIP_ID})">${isotherms.join("")}</g>${labels.join("")}`;
 }
 
-/** Where an altitude lies: at the level within 150 m of it, else on a
- * linear 0 to 5000 m scale. */
+/** Where an altitude lies: between the two levels around it, linear in
+ * height and so in log pressure; outside the levels on a linear 0 to
+ * 5000 m scale. */
 export function altitudeY(
   alt: number,
   levels: readonly SoundingLevel[],
 ): number {
-  const near = levels.find((l) => Math.abs(l.heightM - alt) < 150);
-  return near ? pToY(near.pressHpa) : PAD_T + PLOT_H - (alt / 5000) * PLOT_H;
+  const sorted = [...levels].sort((a, b) => a.heightM - b.heightM);
+  for (let i = 1; i < sorted.length; i++) {
+    const lo = sorted[i - 1];
+    const hi = sorted[i];
+    if (alt < lo.heightM || alt > hi.heightM) continue;
+    const t =
+      hi.heightM === lo.heightM
+        ? 0
+        : (alt - lo.heightM) / (hi.heightM - lo.heightM);
+    return pToY(lo.pressHpa) + (pToY(hi.pressHpa) - pToY(lo.pressHpa)) * t;
+  }
+  return PAD_T + PLOT_H - (alt / 5000) * PLOT_H;
 }
 
 /** The altitude lines in the wind column. */
@@ -104,20 +152,15 @@ export function soundingCurves(levels: readonly SoundingLevel[]): Curves {
   let temp = "";
   let barbs = "";
   levels.forEach((l, i) => {
-    const y = pToY(l.pressHpa);
+    const y = yOf(l.pressHpa);
     dew.push(`${f1(tToX(l.dewC, y))},${f1(y)}`);
     if (i > 0) {
       const prev = levels[i - 1];
-      const py = pToY(prev.pressHpa);
+      const py = yOf(prev.pressHpa);
       temp += `<line x1="${f1(tToX(prev.tempC, py))}" y1="${f1(py)}" x2="${f1(tToX(l.tempC, y))}" y2="${f1(y)}" stroke="${lapseColor(l.lapseRate)}" stroke-width="3.6" stroke-linecap="round"/>`;
     }
-    const wx =
-      PAD_L +
-      PLOT_W +
-      20 +
-      Math.min(1, Math.max(0, l.speedKmH / WIND_MAX)) * 75;
-    wind.push(`${f1(wx)},${f1(y)}`);
-    if (i % 3 === 0 || i === levels.length - 1) {
+    wind.push(`${f1(windX(l.speedKmH))},${f1(y)}`);
+    if ((i % 3 === 0 || i === levels.length - 1) && inRange(l.pressHpa)) {
       const rad = ((l.dirDeg - 90) * Math.PI) / 180;
       barbs += `<g transform="translate(${PAD_L + PLOT_W + 12}, ${f1(y)})"><circle cx="0" cy="0" r="2.5" fill="#0284C7"/><line x1="0" y1="0" x2="${f1(Math.cos(rad) * 16)}" y2="${f1(Math.sin(rad) * 16)}" stroke="#0284C7" stroke-width="1.8"/></g>`;
     }
