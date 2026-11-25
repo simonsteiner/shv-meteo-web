@@ -16,9 +16,11 @@ export type Handoff =
 
 const MAP_PATH = "/map/";
 
-/** Upstream ids are `<provider>:<id>`: `meteo_swiss:KLO`,
- * `mistral:dpcn-piemonte:46.30361,8.36639`, `abufdalp:bielen-startplatz`. */
-const ID = /^[\w-]{1,50}:[^\s/]{1,100}$/;
+/** Upstream station ids are `<provider>:<id>`: `meteo_swiss:KLO`,
+ * `mistral:dpcn-piemonte:46.30361,8.36639`, `abufdalp:bielen-startplatz`;
+ * never a `/`. The Function's timeseries route accepts the same, so no id
+ * passes the browser to get a 400 there. */
+export const STATION_ID = /^[a-z_]+:[^/\s]{1,100}$/;
 
 /** A flying site's `siteId`, a UUID in today's data. */
 const SITE_ID = /^[\w-]{1,64}$/;
@@ -53,8 +55,8 @@ export function readHandoff(search: string): Handoff | null {
   // URLSearchParams never throws: a bad escape decodes to U+FFFD
   for (const [key, value] of new URLSearchParams(search)) {
     if (key === "locate" && value === "") return { locate: true };
-    if (key === "station" && ID.test(value)) return { station: value };
-    if (key === "webcam" && ID.test(value)) return { webcam: value };
+    if (key === "station" && STATION_ID.test(value)) return { station: value };
+    if (key === "webcam" && STATION_ID.test(value)) return { webcam: value };
     if (key === "site" && SITE_ID.test(value)) return { site: value };
   }
   return null;

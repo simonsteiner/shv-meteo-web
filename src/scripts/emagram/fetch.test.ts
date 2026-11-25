@@ -1,21 +1,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import type { Context, PrevitempsGrid } from "../types.ts";
+import type { Context } from "../types.ts";
 import { soundingRoute } from "./fetch.ts";
+import { GRID } from "./grid.ts";
 import { BROKEN, COLUMN, pointAnswer } from "./point.fixture.ts";
 import { soundingFromForecast } from "./sounding.ts";
 
-const grid: PrevitempsGrid = {
-  "disentis/mustér": {
-    name: "Disentis/Mustér",
-    modelKey: "meteo_swiss:icon_ch1",
-    model: "ICON-CH1",
-    pointIndex: 42,
-    elevation: 1130.4,
-    latitude: 46.7,
-    longitude: 8.85,
-  },
-};
+/** The catalogue's Disentis/Mustér grid point, as the Function imports it. */
+const DISENTIS = GRID["disentis/mustér"];
+const POINT = DISENTIS.pointIndex;
 
 const ctx = (path: string) =>
   ({
@@ -69,30 +62,30 @@ test("a catalogue name with a slash returns the latest run's point data as upstr
   const calls: string[] = [];
   const res = await soundingRoute(
     ctx("Disentis%2FMust%C3%A9r"),
-    grid,
     fakeFetch(calls),
   );
   assert.equal(res.status, 200);
   assert.equal(res.headers.get("Cache-Control"), "max-age=1200");
   assert.equal(res.headers.get("Content-Type"), "application/json");
   const body = await res.json();
+  const { name, model, elevation, latitude, longitude } = DISENTIS;
   assert.deepEqual(body.station, {
-    name: "Disentis/Mustér",
-    model: "ICON-CH1",
-    elevation: 1130.4,
-    latitude: 46.7,
-    longitude: 8.85,
+    name,
+    model,
+    elevation,
+    latitude,
+    longitude,
   });
   assert.equal(body.run, 3);
   assert.deepEqual(body.point, pointAnswer());
   // the runs list, then all six series in one call
   assert.deepEqual(calls.slice(1), [
-    "https://weather-ws-prod.ubmeteo.io/v1/point-data/meteo_swiss:icon_ch1/3/42?parameters=temperature,pressure,specific_humidity,height_half_level,wind_u,wind_v",
+    `https://weather-ws-prod.ubmeteo.io/v1/point-data/${DISENTIS.modelKey}/3/${POINT}?parameters=temperature,pressure,specific_humidity,height_half_level,wind_u,wind_v`,
   ]);
   // and the browser makes the sounding from it
   const sounding = soundingFromForecast(body);
-  assert.equal(sounding.stationName, "Disentis/Mustér");
-  assert.equal(sounding.elevation, 1130);
+  assert.equal(sounding.stationName, DISENTIS.name);
+  assert.equal(sounding.elevation, Math.round(DISENTIS.elevation));
   assert.equal(sounding.timeSteps.length, 2);
   assert.equal(sounding.timeSteps[1].levels.length, 3);
   assert.deepEqual(sounding.timeSteps[1].levels[0], {
@@ -109,7 +102,6 @@ test("a catalogue name with a slash returns the latest run's point data as upstr
 test("the newest run is taken whatever order upstream lists them in", async () => {
   const res = await soundingRoute(
     ctx("Disentis%2FMust%C3%A9r"),
-    grid,
     fakeFetch([], "", COLUMN, [1, 3, 2]),
   );
   assert.equal(res.status, 200);
@@ -119,7 +111,7 @@ test("the newest run is taken whatever order upstream lists them in", async () =
 test("a newest run without data falls back to the one before", async () => {
   const calls: string[] = [];
   const res = await quietly(() =>
-    soundingRoute(ctx("Disentis%2FMust%C3%A9r"), grid, fakeFetch(calls, "/3/")),
+    soundingRoute(ctx("Disentis%2FMust%C3%A9r"), fakeFetch(calls, "/3/")),
   );
   assert.equal(res.status, 200);
   assert.equal((await res.json()).run, 2);
@@ -129,7 +121,7 @@ test("a newest run without data falls back to the one before", async () => {
 
 test("an unknown name is a 404 without an upstream call", async () => {
   const calls: string[] = [];
-  const res = await soundingRoute(ctx("Atlantis"), grid, fakeFetch(calls));
+  const res = await soundingRoute(ctx("Atlantis"), fakeFetch(calls));
   assert.equal(res.status, 404);
   assert.deepEqual(await res.json(), {
     error: "Unbekannte Sondierungsstation",
@@ -142,7 +134,6 @@ test("a run without one complete level is the route's 503", async () => {
   const res = await quietly(() =>
     soundingRoute(
       ctx("Disentis%2FMust%C3%A9r"),
-      grid,
       fakeFetch(calls, "", NO_HUMIDITY),
     ),
   );
@@ -155,7 +146,7 @@ test("a run without one complete level is the route's 503", async () => {
 
 test("a failed point fetch is the route's 503", async () => {
   const res = await quietly(() =>
-    soundingRoute(ctx("disentis%2Fmust%C3%A9r"), grid, fakeFetch([], "/42?")),
+    soundingRoute(ctx("disentis%2Fmust%C3%A9r"), fakeFetch([], `/${POINT}?`)),
   );
   assert.equal(res.status, 503);
   assert.deepEqual(await res.json(), {
@@ -166,11 +157,7 @@ test("a failed point fetch is the route's 503", async () => {
 test("a column that is no atmosphere is the route's 503", async () => {
   const calls: string[] = [];
   const res = await quietly(() =>
-    soundingRoute(
-      ctx("Disentis%2FMust%C3%A9r"),
-      grid,
-      fakeFetch(calls, "", BROKEN),
-    ),
+    soundingRoute(ctx("Disentis%2FMust%C3%A9r"), fakeFetch(calls, "", BROKEN)),
   );
   assert.equal(res.status, 503);
   // the runs list, then the newest two runs (3 and 2) before giving up;

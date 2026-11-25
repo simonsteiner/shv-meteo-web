@@ -3,7 +3,10 @@
 // the whole answer, headers and body. Without the body in it, an upstream
 // that sent its headers and then stalled held the Function until
 // Cloudflare stopped it. The body still streams; it errors at the deadline.
-import { USER_AGENT } from "./routes.ts";
+
+/** Sent upstream instead of a browser's; never poses as the official app. */
+export const USER_AGENT =
+  "shv-meteo-web (+https://github.com/simonsteiner/shv-meteo-web)";
 
 /** The reason a call past its deadline fails with. */
 function timeout(url: string, timeoutMs: number): DOMException {

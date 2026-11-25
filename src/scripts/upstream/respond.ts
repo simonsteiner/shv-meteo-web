@@ -9,7 +9,6 @@
 // JSON (the stored body is upstream's, never checked on the way in).
 import type { Context } from "../types.ts";
 import { fetchUpstream } from "./fetch.ts";
-import { parseParams } from "./params.ts";
 import { ROUTES, type Route, type RouteName } from "./routes.ts";
 
 const DEFAULT_TYPE = "application/json; charset=utf-8";
@@ -190,35 +189,31 @@ function edgeCache(): Cache | undefined {
     : undefined;
 }
 
-/** A whole route: checks the parameters, then answers through `respond`
- * from what `fetcher` makes of them. What each Function in functions/api/
- * calls, through `proxy` for a route with one upstream. `check` may answer
- * instead (a 404 for a name the route doesn't know) before any upstream
- * call or cache lookup. */
+/** A whole route: the route's `parse` checks the parameters (answering a
+ * 400 or 404 before any upstream call or cache lookup), then `respond`
+ * answers from what `compute` makes of them and the route's timeout. What
+ * each Function in functions/api/ calls, through `proxy` for a route with
+ * one upstream. */
 export async function serve(
   name: RouteName,
   ctx: Context,
-  fetcher: (params: Record<string, string>) => Promise<Response>,
-  {
-    cache = edgeCache(),
-    check,
-  }: {
-    cache?: Cache;
-    check?: (params: Record<string, string>) => Response | null;
-  } = {},
+  compute: (
+    params: Record<string, string>,
+    timeoutMs: number,
+  ) => Promise<Response>,
+  { cache = edgeCache() }: { cache?: Cache } = {},
 ): Promise<Response> {
+  const route = ROUTES[name];
   const search = new URL(ctx.request.url).searchParams;
-  const params = parseParams(name, ctx.params, search);
+  const params = route.parse(ctx.params, search);
   if (params instanceof Response) return params;
-  const refused = check?.(params);
-  if (refused) return refused;
   // the copy is keyed by the route and its checked parameters, so
   // `meteo_swiss%3AKLO` and `meteo_swiss:KLO`, or `en` and `de`, share one
   const query = new URLSearchParams(Object.entries(params).sort());
   return respond(
-    ROUTES[name],
+    route,
     `/api/_cache/${name}?${query}`,
-    () => fetcher(params),
+    () => compute(params, route.timeoutMs),
     ctx,
     cache,
   );
@@ -236,7 +231,7 @@ export function proxy(
   return serve(
     name,
     ctx,
-    (params) => fetchUpstream(url(params, Date.now()), route.timeoutMs),
+    (params, timeoutMs) => fetchUpstream(url(params, Date.now()), timeoutMs),
     { cache },
   );
 }

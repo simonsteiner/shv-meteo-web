@@ -22,7 +22,7 @@ import { TIERS } from "../src/scripts/obstacles/cells.ts";
 import { slim } from "../src/scripts/obstacles/lod.ts";
 import { buildShards } from "../src/scripts/obstacles/shards.ts";
 import type { ObstacleFeature } from "../src/scripts/types.ts";
-import { USER_AGENT } from "../src/scripts/upstream/routes.ts";
+import { USER_AGENT } from "../src/scripts/upstream/fetch.ts";
 
 const SOURCE_URL =
   "https://shv-app-static-prod.ubmeteo.io/v1/obstacles/bazl.geojson";

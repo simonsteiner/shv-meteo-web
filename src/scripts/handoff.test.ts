@@ -60,6 +60,8 @@ test("unknown or malformed parameters are ignored", () => {
   assert.equal(readHandoff("?station=KLO"), null);
   assert.equal(readHandoff("?station=meteo_swiss%3A..%2Fx%2Fy"), null);
   assert.equal(readHandoff("?webcam=a%20b%3Ac"), null);
+  // the Function would answer a provider with a digit or hyphen a 400
+  assert.equal(readHandoff("?station=meteo-swiss2%3AKLO"), null);
   assert.equal(readHandoff("?locate=1"), null);
   assert.equal(readHandoff("?site="), null);
   assert.equal(readHandoff("?site=a%2Fb"), null);
