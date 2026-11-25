@@ -10,6 +10,7 @@ import {
   type StationPair,
 } from "../foehn/report.ts";
 import { fill, type Say } from "../i18n/text.ts";
+import { isOneOf } from "../coerce.ts";
 
 /** The dictionary keys for the two sides: station2 is shown first, south
  * or east of the pair. */
@@ -49,8 +50,7 @@ export function pairStatusText(
   say: Say,
 ): { title: string; text: string } {
   const status: string = pair.status;
-  if (!(PAIR_STATUSES as readonly string[]).includes(status))
-    return { title: status, text: "" };
+  if (!isOneOf(PAIR_STATUSES, status)) return { title: status, text: "" };
   return {
     title: say(`weather.foehnStatus.${status}`),
     text: fill(say(`weather.foehnText.${status}`), {

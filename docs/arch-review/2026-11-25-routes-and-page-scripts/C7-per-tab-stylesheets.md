@@ -32,7 +32,7 @@ flowchart LR
   style after fill:#fafaf9,stroke:#e2e8f0
 ```
 
-`Base.astro` and `weather.css` change together in 3 commits (60%): a tab's style change lands in the layout every tab uses.
+`Base.astro` and `weather.css` change together in 3 of their 7 commits each (43%): a tab's style change lands in the layout every tab uses.
 
 **Removes:**
 
