@@ -15,3 +15,14 @@ test("an image without a fallback is left to the caller", () => {
   assert.equal(useFallback(img), false);
   assert.equal(img.src, "a.jpg");
 });
+
+test("a kept fallback swaps again once the source changed back", () => {
+  const img = { src: "latest.jpg", dataset: { fallback: "thumb.jpg" } };
+  assert.equal(useFallback(img, { once: false }), true);
+  assert.equal(img.src, "thumb.jpg");
+  // the fallback itself failing leaves it to the caller
+  assert.equal(useFallback(img, { once: false }), false);
+  img.src = "latest.jpg";
+  assert.equal(useFallback(img, { once: false }), true);
+  assert.equal(img.src, "thumb.jpg");
+});

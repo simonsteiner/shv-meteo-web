@@ -8,15 +8,18 @@ export function must<T extends Element>(root: ParentNode, selector: string): T {
   return el;
 }
 
-/** Swaps a failed image to its `data-fallback` source, once. False when it
- * has none (left), so the caller shows its own empty state. */
-export function useFallback(img: {
-  src: string;
-  dataset: Record<string, string | undefined>;
-}): boolean {
+/** Swaps a failed image to its `data-fallback` source. False when it has
+ * none, or (`once`, the default) it was used already, or it is the source
+ * that failed, so the caller shows its own empty state. `once: false`
+ * keeps the fallback for an image whose source changes again (the sheet's
+ * webcam, which toggles to its time-lapse and back). */
+export function useFallback(
+  img: { src: string; dataset: Record<string, string | undefined> },
+  { once = true }: { once?: boolean } = {},
+): boolean {
   const fallback = img.dataset.fallback;
-  if (!fallback) return false;
-  delete img.dataset.fallback;
+  if (!fallback || img.src === fallback) return false;
+  if (once) delete img.dataset.fallback;
   img.src = fallback;
   return true;
 }
