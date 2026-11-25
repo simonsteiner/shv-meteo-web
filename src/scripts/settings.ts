@@ -3,11 +3,12 @@
 // on each navigation; it persists in localStorage under `shv_*` keys,
 // beside the keys the app already stored (language, theme). The logbook
 // and the vario simulator are gone from the web version; their old
-// `shv_flights` and `shv_varioRate` keys are neither read nor cleared, so a
-// pilot's stored flights stay in their browser. A missing, unparsable or unknown value falls back to its
-// default, so an old or hand-edited value never breaks a page. The
-// pre-flight checklist lives in sessionStorage: it survives moving between
-// pages but not closing the tab. Storage is a parameter, for the tests.
+// `shv_flights` and `shv_varioRate` keys are neither read nor cleared, so
+// a pilot's stored flights stay in their browser. A missing, unparsable or
+// unknown value falls back to its default, so an old or hand-edited value
+// never breaks a page. The pre-flight checklist lives in sessionStorage:
+// it survives moving between pages but not closing the tab. Storage is a
+// parameter, for the tests.
 
 import { isOneOf, isRecord } from "./coerce.ts";
 
