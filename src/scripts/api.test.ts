@@ -226,6 +226,26 @@ test("a fresh getMeasurements asks again, and later reads share its answer", asy
       assert.equal(await ShvApi.getMeasurements(), fresh);
     },
   );
-  assert.ok(calls.filter((u) => u === "/api/measurements").length >= 1);
+  // the first read may share an earlier test's answer (the memo is the
+  // module's); the fresh one always asks, and the plain reads never do
   assert.equal(calls.filter((u) => u === "/api/measurements").length, n);
+});
+
+test("a superseded read that fails doesn't evict the fresh one", async () => {
+  let n = 0;
+  let release: (r: Response) => void = () => {};
+  const calls = await withFetch(
+    () =>
+      ++n === 1
+        ? new Promise<Response>((resolve) => (release = resolve))
+        : Response.json({ type: "FeatureCollection", features: [], n }),
+    async () => {
+      const slow = ShvApi.getMeasurements({ fresh: true });
+      const fresh = await ShvApi.getMeasurements({ fresh: true });
+      release(new Response("down", { status: 503 }));
+      assert.equal(await slow, null);
+      assert.equal(await ShvApi.getMeasurements(), fresh);
+    },
+  );
+  assert.equal(calls.filter((u) => u === "/api/measurements").length, 2);
 });

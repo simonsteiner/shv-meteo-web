@@ -129,6 +129,14 @@ test("a null answer fails the data set, said while its layer is shown", () => {
   );
 });
 
+test("an answer that works after a failed one clears the failure", () => {
+  const s = session();
+  s.settle("measurements", null, "x", none);
+  assert.equal(s.plan(state, null).status, "Not loaded: measurements");
+  s.settle("measurements", {}, "x", none);
+  assert.equal(s.plan(state, null).status, "");
+});
+
 test("a throw while drawing fails the data set and is logged", (t) => {
   const log = t.mock.method(console, "error", () => {});
   const s = session();

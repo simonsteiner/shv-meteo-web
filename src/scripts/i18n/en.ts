@@ -94,6 +94,7 @@ export const en: Strings = {
     humidityFull: "Humidity",
     qnhFull: "Pressure QNH",
     measuredAt: "Measured at",
+    oldMeasurement: "over an hour old",
     asOf: "As of {time}: live measurements unavailable, cached values",
     qffFull: "Pressure QFF",
     qfeFull: "Station pressure QFE",

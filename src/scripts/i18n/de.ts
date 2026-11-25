@@ -94,6 +94,7 @@ export const de = {
     humidityFull: "Luftfeuchte",
     qnhFull: "Luftdruck QNH",
     measuredAt: "Messzeit",
+    oldMeasurement: "älter als eine Stunde",
     asOf: "Stand {time}: Live-Messwerte nicht erreichbar, zwischengespeicherte Werte",
     qffFull: "Luftdruck QFF",
     qfeFull: "Stationsdruck QFE",

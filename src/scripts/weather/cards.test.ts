@@ -10,6 +10,7 @@ const text = {
   temp: "Temp",
   windDirection: "Windrichtung",
   measuredAt: "Messzeit",
+  old: "älter als eine Stunde",
 };
 const evil = `<img src=x onerror="alert(1)">`;
 
@@ -91,9 +92,12 @@ test("a card shows its measurement time in Swiss time and greys out an old one",
   const fresh = card(at);
   assert.ok(fresh.includes("18:40"));
   assert.ok(!fresh.includes("is-old"));
+  assert.ok(!fresh.includes("älter als eine Stunde"));
   const old = card(at - 3 * 3_600_000);
   assert.ok(old.includes("15:40"));
   assert.ok(old.includes("is-old"));
+  // said in words too, not only by the grey
+  assert.ok(old.includes("älter als eine Stunde"));
 });
 
 test("the cards hide an altitude of 0", () => {

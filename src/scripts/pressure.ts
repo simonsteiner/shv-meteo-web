@@ -1,6 +1,7 @@
 // Which pressures a station shows, the same on the weather page and the
 // map: its sea-level pressure, labelled for what it is, and its own
-// pressure at the station (QFE). Upstream has three fields:
+// pressure at the station (QFE). The weather dialog and the map's sheet
+// show both; a weather card shows the sea-level one, else QFE. Upstream has three fields:
 // `pressureStandardMslValue` (QNH, what pilots set), `pressureMslValue`
 // (QFF, the only one the 83 DWD and Météo-France stations send) and
 // `pressureSurfaceValue` (QFE). Two quirks, measured on 2026-11-25:

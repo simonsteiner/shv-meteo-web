@@ -208,5 +208,6 @@ test("a pressure station without a QNH value leaves its pair without a differenc
   // no other pressure stands in: QFE would make a 50 hPa "severe" gradient
   const pair = body.pairs.find((p: { id: string }) => p.id === "GVE_GUT");
   assert.equal(pair.delta, null);
-  assert.equal(pair.alertLevel, "NONE");
+  assert.equal(pair.status, "NO_DATA");
+  assert.equal(pair.alertLevel, "UNKNOWN");
 });
