@@ -25,7 +25,7 @@ export const PAIR_STATUSES = [
   "MODERATE_GRADIENT",
   "STRONG_GRADIENT",
 ] as const;
-export type PairStatus = (typeof PAIR_STATUSES)[number];
+type PairStatus = (typeof PAIR_STATUSES)[number];
 
 export interface PairStation {
   id: string;

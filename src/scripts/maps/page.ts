@@ -62,7 +62,7 @@ function unknown(attribute: string, value: unknown): void {
   console.error(`[maps] Unknown ${attribute} "${String(value)}"`);
 }
 
-export function mountMap(root: HTMLElement): void {
+function mountMap(root: HTMLElement): void {
   const handoff: Handoff | null = readHandoff(location.search);
   const zoom = readZoom(location.search);
   const session = createMapSession({ handoff, zoom, say });

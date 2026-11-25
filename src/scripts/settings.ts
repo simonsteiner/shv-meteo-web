@@ -10,7 +10,7 @@
 import { isOneOf } from "./coerce.ts";
 
 export const LANGS = ["de", "fr", "it", "en"] as const;
-export const THEMES = ["dark", "light"] as const;
+const THEMES = ["dark", "light"] as const;
 export const BASE_MAPS = [
   "topoLight",
   "topoColor",
@@ -116,7 +116,7 @@ export function defaultSettings(): Settings {
 }
 
 const KEY_PREFIX = "shv_";
-export const CHECKLIST_KEY = "shv_checklist";
+const CHECKLIST_KEY = "shv_checklist";
 
 /** Kept as plain strings, as `shv_lang` and `shv_theme` always were; every
  * other key holds JSON. */

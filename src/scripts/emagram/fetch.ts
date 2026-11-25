@@ -27,7 +27,7 @@ const POINT_DATA = "https://weather-ws-prod.ubmeteo.io/v1/point-data";
 const RUNS_TRIED = 2;
 
 /** The point's six series of `run` in one answer. */
-export function soundingUrl(point: GridPoint, run: number): string {
+function soundingUrl(point: GridPoint, run: number): string {
   return `${POINT_DATA}/${point.modelKey}/${run}/${point.pointIndex}?parameters=${SOUNDING_PARAMETERS.join(",")}`;
 }
 
@@ -52,7 +52,7 @@ async function pointOfRun(
 
 /** The station's forecast from the newest run that makes a sounding, as
  * the route's JSON text. */
-export async function fetchForecast(
+async function fetchForecast(
   point: GridPoint,
   timeoutMs: number,
   fetchFn: typeof fetch = fetch,

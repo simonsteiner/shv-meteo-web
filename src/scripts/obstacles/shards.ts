@@ -16,7 +16,7 @@ export interface ShardStats {
   largest: number;
 }
 
-export const MAX_SHARD_BYTES = 2_000_000;
+const MAX_SHARD_BYTES = 2_000_000;
 const MAX_SPLITS = 4;
 
 export function buildShards(

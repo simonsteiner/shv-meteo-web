@@ -48,7 +48,7 @@ import { PROVIDERS, type Provider } from "./stations.ts";
 
 const { say } = store;
 
-export function mountWeather(root: HTMLElement): void {
+function mountWeather(root: HTMLElement): void {
   const query = readWeatherQuery(location.search);
   let pairs = initialPairState(query.pair ?? DEFAULT_PAIR);
   let tab: WeatherTab = query.tab ?? "stations";
