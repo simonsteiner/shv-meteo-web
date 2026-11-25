@@ -11,3 +11,22 @@ export function settled<T>(
     return null;
   });
 }
+
+/** Hands `call`'s value to `use`, or calls `onFail` when the call failed
+ * or `use` threw while drawing it (both logged under `label`). */
+export function settledInto<T>(
+  call: Promise<T | null>,
+  label: string,
+  use: (data: T) => void,
+  onFail: () => void,
+): Promise<void> {
+  return settled(call, label).then((data) => {
+    if (!data) return onFail();
+    try {
+      use(data);
+    } catch (err) {
+      console.error(label, err);
+      onFail();
+    }
+  });
+}

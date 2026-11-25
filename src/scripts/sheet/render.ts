@@ -110,7 +110,8 @@ export function mountSheet(
         return;
       }
       if (!img.hasAttribute("data-webcam-img")) return;
-      if (useFallback(img)) return;
+      // the webcam swaps back to its latest image, so keep the fallback
+      if (useFallback(img, { once: false })) return;
       console.error("[sheet] The webcam has no image to show:", img.src);
       img.parentElement?.insertAdjacentHTML("beforebegin", noImageHtml(say));
       img.parentElement?.remove();

@@ -19,7 +19,6 @@ export interface Drawn {
   stationsMode: MeteoMode | null;
   obstacles: boolean;
   selection: Selection | null;
-  sheetLang: string | null;
 }
 
 export const NOTHING_DRAWN: Drawn = {
@@ -28,7 +27,6 @@ export const NOTHING_DRAWN: Drawn = {
   stationsMode: null,
   obstacles: false,
   selection: null,
-  sheetLang: null,
 };
 
 export interface Redraws {
@@ -66,7 +64,7 @@ export function redraws(
       sites: sites !== drawn.sites,
       stations: stationsMode !== null && stationsMode !== drawn.stationsMode,
       obstacles,
-      sheet: !sameSelection || state.lang !== drawn.sheetLang,
+      sheet: !sameSelection || state.lang !== drawn.lang,
     },
     drawn: {
       lang: state.lang,
@@ -74,7 +72,6 @@ export function redraws(
       stationsMode,
       obstacles: state.layers.obstacles,
       selection,
-      sheetLang: state.lang,
     },
   };
 }

@@ -358,6 +358,12 @@
   flex: 1;
 }
 
+/* A retry that is loading stays focusable, so it isn't disabled */
+.foehn-retry[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: progress;
+}
+
 /* Parts the page shows and hides; their own display rules would otherwise
    win over [hidden]. */
 .foehn-gauge-pill[hidden],
