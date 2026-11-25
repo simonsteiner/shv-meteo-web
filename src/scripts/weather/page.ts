@@ -262,10 +262,21 @@ function mountWeather(root: HTMLElement): void {
         temp: say("weather.tempShort"),
         windDirection: say("weather.windDirection"),
         measuredAt: say("weather.measuredAt"),
+        old: say("weather.oldMeasurement"),
       };
+      // the refresh redraws the cards every 90 s: a focused card keeps focus
+      const focused = stationCards.contains(document.activeElement)
+        ? (document.activeElement as HTMLElement).dataset.stationId
+        : undefined;
       stationCards.innerHTML = view.stations
         .map((st) => stationCardHtml(st, text))
         .join("");
+      if (focused)
+        stationCards
+          .querySelector<HTMLElement>(
+            `[data-station-id="${CSS.escape(focused)}"]`,
+          )
+          ?.focus();
     } else {
       webcamCards.innerHTML = view.webcams.map(webcamCardHtml).join("");
     }
@@ -372,11 +383,21 @@ function mountWeather(root: HTMLElement): void {
     }
     render();
   };
-  void ShvApi.getMeasurements().then((v) => takeMeasurements(v, true));
+  // one request at a time: a refresh never starts while another, or the
+  // first load, is still on its way, so an older answer can't land last
+  let loading = true;
+  void ShvApi.getMeasurements().then((v) => {
+    loading = false;
+    takeMeasurements(v, true);
+  });
+  // every 90 s while the page is visible and the station cards are shown
   whileVisible(() => {
-    void ShvApi.getMeasurements({ fresh: true }).then((v) =>
-      takeMeasurements(v, false),
-    );
+    if (loading || tab !== "stations") return;
+    loading = true;
+    void ShvApi.getMeasurements({ fresh: true }).then((v) => {
+      loading = false;
+      takeMeasurements(v, false);
+    });
   });
   void ShvApi.getWebcams().then((v) => {
     webcams = v?.webcams ?? null;
