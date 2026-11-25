@@ -44,7 +44,7 @@ flowchart LR
 **Removes:**
 
 - `src/scripts/upstream/params.ts:42-68`: the `if (route === "timeseries" | "textForecast" | "sounding" | "foehn")` chain.
-- `src/scripts/upstream/routes.ts:20`: `query: []` on the four routes that take none.
+- `src/scripts/upstream/routes.ts:19`: `query: string[]`, set to `query: []` on the five routes that take none.
 - `src/scripts/upstream/respond.ts:198-214`: `serve`'s `check` option, used by one route.
 - `src/scripts/emagram/fetch.ts:120`: the `check` closure that answers the sounding's 404.
 
