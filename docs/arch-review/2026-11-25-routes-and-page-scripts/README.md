@@ -39,11 +39,11 @@ The backlog, in rank order. After the scan only three parts of the report change
 | [S1](#s1--one-station-id-pattern) | One station id pattern | - | ↔ two-way | coupling | pr-open | rides with C1 | #66 | no | |
 | [S2](#s2--hand-the-compute-its-timeout) | Hand the compute its timeout | - | ↔ two-way | coupling | pr-open | rides with C1 | #66 | no | |
 | [S3](#s3--one-default-pair-and-one-retryable-memo-in-shvapi) | One default pair and one retryable memo in `ShvApi` | - | ↔ two-way | maintainability | pr-open | rides with C2 | #67 | no | |
-| [S4](#s4--fail-loudly-on-a-changed-sounding-shape) | Fail loudly on a changed sounding shape | - | ↔ two-way | maintainability | in-progress | `chore/arch-review-small-fixes` | | | |
-| [S5](#s5--use-round1-from-unitsts) | Use `round1` from `units.ts` | - | ↔ two-way | maintainability | in-progress | `chore/arch-review-small-fixes` | | | |
-| [S6](#s6--drop-exports-nothing-imports) | Drop exports nothing imports | - | ↔ two-way | coupling | in-progress | `chore/arch-review-small-fixes` | | | |
-| [S7](#s7--replace-the-200-ms-resize-timer) | Replace the 200 ms resize timer | - | ↔ two-way | maintainability | in-progress | `chore/arch-review-small-fixes` | | | |
-| [S8](#s8--load-leafletcss-only-where-a-map-draws) | Load `leaflet.css` only where a map draws | - | ↔ two-way | coupling | in-progress | `chore/arch-review-small-fixes` | | | found by C7's Design |
+| [S4](#s4--fail-loudly-on-a-changed-sounding-shape) | Fail loudly on a changed sounding shape | - | ↔ two-way | maintainability | pr-open | `chore/arch-review-small-fixes` | [#73](https://github.com/simonsteiner/shv-meteo-web/pull/73) | no | |
+| [S5](#s5--use-round1-from-unitsts) | Use `round1` from `units.ts` | - | ↔ two-way | maintainability | pr-open | `chore/arch-review-small-fixes` | [#73](https://github.com/simonsteiner/shv-meteo-web/pull/73) | no | |
+| [S6](#s6--drop-exports-nothing-imports) | Drop exports nothing imports | - | ↔ two-way | coupling | pr-open | `chore/arch-review-small-fixes` | [#73](https://github.com/simonsteiner/shv-meteo-web/pull/73) | no | |
+| [S7](#s7--replace-the-200-ms-resize-timer) | Replace the 200 ms resize timer | - | ↔ two-way | maintainability | pr-open | `chore/arch-review-small-fixes` | [#73](https://github.com/simonsteiner/shv-meteo-web/pull/73) | no | |
+| [S8](#s8--load-leafletcss-only-where-a-map-draws) | Load `leaflet.css` only where a map draws | - | ↔ two-way | coupling | pr-open | `chore/arch-review-small-fixes` | [#73](https://github.com/simonsteiner/shv-meteo-web/pull/73) | no | found by C7's Design |
 
 Strength: 🟢 Strong · 🟡 Worth exploring · ⚪ Speculative · 🔴 live defect (a bug reproduced during the scan).
 Door: ↔ two-way (a revert undoes it) · 🚪 one-way (a data migration, a published wire or file format, deleted user data; stops at Step 6 for the user).
