@@ -43,15 +43,21 @@ test("toggle ticks every delay and marks the button, a second toggle stops", () 
   }
 });
 
-test("stop is idempotent", () => {
+test("stop ends playback and is idempotent", () => {
   mock.timers.enable({ apis: ["setInterval"] });
   try {
-    const { b, attrs } = button();
-    const s = stepper(b, 100, () => {});
+    const { b, classes, attrs } = button();
+    let ticks = 0;
+    const s = stepper(b, 100, () => ticks++);
+    s.toggle();
+    mock.timers.tick(100);
     s.stop();
     s.stop();
     assert.equal(s.playing, false);
+    assert.equal(classes.has("playing"), false);
     assert.equal(attrs["aria-pressed"], "false");
+    mock.timers.tick(200);
+    assert.equal(ticks, 1);
   } finally {
     mock.timers.reset();
   }
