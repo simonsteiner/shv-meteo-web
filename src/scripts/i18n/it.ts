@@ -149,9 +149,11 @@ export const it: Strings = {
     typeSunshine: "Soleggiamento",
     typePrecipWeak: "Precipitazioni deboli",
     typePrecipStrong: "Precipitazioni forti",
-    legendSunshine: "Durata relativa del soleggiamento (6h)",
-    legendPrecipWeak: "Probabilità di precipitazioni deboli (> 0.1 mm / 12h)",
-    legendPrecipStrong: "Probabilità di precipitazioni forti (> 1.0 mm / 12h)",
+    legendSunshine: "Durata relativa del soleggiamento ({hours}h)",
+    legendPrecipWeak:
+      "Probabilità di precipitazioni deboli (> 0.1 mm / {hours}h)",
+    legendPrecipStrong:
+      "Probabilità di precipitazioni forti (> 1.0 mm / {hours}h)",
     interval: "Intervallo {n} di {total}",
     center: "Centra",
     centerTitle: "Centra sulla Svizzera",

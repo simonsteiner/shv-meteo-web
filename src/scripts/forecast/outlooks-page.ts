@@ -16,6 +16,7 @@ import {
   colorize,
   colorLut,
   intervalLabel,
+  intervalHours,
   legendGradient,
   OUTLOOK_BOUNDS,
   OUTLOOK_TYPES,
@@ -172,8 +173,9 @@ export function mountOutlooks(root: HTMLElement): void {
     );
     slider.max = String(frames.length - 1);
     slider.value = String(index);
-    must<HTMLElement>(root, "[data-outlook-legend-title]").textContent = say(
-      LEGEND[type],
+    must<HTMLElement>(root, "[data-outlook-legend-title]").textContent = fill(
+      say(LEGEND[type]),
+      { hours: intervalHours(frames[index]) ?? "?" },
     );
     must<HTMLElement>(root, "[data-outlook-legend-bar]").style.background =
       legendGradient(type);

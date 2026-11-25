@@ -150,9 +150,11 @@ export const fr: Strings = {
     typeSunshine: "Ensoleillement",
     typePrecipWeak: "Précipitations faibles",
     typePrecipStrong: "Précipitations fortes",
-    legendSunshine: "Durée d'ensoleillement relative (6h)",
-    legendPrecipWeak: "Probabilité de précipitations faibles (> 0.1 mm / 12h)",
-    legendPrecipStrong: "Probabilité de précipitations fortes (> 1.0 mm / 12h)",
+    legendSunshine: "Durée d'ensoleillement relative ({hours}h)",
+    legendPrecipWeak:
+      "Probabilité de précipitations faibles (> 0.1 mm / {hours}h)",
+    legendPrecipStrong:
+      "Probabilité de précipitations fortes (> 1.0 mm / {hours}h)",
     interval: "Intervalle {n} sur {total}",
     center: "Centrer",
     centerTitle: "Centrer sur la Suisse",

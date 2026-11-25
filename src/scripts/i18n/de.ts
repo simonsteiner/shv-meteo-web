@@ -147,10 +147,11 @@ export const de = {
     typeSunshine: "Sonnenschein",
     typePrecipWeak: "Niederschlag leicht",
     typePrecipStrong: "Niederschlag stark",
-    legendSunshine: "Relative Sonnenscheindauer (6h)",
-    legendPrecipWeak: "Niederschlagswahrscheinlichkeit leicht (> 0.1 mm / 12h)",
+    legendSunshine: "Relative Sonnenscheindauer ({hours}h)",
+    legendPrecipWeak:
+      "Niederschlagswahrscheinlichkeit leicht (> 0.1 mm / {hours}h)",
     legendPrecipStrong:
-      "Niederschlagswahrscheinlichkeit stark (> 1.0 mm / 12h)",
+      "Niederschlagswahrscheinlichkeit stark (> 1.0 mm / {hours}h)",
     interval: "Intervall {n} von {total}",
     center: "Zentrieren",
     centerTitle: "Schweiz zentrieren",

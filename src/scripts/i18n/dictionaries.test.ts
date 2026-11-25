@@ -48,3 +48,17 @@ test("every language gives Rega's radio frequency, tone squelch and alarm call",
     assert.ok(!text.includes("151.4"), `${lang}: no 151.4 Hz`);
   }
 });
+
+test("the outlook legends take their interval from the frames", () => {
+  for (const lang of LANGS) {
+    const f = DICTIONARIES[lang].forecast;
+    for (const key of [
+      "legendSunshine",
+      "legendPrecipWeak",
+      "legendPrecipStrong",
+    ] as const) {
+      assert.ok(f[key].includes("{hours}"), `${lang} ${key}`);
+      assert.ok(!/\d+h/.test(f[key]), `${lang} ${key}: no fixed hours`);
+    }
+  }
+});

@@ -3,6 +3,7 @@ import { test } from "node:test";
 import {
   colorize,
   colorLut,
+  intervalHours,
   intervalLabel,
   legendGradient,
   outlookFrames,
@@ -119,4 +120,25 @@ test("legendGradient follows the palette of the type", () => {
     legendGradient("PRECIPITATION_PROBABILITY_WEAK"),
     /^linear-gradient\(to right, #C7EDD2 0%/,
   );
+});
+
+test("a frame's interval comes from its own times, read as text", () => {
+  // the viewer takes the 6-hour set: its legend must not say 12 h
+  assert.equal(
+    intervalHours({
+      start: "2026-11-25T00:00",
+      end: "2026-11-25T06:00",
+      url: "",
+    }),
+    6,
+  );
+  assert.equal(
+    intervalHours({
+      start: "2026-11-25T00:00",
+      end: "2026-11-26T00:00",
+      url: "",
+    }),
+    24,
+  );
+  assert.equal(intervalHours({ start: "x", end: "y", url: "" }), null);
 });
