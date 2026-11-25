@@ -4,8 +4,6 @@
 
 import type { BaseMap, LayerKey, MapCategory, MeteoMode } from "../settings.ts";
 
-export type { LayerKey };
-
 export type DrawerSection =
   | { kind: "meteo" }
   | {
