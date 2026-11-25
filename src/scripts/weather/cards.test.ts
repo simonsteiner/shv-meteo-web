@@ -47,6 +47,25 @@ test("stationCardHtml labels station pressure QFE, never QNH", () => {
   assert.ok(qnh.includes(">1021<"));
 });
 
+test("the card's arrow points downwind, as on the map, and is left out without a direction", () => {
+  const card = (properties: Record<string, number>) =>
+    stationCardHtml(
+      {
+        id: "meteo_swiss:PIL",
+        geometry: { type: "Point", coordinates: [8, 47] },
+        properties,
+      },
+      text,
+    );
+  // a north wind blows south
+  const north = card({ windSpeedValue: 20, windDirectionValue: 0 });
+  assert.ok(north.includes("rotate(180deg)"));
+  assert.ok(north.includes("Windrichtung 0°"));
+  const none = card({ windSpeedValue: 20 });
+  assert.ok(!none.includes("st-card-arrow"));
+  assert.ok(!none.includes("rotate("));
+});
+
 test("the cards hide an altitude of 0", () => {
   const st = stationCardHtml(
     {

@@ -77,13 +77,22 @@ test("the wind marker is an arrow turned to the direction, a dot when calm", () 
     station({ windSpeedValue: 24.4, windDirectionValue: 200.4 }),
     "WIND",
   );
-  assert.ok(arrow?.html.includes("rotate(200deg)"));
+  // from 200° the wind blows to 20°: the arrow points downwind
+  assert.ok(arrow?.html.includes("rotate(20deg)"));
   assert.ok(arrow?.html.includes("#F5DA01"));
   assert.ok(arrow?.html.includes("Pilatus: 24 km/h (200°)"));
   const calm = stationMarker(station({ windSpeedValue: 2 }), "WIND");
   assert.ok(calm?.html.includes("wind-dot-svg"));
   assert.equal(stationMarker(station({ windSpeedValue: 10 }), "WIND"), null);
   assert.equal(stationMarker(station({}), "WIND"), null);
+});
+
+test("a north wind's arrow on the map points south", () => {
+  const arrow = stationMarker(
+    station({ windSpeedValue: 20, windDirectionValue: 0 }),
+    "WIND",
+  );
+  assert.ok(arrow?.html.includes("rotate(180deg)"));
 });
 
 test("the temperature marker shows the converted value", () => {
