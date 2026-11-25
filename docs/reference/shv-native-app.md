@@ -8,7 +8,7 @@ Member login (Keycloak) and the member web service are in [shv-native-auth.md](s
 
 - **SHV FSVL** (the federation): the member registry, licences (Brevets), the collective liability insurance and the Keycloak realm on `login.shv-fsvl.ch`.
 - **Ubique Innovation AG** (Zurich): builds the app and runs its backends, the `*.ubmeteo.io` hosts (Fluid Meteo SDK) and `shv-app-ws-prod.shv-app.ch`.
-- **Federal sources**, passed on through those backends or loaded directly: swisstopo maps (GeoAdmin WMTS and vector tiles), BAZL airspace, obstacles and the glider chart, BAFU wildlife zones, MeteoSwiss ICON models and stations.
+- **Federal sources**, passed on through those backends or loaded directly: swisstopo maps (GeoAdmin WMTS and vector tiles), BAZL airspace, obstacles and the glider chart, BAFU wildlife reserves, MeteoSwiss ICON models and stations.
 
 ## Hosts
 
@@ -18,11 +18,11 @@ What the app calls on each host, from the 2026-11-24 capture (app 1.1.0), and wh
 | :--- | :--- | :--- | :--- |
 | `login.shv-fsvl.ch` | SHV FSVL | OIDC discovery and token refresh | no, login dropped (PR13) |
 | `shv-app-ws-prod.shv-app.ch` | Ubique for SHV | `/v1/wms/person` (Bearer); `/v1/text/forecast/{lang}.json`; `/v1/text/isobaren/{lang}.svg` | text forecast through `/api/meteo/text-forecast/:lang`, isobars as an `<img>`; member data no |
-| `weather-ws-prod.ubmeteo.io` | Ubique | `/v1/measurements/current` and `/timeseries/<id>`; `/v1/point-data/<model>/...` (Previtemps); provider and product catalogues | `/api/measurements`, `/api/measurements/timeseries/:id`, `/api/foehn`, `/api/meteo/previtemps/forecast/:name` |
+| `weather-ws-prod.ubmeteo.io` | Ubique | `/v1/measurements/current` and `/timeseries/<id>`; `/v1/point-data/<model>/...` (Previtemps); provider and product catalogues | `/api/measurements`, `/api/measurements/timeseries/:id`, `/api/foehn`, `/api/meteo/previtemps/forecast/:name`; the catalogues no |
 | `webcam-prod.ubmeteo.io` | Ubique | `/v1/webcams/overview`, thumbnails | `/api/webcams`, thumbnails direct |
-| `static-prod.ubmeteo.io` | Ubique | vector base map, hillshade and elevation tiles; `/v1/products/grid/...` (Previtemps grid); Swiss and European forecast animations; outlook frames | outlooks direct; the grid at build time (`npm run grid`) |
-| `shv-app-static-prod.ubmeteo.io` | Ubique | flying sites, airspaces and wildlife zones as GeoJSON; obstacle and environment vector tiles | GeoJSON as snapshots in `public/data/`, the CDN as fallback; obstacles as our own shards (PR12) |
-| `wmts.geo.admin.ch`, `vectortiles*.geo.admin.ch` | swisstopo | raster maps, aerial images, the glider chart; vector base map | raster maps, aerial images and the glider chart direct |
+| `static-prod.ubmeteo.io` | Ubique | vector base map, hillshade and elevation tiles; `/v1/products/grid/...` (Previtemps grid); Swiss and European forecast animations; outlook frames | outlooks direct; the grid at build time (`npm run grid`); the map tiles and the Swiss and European animations no |
+| `shv-app-static-prod.ubmeteo.io` | Ubique | flying sites, airspaces and wildlife reserves as GeoJSON; obstacle and environment vector tiles | GeoJSON as snapshots in `public/data/`, the CDN as fallback; obstacles built from `/v1/obstacles/bazl.geojson` into our own shards (`npm run obstacles`, PR12); the vector tiles no |
+| `wmts.geo.admin.ch`, `vectortiles*.geo.admin.ch` | swisstopo | raster maps, aerial images, the glider chart; vector base map | raster maps, aerial images and the glider chart direct; the vector tiles no |
 | `app-in.ubmeteo.io`, `sentry.ubique.ch` | Ubique | app config, usage events, crash reports | no |
 
 ## Android app
