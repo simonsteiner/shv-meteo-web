@@ -26,3 +26,11 @@ export function isOneOf<T extends string>(
 ): v is T {
   return (allowed as readonly unknown[]).includes(v);
 }
+
+/** `v` when it is a non-null object, else {}: to read a field of an
+ * upstream value that may be anything. */
+export function obj(v: unknown): Record<string, unknown> {
+  return typeof v === "object" && v !== null
+    ? (v as Record<string, unknown>)
+    : {};
+}

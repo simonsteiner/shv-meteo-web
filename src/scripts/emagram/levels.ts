@@ -3,24 +3,27 @@
 // 550 hPa (about 5000 m, the top of a paragliding sounding chart). Ported
 // from the Express sounding provider; pure.
 import type { SoundingLevel } from "../types.ts";
+import { obj } from "../coerce.ts";
 import { round1 } from "../units.ts";
 
 /** One parameter's point data as levels x time steps, from
  * `data.levels[l].ensembleMembers[0].timeSeries`; levels run from the top
- * of the atmosphere (0) down to the ground. A level without a series is []. */
+ * of the atmosphere (0) down to the ground. A level without a series is [];
+ * point data without a levels array throws, so a changed upstream shape is
+ * an error and not an empty sounding. */
 export function parsePointData(raw: unknown): number[][] {
-  const levels = (raw as { data?: { levels?: unknown[] } })?.data?.levels;
-  if (!Array.isArray(levels)) return [];
+  const levels = obj(obj(raw).data).levels;
+  if (!Array.isArray(levels)) throw new Error("point data has no levels array");
   return levels.map((level) => {
-    const series = (level as { ensembleMembers?: { timeSeries?: unknown }[] })
-      ?.ensembleMembers?.[0]?.timeSeries;
+    const members = obj(level).ensembleMembers;
+    const series = obj(Array.isArray(members) ? members[0] : null).timeSeries;
     return Array.isArray(series) ? (series as number[]) : [];
   });
 }
 
 /** The point data's time steps, ms since the epoch. */
 export function pointValidTimes(raw: unknown): number[] {
-  const times = (raw as { validTimes?: unknown })?.validTimes;
+  const times = obj(raw).validTimes;
   return Array.isArray(times) ? (times as number[]) : [];
 }
 

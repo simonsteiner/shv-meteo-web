@@ -2,6 +2,7 @@
 // tile holding its coordinates (static-prod.ubmeteo.io), ICON-CH1's points
 // if the tile has them, else ICON-CH2's, and the nearest of those. Pure;
 // scripts/previtemps-grid.ts fetches the tiles and writes the result.
+import { obj } from "../coerce.ts";
 import type { GridPoint, IconModelKey, SoundingStation } from "../types.ts";
 
 /** The zoom-10 EPSG:4326 tile holding a coordinate (from the official app). */
@@ -39,7 +40,10 @@ export function nearestGridPoint(
   tile: unknown,
   station: SoundingStation,
 ): GridPoint {
-  const defs = (tile as Tile)?.definitions ?? [];
+  const raw = obj(tile).definitions;
+  if (!Array.isArray(raw))
+    throw new Error(`Grid tile for ${station.name} has no definitions array`);
+  const defs: NonNullable<Tile["definitions"]> = raw;
   for (const { key, model } of MODELS) {
     const def = defs.find((d) => d.products?.some((p) => p.identifier === key));
     const points = def?.gridPoints ?? [];

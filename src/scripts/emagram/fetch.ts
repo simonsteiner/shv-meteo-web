@@ -94,7 +94,9 @@ export function soundingRoute(
   fetchFn: typeof fetch = fetch,
 ): Promise<Response> {
   return serve("sounding", ctx, async ({ name }, timeoutMs) => {
-    const point = gridPoint(name, GRID) as GridPoint;
+    // the route's `parse` has answered the 404 for a name not in the grid
+    const point = gridPoint(name, GRID);
+    if (!point) throw new Error(`no grid point for ${name}`);
     try {
       return new Response(await fetchForecast(point, timeoutMs, fetchFn), {
         headers: { "Content-Type": "application/json" },
