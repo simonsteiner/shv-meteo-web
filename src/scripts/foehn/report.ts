@@ -17,6 +17,7 @@ type AlertLevel = "NONE" | "MODERATE" | "DANGER";
 
 /** What a pair's difference means; the dictionaries word each one. */
 export const PAIR_STATUSES = [
+  "NO_DATA",
   "CALM",
   "MODERATE_SOUTH_FOEHN",
   "SEVERE_SOUTH_FOEHN",
@@ -64,15 +65,13 @@ function num(v: unknown): number | null {
   return typeof v === "number" ? v : null;
 }
 
-/** MSL pressure in hPa, rounded; standard MSL or surface pressure when the
- * station reports no MSL value. */
+/** The station's QNH (`pressureStandardMslValue`, upstream's
+ * `pressure_standard_msl`, which the official app's pairs read) in hPa,
+ * rounded; null without one. No other pressure stands in: both stations of
+ * a pair must read the same kind, and a station pressure (QFE) beside a
+ * QNH makes a 35 to 52 hPa difference, a false severe alert. */
 export function stationPressure(st: MeasurementFeature): number | null {
-  const p = st.properties;
-  const v = toHpa(
-    num(p.pressureMslValue) ??
-      num(p.pressureStandardMslValue) ??
-      num(p.pressureSurfaceValue),
-  );
+  const v = toHpa(num(st.properties.pressureStandardMslValue));
   return v === null ? null : round1(v);
 }
 
@@ -90,7 +89,8 @@ export function assess(
   delta: number | null,
 ): Pick<StationPair, "status" | "alertLevel"> {
   const calm = { status: "CALM", alertLevel: "NONE" } as const;
-  if (delta === null) return calm;
+  // no difference is no data, never calm
+  if (delta === null) return { status: "NO_DATA", alertLevel: "NONE" };
   if (cfg.id === "KLO_LUG") {
     if (delta >= 8)
       return { status: "SEVERE_SOUTH_FOEHN", alertLevel: "DANGER" };

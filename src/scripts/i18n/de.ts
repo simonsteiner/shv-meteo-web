@@ -47,6 +47,7 @@ export const de = {
       DEM_GRE: "Jura-Querung (Delémont \u2013 Grenchen)",
     },
     foehnStatus: {
+      NO_DATA: "Keine Daten",
       CALM: "Ruhig",
       MODERATE_SOUTH_FOEHN: "Mässiger Südföhn",
       SEVERE_SOUTH_FOEHN: "Starker Südföhn",
@@ -56,6 +57,8 @@ export const de = {
       STRONG_GRADIENT: "Starker Druckgradient",
     },
     foehnText: {
+      NO_DATA:
+        "Für dieses Stationspaar fehlt ein aktueller Wert. Keine Aussage zum Föhn möglich.",
       CALM: "Normale Druckverhältnisse. Sichere Bedingungen.",
       MODERATE_SOUTH_FOEHN:
         "Mässiger Südföhn ({delta} hPa). Zunehmende Turbulenz und Gefahr des Föhndurchbruchs in den Alpentälern.",

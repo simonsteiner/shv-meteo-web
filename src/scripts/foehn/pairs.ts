@@ -2,7 +2,10 @@
 // PressureDifferenceGeoJsonTransformer), their difference and its 24-hour
 // history. A pair id names its two stations: KLO_LUG is Kloten and Lugano.
 // Pressure pairs are south minus north, except GVE_GUT, which is west minus
-// east; the temperature pair is the first station minus the second.
+// east, and read QNH (historyParameter); the temperature pair is the first
+// station minus the second. The alert thresholds (assess in report.ts:
+// 4/8 hPa for KLO_LUG, 3/6 hPa for the others) are this app's own, from the
+// old Express server, not found in the official app.
 import type { TimeseriesResponse } from "../types.ts";
 import { round1, toCelsius, toHpa } from "../units.ts";
 
@@ -100,9 +103,12 @@ export function pairDelta(
   return round1(v1 - v2);
 }
 
-/** The upstream series a pair's history reads. */
+/** The upstream parameter a pair reads, for its current values and its
+ * history alike: QNH (`pressure_standard_msl`) for a pressure pair, as the
+ * official app reads (APK `ch/shv_fsvl/feature/livemap/d.java`, `e.java`),
+ * and the "QNH" the weather page labels it. */
 export function historyParameter(cfg: PairConfig): string {
-  return cfg.isPressure ? "pressure_msl" : "temperature";
+  return cfg.isPressure ? "pressure_standard_msl" : "temperature";
 }
 
 export interface HistoryPoint {

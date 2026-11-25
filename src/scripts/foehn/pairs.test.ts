@@ -47,13 +47,13 @@ function ts(
 test("the history pairs matching times within 24 hours", () => {
   const now = new Date(Date.UTC(2026, 6, 14, 12, 0));
   const h = (hours: number) => now.getTime() - hours * 3600_000;
-  const north = ts("pressure_msl", [
+  const north = ts("pressure_standard_msl", [
     [h(25), 1020],
     [h(2), 1021],
     [h(1), 102150],
     [h(0.5), null],
   ]);
-  const south = ts("pressure_msl", [
+  const south = ts("pressure_standard_msl", [
     [h(25), 1010],
     [h(2), 1014],
     [h(1), 1013.5],
@@ -77,9 +77,12 @@ test("a temperature history converts Kelvin", () => {
 
 test("a missing or empty series gives an empty history", () => {
   const now = new Date();
-  const one = ts("pressure_msl", [[now.getTime(), 1000]]);
+  const one = ts("pressure_standard_msl", [[now.getTime(), 1000]]);
   assert.deepEqual(pairHistory(KLO_LUG, null, one, now), []);
-  assert.deepEqual(pairHistory(KLO_LUG, one, ts("pressure_msl", []), now), []);
+  assert.deepEqual(
+    pairHistory(KLO_LUG, one, ts("pressure_standard_msl", []), now),
+    [],
+  );
   assert.deepEqual(
     pairHistory(KLO_LUG, one, ts("temperature", [[now.getTime(), 1]]), now),
     [],

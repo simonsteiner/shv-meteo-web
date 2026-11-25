@@ -1,5 +1,5 @@
 // The upstream calls behind /api/foehn: the current values the pairs read,
-// in one call per parameter (pressure_msl for the pressure pairs,
+// in one call per parameter (pressure_standard_msl for the pressure pairs,
 // temperature for the Pilatus/Matro pair), each limited to that parameter
 // and to the box around its stations (about 20 KB each), and the requested
 // pair's two series for its history, from 25 hours ago (about 6 KB each).
@@ -24,14 +24,6 @@ import { foehnReport } from "./report.ts";
  * upstream's rounding of a position. */
 const BOX_MARGIN = 0.02;
 
-/** What each measurements call asks upstream for: a pressure station
- * without an MSL value falls back to its standard MSL or surface pressure
- * (`stationPressure` in report.ts), and `parameters=` drops every field it
- * doesn't name. */
-const CURRENT_PARAMETERS: Record<string, string> = {
-  pressure_msl: "pressure_msl,pressure_standard_msl,pressure_surface",
-};
-
 /** The pair stations by the upstream parameter their pairs read. */
 export function stationsByParameter(): Map<string, string[]> {
   const byParameter = new Map<string, string[]>();
@@ -44,8 +36,8 @@ export function stationsByParameter(): Map<string, string[]> {
   return byParameter;
 }
 
-/** The current values of `parameter` (with its fallbacks) in the box around
- * `stationIds`. */
+/** The current values of `parameter` in the box around `stationIds`;
+ * `parameters=` drops every field it doesn't name. */
 export function measurementsUrl(
   parameter: string,
   stationIds: string[],
@@ -59,7 +51,7 @@ export function measurementsUrl(
     `maxLat=${Math.max(...lats) + d}`,
     `maxLon=${Math.max(...lons) + d}`,
   ].join("&");
-  return `${WEATHER}/measurements/current?${box}&parameters=${CURRENT_PARAMETERS[parameter] ?? parameter}`;
+  return `${WEATHER}/measurements/current?${box}&parameters=${parameter}`;
 }
 
 /** The pair stations' current measurements; rejects when any call fails. A

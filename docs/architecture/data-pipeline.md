@@ -21,14 +21,14 @@ What the upstream data holds and how the app reads it. Which upstream each resou
 
 ## Station pairs
 
-The four pairs of the official app (its `PressureDifferenceGeoJsonTransformer`), in [src/scripts/foehn/pairs.ts](../../src/scripts/foehn/pairs.ts); the alert levels are in `assess()` in [src/scripts/foehn/report.ts](../../src/scripts/foehn/report.ts):
+The four pairs of the official app (its `PressureDifferenceGeoJsonTransformer`), in [src/scripts/foehn/pairs.ts](../../src/scripts/foehn/pairs.ts); the alert levels are in `assess()` in [src/scripts/foehn/report.ts](../../src/scripts/foehn/report.ts). A pressure pair reads both stations' QNH (`pressure_standard_msl`, `pressureStandardMslValue`), as the official app does (APK `ch/shv_fsvl/feature/livemap/d.java`, `e.java`), for its current difference and its 24-hour history alike. No other pressure stands in: a pair with one station's QNH missing has no difference and shows "no data" (`NO_DATA`), never calm and never an alert.
 
-1. **Gotthard (`KLO_LUG`)**, `PRESSURE_NORTH_SOUTH`: Lugano minus Zürich/Kloten (`meteo_swiss:LUG`, `meteo_swiss:KLO`), sea-level pressure in hPa. +4 hPa or more is moderate south föhn, +8 severe; -4 or less moderate north föhn, -8 severe.
+1. **Gotthard (`KLO_LUG`)**, `PRESSURE_NORTH_SOUTH`: Lugano minus Zürich/Kloten (`meteo_swiss:LUG`, `meteo_swiss:KLO`), QNH in hPa. +4 hPa or more is moderate south föhn, +8 severe; -4 or less moderate north föhn, -8 severe.
 2. **East-west (`GVE_GUT`)**, `PRESSURE_EAST_WEST`: Geneva minus Güttingen (`meteo_swiss:GVE`, `meteo_swiss:GUT`), the bise indicator.
 3. **Alpine crest temperature (`PIL_MTR`)**, `TEMPERATURE_NORTH_SOUTH`: Pilatus minus Matro (`meteo_swiss:PIL`, `meteo_swiss:MTR`) in °C, for stability across the ridge. It raises no alert.
 4. **Jura (`DEM_GRE`)**, `PRESSURE_NORTH_SOUTH`: Grenchen minus Delémont (`meteo_swiss:GRE`, `meteo_swiss:DEM`) in hPa.
 
-For the two other pressure pairs a difference of 3 hPa either way is moderate and 6 hPa a danger. An unknown `?pair=` gets `KLO_LUG`.
+For the two other pressure pairs a difference of 3 hPa either way is moderate and 6 hPa a danger. These thresholds (4/8 and 3/6 hPa) are this app's own, carried over from the old Express server: neither audit found the official app's thresholds in its decompiled code. An unknown `?pair=` gets `KLO_LUG`.
 
 ## Measurement units
 

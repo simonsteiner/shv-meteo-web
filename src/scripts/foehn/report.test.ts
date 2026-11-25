@@ -48,6 +48,48 @@ test("a gradient alert has its own status, not CALM", () => {
   assert.equal(assess(cfg, 2.9).status, "CALM");
 });
 
+test("a station's pressure is its QNH, never its QFF or QFE", () => {
+  // Kloten's three values on 2026-11-25
+  const klo = { pressureMslValue: 1013.2, pressureStandardMslValue: 1011.7 };
+  assert.equal(
+    stationPressure(station("KLO", { ...klo, pressureSurfaceValue: 961.4 })),
+    1011.7,
+  );
+  assert.equal(
+    stationPressure(
+      station("KLO", { pressureMslValue: 1013.2, pressureSurfaceValue: 961.4 }),
+    ),
+    null,
+  );
+});
+
+test("a pair missing one station's QNH has no difference and no alert", () => {
+  const r = foehnReport(
+    [
+      station("KLO", { pressureMslValue: 1013.2, pressureSurfaceValue: 961.4 }),
+      station("LUG", {
+        pressureMslValue: 1013.6,
+        pressureStandardMslValue: 1012.8,
+        pressureSurfaceValue: 977.2,
+      }),
+    ],
+    {},
+    "KLO_LUG",
+    new Date("2026-11-25T17:00:00Z"),
+  );
+  assert.equal(r.primaryPair?.diffHpa, null);
+  assert.equal(r.primaryPair?.status, "NO_DATA");
+  assert.equal(r.primaryPair?.alertLevel, "NONE");
+});
+
+test("no difference is no data, never calm", () => {
+  for (const id of ["KLO_LUG", "GVE_GUT", "PIL_MTR"])
+    assert.deepEqual(assess(pairConfig(id), null), {
+      status: "NO_DATA",
+      alertLevel: "NONE",
+    });
+});
+
 test("station values accept Kelvin and pascals", () => {
   assert.equal(
     stationTemperature(station("A", { temperature2mValue: 279.65 })),
@@ -55,25 +97,25 @@ test("station values accept Kelvin and pascals", () => {
   );
   assert.equal(stationTemperature(station("A", { temperature2mValue: 0 })), 0);
   assert.equal(
-    stationPressure(station("A", { pressureMslValue: 1021.3 })),
+    stationPressure(station("A", { pressureStandardMslValue: 1021.3 })),
     1021.3,
   );
   assert.equal(
-    stationPressure(station("A", { pressureSurfaceValue: 96910 })),
-    969.1,
+    stationPressure(station("A", { pressureStandardMslValue: 102130 })),
+    1021.3,
   );
   assert.equal(stationPressure(station("A", {})), null);
 });
 
 test("the report has every pair with both stations, and the primary pair", () => {
   const measurements = [
-    station("KLO", { pressureMslValue: 1021 }),
-    station("LUG", { pressureMslValue: 1013.8 }),
-    station("GVE", { pressureMslValue: 1022.1 }),
-    station("GUT", { pressureMslValue: 1021.7 }),
+    station("KLO", { pressureStandardMslValue: 1021 }),
+    station("LUG", { pressureStandardMslValue: 1013.8 }),
+    station("GVE", { pressureStandardMslValue: 1022.1 }),
+    station("GUT", { pressureStandardMslValue: 1021.7 }),
     station("PIL", { temperature2mValue: 269.75 }),
     station("MTR", { temperature2mValue: -3.3 }),
-    station("DEM", { pressureMslValue: 1021.2 }),
+    station("DEM", { pressureStandardMslValue: 1021.2 }),
   ];
   const now = new Date("2026-11-23T10:00:00Z");
   const r = foehnReport(measurements, {}, "KLO_LUG", now);

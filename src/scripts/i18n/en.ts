@@ -47,6 +47,7 @@ export const en: Strings = {
       DEM_GRE: "Jura crossing (Delémont \u2013 Grenchen)",
     },
     foehnStatus: {
+      NO_DATA: "No data",
       CALM: "Calm",
       MODERATE_SOUTH_FOEHN: "Moderate south föhn",
       SEVERE_SOUTH_FOEHN: "Severe south föhn",
@@ -56,6 +57,8 @@ export const en: Strings = {
       STRONG_GRADIENT: "Strong pressure gradient",
     },
     foehnText: {
+      NO_DATA:
+        "A current value is missing for this station pair. No föhn assessment is possible.",
       CALM: "Normal pressure conditions. Safe flying conditions.",
       MODERATE_SOUTH_FOEHN:
         "Moderate south föhn ({delta} hPa). Increasing turbulence and risk of a föhn breakthrough in the alpine valleys.",

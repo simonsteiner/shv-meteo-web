@@ -15,7 +15,9 @@ const NOW = new Date("2026-11-23T12:00:00Z");
 
 /** Upstream's property for each parameter the pairs read. */
 const PROPERTY: Record<string, string> = {
+  pressure_standard_msl: "pressureStandardMslValue",
   pressure_msl: "pressureMslValue",
+  pressure_surface: "pressureSurfaceValue",
   temperature: "temperature2mValue",
 };
 
@@ -44,11 +46,11 @@ const inside = (url: string, [lon, lat]: [number, number]) => {
 };
 
 /** A fetch that answers each measurements call with the pair stations in
- * its box (all but `missing`), carrying only the asked parameter (for
- * `surfaceOnly`, only its surface pressure, when that is asked for); 502
- * for the `failing` parameter's call; and fails every series. */
+ * its box (all but `missing`), carrying only the asked parameters, as
+ * upstream does (`withoutQnh` has every pressure but its QNH); 502 for the
+ * `failing` parameter's call; and fails every series. */
 function fakeFetch(
-  options: { failing?: string; missing?: string; surfaceOnly?: string } = {},
+  options: { failing?: string; missing?: string; withoutQnh?: string } = {},
   calls: string[] = [],
 ) {
   return (async (input: RequestInfo | URL) => {
@@ -63,18 +65,11 @@ function fakeFetch(
     const features = Object.entries(STATION_POSITIONS)
       .filter(([id, pos]) => id !== options.missing && inside(url, pos))
       .map(([id, coordinates]) => {
-        const property =
-          id === options.surfaceOnly
-            ? parameters.includes("pressure_surface") && "pressureSurfaceValue"
-            : PROPERTY[parameter];
-        return {
-          id,
-          geometry: { type: "Point", coordinates },
-          properties: {
-            name: id,
-            ...(property ? { [property]: VALUES[id] ?? 1000 } : {}),
-          },
-        };
+        const properties: Record<string, unknown> = { name: id };
+        for (const p of parameters)
+          if (!(id === options.withoutQnh && p === "pressure_standard_msl"))
+            properties[PROPERTY[p]] = VALUES[id] ?? 1000;
+        return { id, geometry: { type: "Point", coordinates }, properties };
       });
     return Response.json({ type: "FeatureCollection", features });
   }) as typeof fetch;
@@ -92,15 +87,19 @@ const quietly = async <T>(fn: () => Promise<T>): Promise<T> => {
 
 test("one call per parameter, its box holding its stations", () => {
   const groups = stationsByParameter();
-  assert.deepEqual([...groups.keys()], ["pressure_msl", "temperature"]);
+  assert.deepEqual(
+    [...groups.keys()],
+    ["pressure_standard_msl", "temperature"],
+  );
   assert.deepEqual(groups.get("temperature"), [
     "meteo_swiss:PIL",
     "meteo_swiss:MTR",
   ]);
-  assert.equal(groups.get("pressure_msl")?.length, 6);
+  assert.equal(groups.get("pressure_standard_msl")?.length, 6);
   for (const [parameter, ids] of groups) {
     const url = measurementsUrl(parameter, ids);
-    assert.equal(request(url).parameters[0], parameter);
+    // the current values read the field the history reads, and no fallback
+    assert.deepEqual(request(url).parameters, [parameter]);
     for (const id of ids) assert.ok(inside(url, STATION_POSITIONS[id]), id);
   }
 });
@@ -129,10 +128,14 @@ test("a failed series gives history [] with a 200", async () => {
   const since = seriesStart(NOW.getTime());
   assert.equal(since, NOW.getTime() - 25 * 3600 * 1000);
   assert.ok(
-    calls.includes(seriesUrl("meteo_swiss:GVE", "pressure_msl", since)),
+    calls.includes(
+      seriesUrl("meteo_swiss:GVE", "pressure_standard_msl", since),
+    ),
   );
   assert.ok(
-    calls.some((u) => u.endsWith(`?parameters=pressure_msl&start=${since}`)),
+    calls.some((u) =>
+      u.endsWith(`?parameters=pressure_standard_msl&start=${since}`),
+    ),
   );
 });
 
@@ -194,17 +197,16 @@ test("a failed measurements call gives the route's 503", async () => {
   });
 });
 
-test("a pressure station without an MSL value keeps its pair", async () => {
+test("a pressure station without a QNH value leaves its pair without a difference", async () => {
   const res = await foehnResponse(
     "GVE_GUT",
     8_000,
-    fakeFetch({ surfaceOnly: "meteo_swiss:GUT" }),
+    fakeFetch({ withoutQnh: "meteo_swiss:GUT" }),
     () => NOW,
   );
   const body = await res.json();
-  // GUT's surface pressure stands in, as stationPressure falls back to it
-  assert.equal(
-    body.pairs.find((p: { id: string }) => p.id === "GVE_GUT").delta,
-    7,
-  );
+  // no other pressure stands in: QFE would make a 50 hPa "severe" gradient
+  const pair = body.pairs.find((p: { id: string }) => p.id === "GVE_GUT");
+  assert.equal(pair.delta, null);
+  assert.equal(pair.alertLevel, "NONE");
 });

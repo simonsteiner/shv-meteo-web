@@ -51,6 +51,7 @@ export const fr: Strings = {
       DEM_GRE: "Traversée du Jura (Delémont \u2013 Granges)",
     },
     foehnStatus: {
+      NO_DATA: "Pas de données",
       CALM: "Calme",
       MODERATE_SOUTH_FOEHN: "Fœhn du sud modéré",
       SEVERE_SOUTH_FOEHN: "Fort fœhn du sud",
@@ -60,6 +61,8 @@ export const fr: Strings = {
       STRONG_GRADIENT: "Fort gradient de pression",
     },
     foehnText: {
+      NO_DATA:
+        "Une valeur actuelle manque pour cette paire de stations. Aucune indication sur le fœhn possible.",
       CALM: "Pression normale. Conditions de vol sûres.",
       MODERATE_SOUTH_FOEHN:
         "Fœhn du sud modéré ({delta} hPa). Turbulence croissante et risque de percée du fœhn dans les vallées alpines.",

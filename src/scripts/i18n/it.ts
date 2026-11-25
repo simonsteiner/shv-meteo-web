@@ -50,6 +50,7 @@ export const it: Strings = {
       DEM_GRE: "Attraversamento del Giura (Delémont \u2013 Grenchen)",
     },
     foehnStatus: {
+      NO_DATA: "Nessun dato",
       CALM: "Calmo",
       MODERATE_SOUTH_FOEHN: "Favonio da sud moderato",
       SEVERE_SOUTH_FOEHN: "Forte favonio da sud",
@@ -59,6 +60,8 @@ export const it: Strings = {
       STRONG_GRADIENT: "Forte gradiente di pressione",
     },
     foehnText: {
+      NO_DATA:
+        "Manca un valore attuale per questa coppia di stazioni. Nessuna indicazione sul favonio possibile.",
       CALM: "Pressione normale. Condizioni di volo sicure.",
       MODERATE_SOUTH_FOEHN:
         "Favonio da sud moderato ({delta} hPa). Turbolenza crescente e rischio che il favonio irrompa nelle valli alpine.",
