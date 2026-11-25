@@ -3,12 +3,12 @@
 // current day follow at 09:00, 13:00 and 16:00), so the card shows the link
 // to tomorrow's PDF only from 16:00 Swiss time; before that what the link
 // serves is unknown. Pure.
-import { swissTime } from "../foehn/pairs.ts";
+import { swissHour } from "../swiss-time.ts";
 
 /** The Swiss hour from which tomorrow's bulletin is published. */
 const PUBLISHED_HOUR = 16;
 
 /** Whether tomorrow's DABS is published at `now` (ms since the epoch). */
 export function tomorrowPublished(now: number): boolean {
-  return Number(swissTime(now).slice(0, 2)) >= PUBLISHED_HOUR;
+  return swissHour(now) >= PUBLISHED_HOUR;
 }
