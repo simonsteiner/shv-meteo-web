@@ -8,6 +8,10 @@ import { soundingFromForecast } from "./sounding.ts";
 
 /** The catalogue's Disentis/Mustér grid point, as the Function imports it. */
 const DISENTIS = GRID["disentis/mustér"];
+assert.ok(
+  DISENTIS,
+  "the generated grid lost disentis/mustér: point these tests at another station",
+);
 const POINT = DISENTIS.pointIndex;
 
 const ctx = (path: string) =>

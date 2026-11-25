@@ -29,6 +29,7 @@ import { page } from "./page.ts";
 import { readChoice, withParams } from "./query.ts";
 import { stepper } from "./stepper.ts";
 import { localeFor } from "./text.ts";
+import { isOneOf } from "../coerce.ts";
 
 const SWISS_BOUNDS: L.LatLngBoundsExpression = [
   [45.8, 5.9],
@@ -190,8 +191,8 @@ export function mountOutlooks(root: HTMLElement): void {
   root.addEventListener("click", (event) => {
     const target = event.target as Element;
     const t = target.closest<HTMLElement>("[data-type]")?.dataset.type;
-    if (t && (OUTLOOK_TYPES as readonly string[]).includes(t)) {
-      type = t as OutlookType;
+    if (isOneOf(OUTLOOK_TYPES, t)) {
+      type = t;
       index = 0;
       frames = outlookFrames(answer, type);
       history.replaceState(

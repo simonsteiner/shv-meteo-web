@@ -1,6 +1,6 @@
 # shv-meteo-web: route rules are split from their routes, and the map page's orchestration has no module
 
-`2026-11-25` · at `e11aa63` (`main`) · scope: the churn hot spots of the last six months (`maps/page.ts` 15 commits, `weather/page.ts` 11, `upstream/respond.ts` 10, `emagram/fetch.ts` 9, `upstream/routes.ts` 8, `api.ts` 7) and the co-change pairs around them · glossary: `GLOSSARY.md` · ADRs read: none (no `docs/adr/`)
+`2026-11-25` · at `e11aa63` (`main`) · scope: the churn hot spots of the last six months (`maps/page.ts` 17 commits, `weather/page.ts` 13, `upstream/respond.ts` 10, `emagram/fetch.ts` 9, `upstream/routes.ts` 8, `api.ts` 7) and the co-change pairs around them · glossary: `GLOSSARY.md` · ADRs read: none (no `docs/adr/`)
 
 **Jump to:** [Status](#status) · [Where it hurts](#where-it-hurts) · [Smaller findings](#smaller-findings) · [Recommendation](#recommendation) · cards: [C1](C1-route-owns-its-parameters.md) · [C2](C2-one-failure-mode-for-shvapi.md) · [C3](C3-map-session-module.md) · [C4](C4-weather-view-state.md) · [C5](C5-checked-data-dispatch.md) · [C6](C6-forecast-stepper.md) · [C7](C7-per-tab-stylesheets.md)
 
@@ -74,7 +74,7 @@ flowchart LR
   classDef leak fill:#fef2f2,stroke:#dc2626,stroke-width:2px,color:#991b1b
 ```
 
-The six most-changed code files are marked: 60 file changes in six months between them; `respond.ts` and `routes.ts` change together in 6 commits (75%), and both page scripts are untested closures of over 300 lines.
+The six most-changed code files are marked: 64 file changes in six months between them; `respond.ts` and `routes.ts` change together in 6 commits (75%), and both page scripts are untested closures of over 300 lines.
 
 ## Smaller findings
 
@@ -98,25 +98,25 @@ Both compute modules copy `ROUTES.<name>.timeoutMs` into a module constant, so t
 
 ### S4 · Fail loudly on a changed sounding shape
 
-`src/scripts/emagram/levels.ts:12-23` · `src/scripts/emagram/gridpoint.ts:42` · `src/scripts/emagram/fetch.ts:109-124` · own PR
+`src/scripts/emagram/levels.ts:12-23` · `src/scripts/emagram/gridpoint.ts:42` · `src/scripts/emagram/fetch.ts:109-124` · one PR with S4 to S7
 
 The ICON parsers cast `raw as {…}` and fall back to `[]`, so a changed upstream shape becomes an empty sounding instead of an error, and `soundingRoute` looks the grid point up twice with an `as GridPoint` between. Parse through `coerce.ts` and throw on a missing array, and let the check hand its grid point on.
 
 ### S5 · Use round1 from units.ts
 
-`src/scripts/app-state.ts:253` · `src/scripts/forecast/emagram.ts:128` · own PR
+`src/scripts/app-state.ts:253` · `src/scripts/forecast/emagram.ts:128` · one PR with S4 to S7
 
 Two copies of `Math.round(v * 10) / 10` sit beside `round1` (`units.ts:19`), one named `r1`. Import `round1`.
 
 ### S6 · Drop exports nothing imports
 
-`src/scripts/emagram/fetch.ts` (`soundingUrl`, `fetchForecast`) · `src/scripts/foehn/report.ts` (`PairStatus`) · `src/scripts/settings.ts` (`THEMES`, `CHECKLIST_KEY`) · `src/scripts/obstacles/shards.ts` (`MAX_SHARD_BYTES`) · `src/scripts/forecast/emagram.ts` (`PAD_R`) · own PR
+`src/scripts/emagram/fetch.ts` (`soundingUrl`, `fetchForecast`) · `src/scripts/foehn/report.ts` (`PairStatus`) · `src/scripts/settings.ts` (`THEMES`, `CHECKLIST_KEY`) · `src/scripts/obstacles/shards.ts` (`MAX_SHARD_BYTES`) · `src/scripts/forecast/emagram.ts` (`PAD_R`) · one PR with S4 to S7
 
 Each is referenced only in its own file, and `mountMap` and `mountWeather` are exported though their page script mounts itself. Drop the `export` keyword (keep any a test imports).
 
 ### S7 · Replace the 200 ms resize timer
 
-`src/scripts/maps/view.ts:58-59` · own PR
+`src/scripts/maps/view.ts:58-59` · one PR with S4 to S7
 
 `invalidateSize` runs on the next frame and again after a guessed 200 ms, in case the container's size arrives late. A `ResizeObserver` on the container calls it whenever the size changes, timer gone.
 
@@ -131,7 +131,9 @@ Every page links `leaflet.css` (6.4 KB gzipped), though only the map and the for
 > [!IMPORTANT]
 > **Start with [C1 · Each route owns its parameter rules](C1-route-owns-its-parameters.md)**: the upstream modules are the most-changed code together, and every new route today touches a string-keyed switch that compiles without its branch.
 >
-> **Proposed batch** (every 🟢 Strong, in order): C1 → C2 → C3
+> **Proposed batch** (the scan's first proposal, every 🟢 Strong, in order): C1 → C2 → C3
+>
+> **Confirmed batch**: C1 → C2 → C3, then C4 to C7, with S1 to S7 riding along; the table tracks each one.
 
 ## Departures
 

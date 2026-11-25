@@ -103,7 +103,6 @@ export function emagramCard(
   }
 
   const player = stepper(playButton, PLAY_MS, () => step(1));
-  const stop = player.stop;
 
   function setExpanded(on: boolean): void {
     expanded = on;
@@ -127,7 +126,7 @@ export function emagramCard(
     states.pick.hidden = station !== null;
     frame.hidden = station === null;
     if (station === null) {
-      stop();
+      player.stop();
       setExpanded(false);
       return;
     }
@@ -137,7 +136,7 @@ export function emagramCard(
     states.chart.hidden = n === 0;
     states.status.hidden = n > 0;
     if (n === 0) {
-      stop();
+      player.stop();
       q("[data-emagram-time]").textContent = "";
       q("[data-emagram-status]").textContent = fill(
         say(
@@ -185,7 +184,7 @@ export function emagramCard(
     if (!info.hidden) info.hidden = true;
     else if (expanded) setExpanded(false);
   });
-  window.addEventListener("pagehide", stop);
+  window.addEventListener("pagehide", player.stop);
 
   return {
     pick() {
@@ -194,7 +193,7 @@ export function emagramCard(
       render();
     },
     show(name, data) {
-      if (name !== station || data !== sounding) stop();
+      if (name !== station || data !== sounding) player.stop();
       station = name;
       sounding = data;
       position = data ? closestIndex(data.validTimes, Date.now()) : 0;

@@ -27,7 +27,7 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 ### Data access
 
 - **`ShvApi` is the only caller of `fetch` in the browser.** Every endpoint the browser reads, direct or through `/api`, gets a method in `src/scripts/api.ts`; views and components never fetch directly.
-- **A `ShvApi` read never rejects.** It resolves to its typed value, or to null (an empty list for the station catalogue) after logging `[ShvApi.<method>]`; callers handle null, never a `.catch` around the call.
+- **A `ShvApi` read never rejects.** It resolves to its typed value, or to null (an empty list for the station catalogue) after logging `[ShvApi.<method>]`; callers handle null and never `.catch` the read itself (a `.catch` after `.then` still catches a throw while drawing).
 - **Proxy only what has to be proxied.** The browser calls an upstream directly only when it allows CORS and the payload is light; anything with CORS limits (or a 403 to an `Origin` header), heavy data or multi-station math gets a Pages Function. Read `docs/architecture/data-queries.md` before adding or changing an endpoint.
 - **Upstream weather units are quirky.** Wind and gusts already arrive in km/h (never multiply by 3.6), a temperature above 200 is Kelvin, a pressure above 5000 is in tenths of hPa. Convert through `src/scripts/units.ts` (`toCelsius`, `toHpa`).
 
@@ -77,6 +77,7 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 - `docs/setup.md`: local setup, checks, data scripts, screenshots tool, troubleshooting.
 - `docs/deployment.md`: Cloudflare Pages, deploying by hand, rollback, state and secrets.
 - `docs/architecture.md`: index of `docs/architecture/`: every upstream and `/api` route, what the data holds, how the code is organised.
+- `docs/adr/`: architecture decisions and why; read the one on a topic before proposing to undo it.
 - `docs/research/`: dated research notes with the measurements behind a decision; read the one on a topic before reopening it.
 - `docs/reference/shv-native-app.md`: reverse-engineered notes on the official app: its hosts, code layout and the Previtemps sounding.
 - `docs/reference/shv-native-auth.md`: the official app's Keycloak login and member web service; read before bringing back login or member data.
