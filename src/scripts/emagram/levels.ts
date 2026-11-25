@@ -70,17 +70,37 @@ export function valuesAt(
 const isNumber = (v: unknown): v is number =>
   typeof v === "number" && Number.isFinite(v);
 
+/** Whether the heights fit the levels: upstream sends the layers'
+ * boundaries (`height_half_level`, 81 values from 22 km down to the ground)
+ * for 80 full levels, one more than the levels. */
+export function halfLevelsFit(
+  byParam: Pick<
+    Record<SoundingParameter, unknown[]>,
+    "temperature" | "height_half_level"
+  >,
+): boolean {
+  return byParam.height_half_level.length === byParam.temperature.length + 1;
+}
+
 /** The sounding's levels at one time step, ground first, up to 550 hPa. A
- * level missing any value is left out rather than filled in. */
+ * level's height is the middle of its layer, the mean of half levels `l`
+ * and `l + 1`, as the official app computes it (APK `ex7.java`); heights
+ * that aren't one more than the levels give no level (`pointProblem` names
+ * them). A level missing any value is left out rather than filled in. */
 export function soundingLevels(
   byParam: Record<SoundingParameter, (number | undefined)[]>,
 ): SoundingLevel[] {
   const levels: SoundingLevel[] = [];
+  if (!halfLevelsFit(byParam)) return levels;
+  const half = byParam.height_half_level;
   for (let l = byParam.temperature.length - 1; l >= 0; l--) {
     const tempK = byParam.temperature[l];
     const pressPa = byParam.pressure[l];
     const q = byParam.specific_humidity[l];
-    const heightM = byParam.height_half_level[l];
+    const upper = half[l];
+    const lower = half[l + 1];
+    const heightM =
+      isNumber(upper) && isNumber(lower) ? (upper + lower) / 2 : undefined;
     const u = byParam.wind_u[l];
     const v = byParam.wind_v[l];
     if (

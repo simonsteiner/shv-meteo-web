@@ -8,6 +8,7 @@
 import type { GridPoint, Sounding } from "../types.ts";
 import { round1 } from "../units.ts";
 import {
+  halfLevelsFit,
   parsePointData,
   pointValidTimes,
   soundingLevels,
@@ -59,6 +60,8 @@ export function pointProblem(point: PointAnswer): string | null {
   const m = matrices(point);
   for (const p of SOUNDING_PARAMETERS)
     if (!m[p].some((row) => row.length > 0)) return `no ${p}`;
+  if (!halfLevelsFit(m))
+    return `${m.height_half_level.length} height_half_level values for ${m.temperature.length} levels, not ${m.temperature.length + 1}`;
   const steps = pointValidTimes(point.parameters?.temperature).length;
   if (steps === 0) return "no time steps";
   const top = m.pressure[0];
