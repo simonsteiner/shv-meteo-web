@@ -98,31 +98,31 @@ Both compute modules copy `ROUTES.<name>.timeoutMs` into a module constant, so t
 
 ### S4 · Fail loudly on a changed sounding shape
 
-`src/scripts/emagram/levels.ts:12-23` · `src/scripts/emagram/gridpoint.ts:42` · `src/scripts/emagram/fetch.ts:109-124` · one PR with S4 to S7
+`src/scripts/emagram/levels.ts:12-23` · `src/scripts/emagram/gridpoint.ts:42` · `src/scripts/emagram/fetch.ts:109-124` · one PR with S4 to S8
 
 The ICON parsers cast `raw as {…}` and fall back to `[]`, so a changed upstream shape becomes an empty sounding instead of an error, and `soundingRoute` looks the grid point up twice with an `as GridPoint` between. Parse through `coerce.ts` and throw on a missing array, and let the check hand its grid point on.
 
 ### S5 · Use round1 from units.ts
 
-`src/scripts/app-state.ts:253` · `src/scripts/forecast/emagram.ts:128` · one PR with S4 to S7
+`src/scripts/app-state.ts:253` · `src/scripts/forecast/emagram.ts:128` · one PR with S4 to S8
 
 Two copies of `Math.round(v * 10) / 10` sit beside `round1` (`units.ts:19`), one named `r1`. Import `round1`.
 
 ### S6 · Drop exports nothing imports
 
-`src/scripts/emagram/fetch.ts` (`soundingUrl`, `fetchForecast`) · `src/scripts/foehn/report.ts` (`PairStatus`) · `src/scripts/settings.ts` (`THEMES`, `CHECKLIST_KEY`) · `src/scripts/obstacles/shards.ts` (`MAX_SHARD_BYTES`) · `src/scripts/forecast/emagram.ts` (`PAD_R`) · one PR with S4 to S7
+`src/scripts/emagram/fetch.ts` (`soundingUrl`, `fetchForecast`) · `src/scripts/foehn/report.ts` (`PairStatus`) · `src/scripts/settings.ts` (`THEMES`, `CHECKLIST_KEY`) · `src/scripts/obstacles/shards.ts` (`MAX_SHARD_BYTES`) · `src/scripts/forecast/emagram.ts` (`PAD_R`) · one PR with S4 to S8
 
 Each is referenced only in its own file, and `mountMap` and `mountWeather` are exported though their page script mounts itself. Drop the `export` keyword (keep any a test imports).
 
 ### S7 · Replace the 200 ms resize timer
 
-`src/scripts/maps/view.ts:58-59` · one PR with S4 to S7
+`src/scripts/maps/view.ts:58-59` · one PR with S4 to S8
 
 `invalidateSize` runs on the next frame and again after a guessed 200 ms, in case the container's size arrives late. A `ResizeObserver` on the container calls it whenever the size changes, timer gone.
 
 ### S8 · Load leaflet.css only where a map draws
 
-`src/layouts/Base.astro:9` · own PR
+`src/layouts/Base.astro:9` · one PR with S4 to S8
 
 Every page links `leaflet.css` (6.4 KB gzipped), though only the map and the forecast outlooks and emagram views draw a Leaflet map. It already links first, so importing it from those pages keeps its place in the cascade (C7, Q1 and Q6).
 
@@ -133,7 +133,7 @@ Every page links `leaflet.css` (6.4 KB gzipped), though only the map and the for
 >
 > **Proposed batch** (the scan's first proposal, every 🟢 Strong, in order): C1 → C2 → C3
 >
-> **Confirmed batch**: C1 → C2 → C3, then C4 to C7, with S1 to S7 riding along; the table tracks each one.
+> **Confirmed batch**: C1 → C2 → C3, then C4 to C7, with S1 to S8 riding along; the table tracks each one.
 
 ## Departures
 
