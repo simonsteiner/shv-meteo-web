@@ -11,7 +11,7 @@ import type {
   Webcam,
 } from "../types.ts";
 import { featureLatLng, type LatLngTuple } from "./centroid.ts";
-import { findSite } from "./sites.ts";
+import { findSite, matchesSearch, suitsWind } from "./sites.ts";
 import { stationLatLng } from "./stations.ts";
 import { webcamLatLng } from "./webcams.ts";
 
@@ -66,33 +66,57 @@ export function findHandoff(
   return target;
 }
 
-/** What to turn on so a handed-over `kind` shows on the map: the meteo
- * mode for a station (wind, unless temperature is shown) or a webcam, the
- * take-off and landing layers for a site. Empty when it shows already. */
+/** The mode stations are shown in: temperature when it is the meteo
+ * mode, else wind. */
+export function stationModeFor(meteoMode: MeteoMode): "WIND" | "TEMPERATURE" {
+  return meteoMode === "TEMPERATURE" ? "TEMPERATURE" : "WIND";
+}
+
+export interface Reveal {
+  meteoMode: MeteoMode | null;
+  layers: (keyof Layers)[];
+  /** The search or the wind filter would hide a handed-over site. */
+  clearSearch: boolean;
+  clearWind: boolean;
+}
+
+/** What to turn on, or clear, so a handed-over selection shows on the map:
+ * the meteo mode for a station (wind, unless temperature is shown) or a
+ * webcam; for a site, the take-off and landing layers, and the search or
+ * wind filter that would hide it. Nothing when it shows already. */
 export function revealFor(
-  kind: Selection["kind"],
-  state: { layers: Layers; meteoMode: MeteoMode },
-): { meteoMode: MeteoMode | null; layers: (keyof Layers)[] } {
-  if (kind === "station")
+  selection: Selection,
+  state: {
+    layers: Layers;
+    meteoMode: MeteoMode;
+    searchQuery: string;
+    windFilter: readonly string[];
+  },
+): Reveal {
+  const none: Reveal = {
+    meteoMode: null,
+    layers: [],
+    clearSearch: false,
+    clearWind: false,
+  };
+  if (selection.kind === "station")
     return {
-      meteoMode: state.layers.stations
-        ? null
-        : state.meteoMode === "TEMPERATURE"
-          ? "TEMPERATURE"
-          : "WIND",
-      layers: [],
+      ...none,
+      meteoMode: state.layers.stations ? null : stationModeFor(state.meteoMode),
     };
-  if (kind === "webcam")
+  if (selection.kind === "webcam")
+    return { ...none, meteoMode: state.layers.webcams ? null : "WEBCAM" };
+  if (selection.kind === "site") {
+    const p = selection.value.properties ?? {};
+    const isLaunch = String(p.type ?? "").toLowerCase() === "launch";
     return {
-      meteoMode: state.layers.webcams ? null : "WEBCAM",
-      layers: [],
-    };
-  if (kind === "site")
-    return {
-      meteoMode: null,
+      ...none,
       layers: (["launches", "landings"] as const).filter(
         (key) => !state.layers[key],
       ),
+      clearSearch: !matchesSearch(p, state.searchQuery.trim().toLowerCase()),
+      clearWind: isLaunch && !suitsWind(p, state.windFilter),
     };
-  return { meteoMode: null, layers: [] };
+  }
+  return none;
 }
