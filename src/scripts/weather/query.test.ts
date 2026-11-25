@@ -43,7 +43,8 @@ test("withWeatherQuery writes only what differs from the defaults", () => {
 
 test("weatherUrl opens a pair, the default and unknown ones without a query", () => {
   assert.equal(weatherUrl("GVE_GUT"), "/weather/?pair=GVE_GUT");
-  assert.deepEqual(readWeatherQuery("?pair=GVE_GUT").pair, "GVE_GUT");
+  const back = new URL(weatherUrl("GVE_GUT"), "https://localhost").search;
+  assert.equal(readWeatherQuery(back).pair, "GVE_GUT");
   assert.equal(weatherUrl("KLO_LUG"), "/weather/");
   assert.equal(weatherUrl("<script>"), "/weather/");
 });
