@@ -276,11 +276,11 @@ export const de = {
     // Rega's own wording (2026-11-25): https://www.rega.ch/im-einsatz/standorte-infrastruktur/notfunk/notfunk-alarmierung-der-rega
     kRadioSub:
       "Alarm-Taste oder 5-Ton-Ruf 21414 (ZVEI), mit oder ohne Tonsquelch (CTCSS) 123.0 Hz. Quittung: 3 lange Töne. Nur verwenden, wenn kein Mobilnetz da ist.",
-    dabsBadge: "Luftraumstatus",
-    dabsValidity: "Gültigkeit heute:",
+    dabsBadge: "Luftraum",
     dabsNotes:
       "Täglich ab 16:00 LT für den Folgetag durch Skybriefing publiziert. Vor jedem Streckenflug obligatorisch zu konsultieren!",
-    dabsPdf: "DABS PDF herunterladen",
+    dabsPdfToday: "DABS heute (PDF)",
+    dabsPdfTomorrow: "DABS morgen (PDF, ab 16:00 LT)",
     varioSinkLabel: "Saufen",
     varioLiftLabel: "Hammer!",
     logbookBadge: "Flugbuch",

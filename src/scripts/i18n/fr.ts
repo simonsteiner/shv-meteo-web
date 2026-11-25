@@ -280,11 +280,11 @@ export const fr: Strings = {
     // Rega's own wording (2026-11-25): https://www.rega.ch/fr/en-mission/sites-et-infrastructures/radio-de-detresse/radio-de-detresse-alerter-la-rega
     kRadioSub:
       "Touche « alarme » ou appel 5 tons 21414 (ZVEI), avec ou sans squelch (CTCSS) 123.0 Hz. Quittance : 3 longs tons. À utiliser seulement sans réseau mobile.",
-    dabsBadge: "Statut de l'espace aérien",
-    dabsValidity: "Validité aujourd'hui :",
+    dabsBadge: "Espace aérien",
     dabsNotes:
       "Publié chaque jour dès 16:00 LT pour le lendemain par Skybriefing. À consulter obligatoirement avant chaque vol de distance !",
-    dabsPdf: "Télécharger le DABS en PDF",
+    dabsPdfToday: "DABS aujourd'hui (PDF)",
+    dabsPdfTomorrow: "DABS demain (PDF, dès 16:00 LT)",
     varioSinkLabel: "Dégueulante",
     varioLiftLabel: "Plafond !",
     logbookBadge: "Carnet de vol",

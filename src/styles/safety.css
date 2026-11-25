@@ -166,6 +166,18 @@
   gap: 4px;
 }
 
+.dabs-notes {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.dabs-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 /* Vario Card */
 .vario-display-box {
   display: flex;

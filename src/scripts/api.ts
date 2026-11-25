@@ -1,13 +1,12 @@
 // ShvApi: the browser's only API client and only caller of fetch. Static
 // GIS snapshots come from public/data/ with the upstream CDN as fallback,
-// the outlooks and the isobar chart straight from upstream, the DABS card is
-// built here, and everything else goes through the Pages Functions under
-// /api (docs/architecture/data-queries.md). A read never rejects: a failed
+// the outlooks and the isobar chart straight from upstream, and everything
+// else goes through the Pages Functions under /api
+// (docs/architecture/data-queries.md). A read never rejects: a failed
 // one logs and resolves to null (or an empty list), so a view shows its
 // empty or error state.
 import type {
   Bbox,
-  Dabs,
   FlyingSiteFeature,
   MeasurementFeature,
   ObstacleFeature,
@@ -37,36 +36,6 @@ const ISOBAR_LANGS = ["de", "fr", "it"];
 export function isobarenUrl(lang: string): string {
   const l = ISOBAR_LANGS.includes(lang) ? lang : "de";
   return `https://shv-app-ws-prod.shv-app.ch/v1/text/isobaren/${l}.svg`;
-}
-
-/** Today's date in Switzerland as YYYY-MM-DD, from the parts rather than
- * a locale's layout, which older browsers' ICU data varies. */
-function swissDate(now: Date): string {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Europe/Zurich",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(now);
-  const part = (type: string) => parts.find((p) => p.type === type)?.value;
-  return `${part("year")}-${part("month")}-${part("day")}`;
-}
-
-/** The DABS card's fields for `now`, as the former /api/dabs returned
- * them, but dated in Swiss time rather than UTC. */
-export function buildDabs(now: Date): Dabs {
-  const date = swissDate(now);
-  return {
-    date,
-    status: "ACTIVE",
-    bulletinUrl: "https://www.skybriefing.com/de/dabs",
-    bulletinPdfUrl: "https://www.skybriefing.com/dabs/dabs.pdf",
-    validity: `00:00 - 23:59 LT (${date})`,
-    notesDe:
-      "Täglich ab 16:00 LT für den Folgetag durch Skybriefing publiziert. Vor jedem Streckenflug obligatorisch zu konsultieren!",
-    notesEn:
-      "Published daily at 16:00 LT for the next day via Skybriefing. Mandatory consultation prior to cross-country flights!",
-  };
 }
 
 export interface FeatureCollection<F = unknown> {
@@ -328,9 +297,5 @@ export const ShvApi = {
       console.error("[ShvApi.getEmagramForecast] Unreadable point data:", e);
       return null;
     }
-  },
-
-  async getDabs(): Promise<Dabs> {
-    return buildDabs(new Date());
   },
 };

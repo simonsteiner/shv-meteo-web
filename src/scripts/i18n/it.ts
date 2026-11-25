@@ -278,11 +278,11 @@ export const it: Strings = {
     // Rega's own wording (2026-11-25): https://www.rega.ch/it/in-missione/sedi-e-infrastrutture/radio-demergenza/rete-demergenza-allarmare-la-rega
     kRadioSub:
       "Pulsante allarme o segnale pentatonale 21414 (ZVEI), con o senza squelch (CTCSS) 123.0 Hz. Segnale di ricevuto: 3 toni lunghi. Da usare solo senza rete mobile.",
-    dabsBadge: "Stato dello spazio aereo",
-    dabsValidity: "Validità oggi:",
+    dabsBadge: "Spazio aereo",
     dabsNotes:
       "Pubblicato ogni giorno dalle 16:00 LT per il giorno seguente da Skybriefing. Da consultare obbligatoriamente prima di ogni volo di distanza!",
-    dabsPdf: "Scarica il DABS in PDF",
+    dabsPdfToday: "DABS oggi (PDF)",
+    dabsPdfTomorrow: "DABS domani (PDF, dalle 16:00 LT)",
     varioSinkLabel: "Discendenza",
     varioLiftLabel: "Bomba!",
     logbookBadge: "Libretto di volo",

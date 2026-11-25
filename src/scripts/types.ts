@@ -55,17 +55,6 @@ export interface Webcam {
   [key: string]: unknown;
 }
 
-/** The Daily Airspace Bulletin Switzerland card on the safety page. */
-export interface Dabs {
-  date: string;
-  status: "ACTIVE";
-  bulletinUrl: string;
-  bulletinPdfUrl: string;
-  validity: string;
-  notesDe: string;
-  notesEn: string;
-}
-
 /** A station of the sounding catalogue (public/data/previtemps_stations.json). */
 export interface SoundingStation {
   name: string;

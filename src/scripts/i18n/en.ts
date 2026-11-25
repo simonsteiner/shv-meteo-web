@@ -271,11 +271,11 @@ export const en: Strings = {
     // Rega's own wording (2026-11-25): https://www.rega.ch/en/our-missions/sites-and-infrastructure/emergency-radio/emergency-radio-calling-out-rega
     kRadioSub:
       "Alarm button or 5-tone calling signal 21414 (ZVEI), with or without a 123.0 Hz tone squelch (CTCSS). Acknowledgement: 3 long tones. Use it only where there is no mobile network.",
-    dabsBadge: "Airspace status",
-    dabsValidity: "Valid today:",
+    dabsBadge: "Airspace",
     dabsNotes:
       "Published daily at 16:00 LT for the next day via Skybriefing. Mandatory consultation prior to cross-country flights!",
-    dabsPdf: "Download the DABS PDF",
+    dabsPdfToday: "Today's DABS (PDF)",
+    dabsPdfTomorrow: "Tomorrow's DABS (PDF, from 16:00 LT)",
     varioSinkLabel: "Heavy sink",
     varioLiftLabel: "Rocket lift!",
     logbookBadge: "Logbook",

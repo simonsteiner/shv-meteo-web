@@ -5,7 +5,6 @@
 // is how the header's language switch reaches the page.
 
 import { store } from "../state.ts";
-import { ShvApi } from "../api.ts";
 import { must } from "../dom.ts";
 import { applyText } from "../i18n/text.ts";
 import {
@@ -197,15 +196,6 @@ export function mountSafety(root: HTMLElement): void {
     if (event.key === "Escape") closeDialog();
   });
   window.addEventListener("pagehide", () => audio.stop());
-
-  ShvApi.getDabs()
-    .then((dabs) => {
-      must<HTMLElement>(root, "[data-dabs-validity]").textContent =
-        dabs.validity;
-    })
-    .catch((err: unknown) => {
-      console.error("[safety] Cannot build the DABS card:", err);
-    });
 
   store.subscribe(render);
   render();
