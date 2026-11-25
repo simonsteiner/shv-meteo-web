@@ -73,7 +73,7 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 ## Docs
 
 - `README.md`: what the app does, screenshots, quickstart.
-- `docs/setup.md`: local setup, checks, data scripts, screenshots tool, Chrome DevTools MCP, troubleshooting.
+- `docs/setup.md`: local setup, checks, data scripts, screenshots tool, troubleshooting.
 - `docs/deployment.md`: Cloudflare Pages, deploying by hand, rollback, state and secrets.
 - `docs/architecture.md`: index of `docs/architecture/`: every upstream and `/api` route, what the data holds, how the code is organised.
 - `docs/research/`: dated research notes with the measurements behind a decision; read the one on a topic before reopening it.
