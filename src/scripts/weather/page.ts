@@ -21,10 +21,11 @@ import type { MeasurementFeature, Webcam } from "../types.ts";
 import { pairPillsHtml, stationCardHtml, webcamCardHtml } from "./cards.ts";
 import { stationModal } from "./modal.ts";
 import {
-  chartKey,
+  chartDraw,
   chartView,
   choosePair,
   initialPairState,
+  NOTHING_DRAWN,
   reportCame,
   retryButton,
   shownPair,
@@ -55,12 +56,9 @@ export function mountWeather(root: HTMLElement): void {
   let webcams: Webcam[] | null | undefined;
   let lang: string | null = null;
   let chart: Chart | null = null;
-  // what was drawn last: the chart's key and pair, and the pills
-  let drawnKey = "";
-  let drawnPair: string | null = null;
+  // what was drawn last: the chart, and the pills
+  let drawn = NOTHING_DRAWN;
   let pillsHtml = "";
-  // a retry of the failed first report is loading
-  let retrying = false;
 
   const q = <T extends Element = HTMLElement>(s: string) => must<T>(root, s);
   const foehnStatus = q("[data-foehn-status]");
@@ -105,7 +103,7 @@ export function mountWeather(root: HTMLElement): void {
           : "weather.foehnUnavailable",
       );
       // a failed first report has no pills to click, so it gets a button
-      const retry = retryButton(pairs, retrying);
+      const retry = retryButton(pairs);
       foehnRetry.hidden = retry === "hidden";
       foehnRetry.setAttribute("aria-disabled", String(retry === "busy"));
       foehnBody.hidden = true;
@@ -180,10 +178,9 @@ export function mountWeather(root: HTMLElement): void {
     const pending = view.kind === "pending";
     chartBox.classList.toggle("is-pending", pending);
     chartBox.setAttribute("aria-busy", String(pending));
-    const key = chartKey(view, store.state.theme, store.state.lang);
-    if (view.kind !== "pending" && key !== drawnKey) {
-      drawnKey = key;
-      drawnPair = view.pairId;
+    const next = chartDraw(view, store.state.theme, store.state.lang, drawn);
+    drawn = next.drawn;
+    if (next.redraw && view.kind !== "pending") {
       const history = view.kind === "chart" ? view.history : [];
       chartEmpty.hidden = history.length > 0;
       canvas.hidden = history.length === 0;
@@ -202,8 +199,10 @@ export function mountWeather(root: HTMLElement): void {
           chart,
         );
     }
-    if (drawnPair)
-      q("[data-pair-chart-title]").textContent = say(chartTitleKey(drawnPair));
+    if (drawn.pairId)
+      q("[data-pair-chart-title]").textContent = say(
+        chartTitleKey(drawn.pairId),
+      );
   }
 
   function renderLists(): void {
@@ -268,7 +267,6 @@ export function mountWeather(root: HTMLElement): void {
   function loadPair(id: string): void {
     void ShvApi.getFoehn(id).then((report) => {
       pairs = reportCame(pairs, id, report);
-      retrying = false;
       render();
     });
   }
@@ -299,11 +297,7 @@ export function mountWeather(root: HTMLElement): void {
     const target = event.target as Element;
     const pair = target.closest<HTMLElement>("[data-pair-id]")?.dataset.pairId;
     if (pair) return selectPair(pair);
-    if (target.closest("[data-foehn-retry]")) {
-      if (retrying) return;
-      retrying = true;
-      return selectPair(pairs.pairId);
-    }
+    if (target.closest("[data-foehn-retry]")) return selectPair(pairs.pairId);
     const tabButton = target.closest<HTMLElement>("[data-weather-tab]");
     if (tabButton) {
       tab = tabButton.dataset.weatherTab === "webcams" ? "webcams" : "stations";
