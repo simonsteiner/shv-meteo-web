@@ -9,7 +9,7 @@
 import L from "leaflet";
 import { store } from "../state.ts";
 import { ShvApi } from "../api.ts";
-import { settled } from "../settled.ts";
+import { settledInto } from "../settled.ts";
 import { must } from "../dom.ts";
 import {
   readHandoff,
@@ -289,56 +289,71 @@ export function mountMap(root: HTMLElement): void {
   });
 
   // Each data set loads on its own, so a slow or failed one holds up none
-  // of the others; a failure (null from settled, logged) leaves its layer
-  // empty and says so while the layer is shown.
+  // of the others; a failure (logged) leaves its layer empty and says so
+  // while the layer is shown. That counts a throw while drawing the data,
+  // not only a failed call.
   function fail(dataset: Dataset): void {
     failed.add(dataset);
     render();
   }
 
-  void settled(
+  function load<T>(
+    dataset: Dataset,
+    call: Promise<T | null>,
+    label: string,
+    use: (data: T) => void,
+  ): void {
+    void settledInto(call, label, use, () => fail(dataset));
+  }
+
+  load(
+    "sites",
     ShvApi.getFlyingSites(),
     "[maps] Cannot load the flying sites:",
-  ).then((data) => {
-    if (!data) return fail("sites");
-    const features = (data.features ?? []) as FlyingSiteFeature[];
-    sites.setData(features);
-    drawn = { ...drawn, sites: "" };
-    takeHandoff(findHandoff(handoff, { kind: "site", items: features }));
-    render();
-  });
-  void settled(ShvApi.getAirspaces(), "[maps] Cannot load the airspaces:").then(
     (data) => {
-      if (!data) return fail("airspaces");
-      zones.airspace.addData(data as GeoJSON.FeatureCollection);
+      const features = (data.features ?? []) as FlyingSiteFeature[];
+      sites.setData(features);
+      drawn = { ...drawn, sites: "" };
+      takeHandoff(findHandoff(handoff, { kind: "site", items: features }));
+      render();
     },
   );
-  void settled(
+  load(
+    "airspaces",
+    ShvApi.getAirspaces(),
+    "[maps] Cannot load the airspaces:",
+    (data) => zones.airspace.addData(data as GeoJSON.FeatureCollection),
+  );
+  load(
+    "wildlife",
     ShvApi.getWildschutz(),
     "[maps] Cannot load the wildlife reserves:",
-  ).then((data) => {
-    if (!data) return fail("wildlife");
-    zones.wildlife.addData(data as GeoJSON.FeatureCollection);
-  });
-  void settled(
+    (data) => zones.wildlife.addData(data as GeoJSON.FeatureCollection),
+  );
+  load(
+    "measurements",
     ShvApi.getMeasurements(),
     "[maps] Cannot load the measurements:",
-  ).then((data) => {
-    if (!data) return fail("measurements");
-    stations = data.features ?? [];
-    redrawStations();
-    takeHandoff(findHandoff(handoff, { kind: "station", items: stations }));
-  });
-  void settled(ShvApi.getFoehn(), "[maps] Cannot load the Foehn report:").then(
+    (data) => {
+      stations = data.features ?? [];
+      redrawStations();
+      takeHandoff(findHandoff(handoff, { kind: "station", items: stations }));
+    },
+  );
+  load(
+    "foehn",
+    ShvApi.getFoehn(),
+    "[maps] Cannot load the Foehn report:",
     (report) => {
-      if (!report) return fail("foehn");
       foehn = report;
       drawFoehn(foehnLayer, foehn, say, openWeather);
     },
   );
-  void settled(ShvApi.getWebcams(), "[maps] Cannot load the webcams:").then(
+  load(
+    "webcams",
+    ShvApi.getWebcams(),
+    "[maps] Cannot load the webcams:",
     (data) => {
-      if (!data) return fail("webcams");
       const webcams = data.webcams ?? [];
       drawWebcams(webcamsLayer, webcams, (w) => store.select("webcam", w));
       takeHandoff(findHandoff(handoff, { kind: "webcam", items: webcams }));
