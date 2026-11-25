@@ -2,7 +2,7 @@
 
 A web app for Swiss paraglider and hang glider pilots that shows flying sites, airspace hazards, live weather and soaring forecasts from the public data behind the official SHV FSVL app. It is a static Astro site (`src/pages/`, one page per tab, each with its components in `src/components/<tab>/` and its TypeScript in `src/scripts/`; the header and bottom nav in `src/components/shell/`), plus Cloudflare Pages Functions (`functions/api/`) for the upstream calls a browser can't make. The browser loads static GIS data from `public/data/`, a few upstreams directly, and everything else through `/api/*`, where the Functions proxy and cache the upstream services (Ubique weather and webcams, SHV, MeteoSwiss ICON).
 
-Domain terms are in `GLOSSARY.md`. The Astro on Cloudflare Pages migration has shipped; what is left is in `docs/plan/2026-11-24-follow-ups/`.
+Domain terms are in `GLOSSARY.md`. Open work is planned in `docs/plan/`.
 
 ## Commands
 
@@ -56,7 +56,7 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 ## Hard constraints
 
 - **Never add mock, sample or synthesized data.** No fake profiles, placeholder ratings, simulated measurements or generated trend curves; show an empty or error state when real data is missing.
-- **Never accept or store SHV passwords, and never send tokens to the browser.** The site has no member login; the header links to the SHV member portal. If login returns, it follows the member check research (`docs/research/2026-11-24-member-check.md`) and F16 in `docs/plan/2026-11-24-follow-ups/README.md`.
+- **Never accept or store SHV passwords, and never send tokens to the browser.** The site has no member login; the header links to the SHV member portal. If login returns, it follows the member check research in `docs/research/` and the plan item for it in `docs/plan/`.
 - **No member data in the browser.** `purgeLegacyAuth` (`src/scripts/settings.ts`) clears the old `shv_session_id` and `shv_profile` keys on every page load.
 - **Never bypass the git hooks** (`--no-verify`, `LEFTHOOK=0`). lefthook (`lefthook.yml`) blocks staged files over 5,000 tokens and any em or en dash. Split an oversized file along its seams; write a dash a user must see as a JavaScript unicode escape, as `src/scripts/foehn/pairs.ts` does.
 
@@ -83,5 +83,5 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 - `docs/reference/shv-native-app.md`: reverse-engineered notes on the official app: its hosts, code layout and the Previtemps sounding.
 - `docs/reference/shv-native-auth.md`: the official app's Keycloak login and member web service; read before bringing back login or member data.
 - `docs/reference/shv-app-emulator.md` and `docs/reference/shv-app-traffic-capture.md`: running the official app on an Android emulator and capturing its HTTPS calls.
-- `docs/plan/`: the migration plan (`2026-11-23-astro-cloudflare/`, shipped, a record) and the follow-up plan (`2026-11-24-follow-ups/`), in order.
+- `docs/plan/`: dated plans, one folder each; the newest hold the open work, the shipped ones stay as a record.
 - `GLOSSARY.md`: domain terms in English and German.
