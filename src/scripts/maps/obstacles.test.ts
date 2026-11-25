@@ -102,3 +102,16 @@ test("paths: power lines blue unless marked, airports orange", () => {
   );
   assert.equal(obstaclePathStyle(obstacle({}, "Point")), null);
 });
+
+test("cable warners, orange and red-white-red marks look marked too", () => {
+  for (const marking of ["CABLE_WARNER", "ORANGE_MARKS", "RED_WHITE_RED"]) {
+    const end = obstaclePointStyle({ obstacleType: "CABLE_CAR", marking }, 10);
+    assert.equal(end.kind === "circle" && end.fillColor, "#FFD700", marking);
+    const mast = obstaclePointStyle({ obstacleType: "POLE", marking }, 12);
+    assert.equal(mast.kind === "circle" && mast.radius, 5, marking);
+    const line = obstaclePathStyle(
+      obstacle({ obstacleType: "TRANSMISSION_LINE", marking }, "LineString"),
+    );
+    assert.equal(line?.color, "#CC0000", marking);
+  }
+});

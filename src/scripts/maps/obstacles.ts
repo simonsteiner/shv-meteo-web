@@ -4,6 +4,7 @@
 // (src/scripts/obstacles/).
 
 import { featureKey } from "../obstacles/lod.ts";
+import { isMarked } from "../obstacles/marking.ts";
 import type { ObstacleFeature } from "../types.ts";
 
 type Props = ObstacleFeature["properties"];
@@ -72,7 +73,7 @@ export function obstaclePointStyle(
   zoom: number,
 ): CircleStyle | IconStyle {
   if (LINE_TYPES.includes(p.obstacleType ?? "")) {
-    if (p.marking === "MARKED" || p.obstacleType === "CATENARY")
+    if (isMarked(p.marking) || p.obstacleType === "CATENARY")
       return circle(4.5, "#CC0000", "#FFD700", 2, 1);
     return p.obstacleType === "TRANSMISSION_LINE"
       ? circle(3.5, "#FFFFFF", "#CC0000", 1)
@@ -83,7 +84,7 @@ export function obstaclePointStyle(
     if (id.includes("crane")) return circle(4.5, "#DC2626", "#EF4444", 1.5);
     if (id.includes("windmill")) return circle(4.5, "#0284C7", "#38BDF8", 1.5);
     if (id.includes("tree")) return circle(3.5, "#15803D", "#22C55E", 1.5);
-    if (p.marking === "MARKED") return circle(5, "#FFFFFF", "#EF4444", 1.5);
+    if (isMarked(p.marking)) return circle(5, "#FFFFFF", "#EF4444", 1.5);
     return circle(4, "#D97706", "#F59E0B", 1.5);
   }
   const icon = (
@@ -118,7 +119,7 @@ export function obstaclePathStyle(f: ObstacleFeature): PathStyle | null {
   if (type === "LineString" || type === "MultiLineString") {
     const transmission = p.obstacleType === "TRANSMISSION_LINE";
     return {
-      color: transmission && p.marking !== "MARKED" ? "#0054FF" : "#CC0000",
+      color: transmission && !isMarked(p.marking) ? "#0054FF" : "#CC0000",
       weight: transmission ? 2.5 : 2,
       opacity: 0.9,
     };

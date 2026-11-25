@@ -6,6 +6,7 @@ import { escapeHtml } from "../escape.ts";
 import { fill, type Say } from "../i18n/text.ts";
 import { featureLatLng } from "../maps/centroid.ts";
 import { obstacleIconUrl } from "../maps/obstacles.ts";
+import { isMarked, markingLabel } from "../obstacles/marking.ts";
 import type { ObstacleFeature } from "../types.ts";
 import {
   ICON,
@@ -57,7 +58,7 @@ export function obstacleSheetHtml(f: ObstacleFeature, say: Say): string {
     type === "TRANSMISSION_LINE" ||
     type === "CABLE_CAR";
   const icon = obstacleIconUrl(p.styleId, isLine ? "ms_pole" : "red_circle");
-  const marked = text(p.marking) !== "" && p.marking !== "NONE";
+  const marked = isMarked(p.marking);
   const lighting = text(p.lighting);
   const lit = lighting !== "" && lighting !== "NONE";
   const agl = nonZeroNum(p.maxHeightAgl);
@@ -102,8 +103,8 @@ export function obstacleSheetHtml(f: ObstacleFeature, say: Say): string {
     sourceId ? attr(say("map.sheet.bazlId"), sourceId, "attr-mono") : "",
     attr(
       say("map.sheet.marking"),
-      p.marking === "MARKED"
-        ? say("map.sheet.markedYes")
+      marked
+        ? `\u{1F534} ${markingLabel(p.marking, say)}`
         : say("map.sheet.none"),
     ),
     attr(

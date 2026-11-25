@@ -179,7 +179,12 @@ export const map: MapStrings = {
     bazlId: "ID UFAC:",
     effective: "In vigore dal:",
     marking: "Segnalazione:",
-    markedYes: "🔴 Segnalato",
+    markingName: {
+      MARKED: "Segnalato",
+      CABLE_WARNER: "Sfere di segnalazione",
+      ORANGE_MARKS: "Segnalazione arancione",
+      RED_WHITE_RED: "Rosso-bianco-rosso",
+    },
     none: "Nessuna",
     lighting: "Illuminazione:",
     updated: "Aggiornato:",

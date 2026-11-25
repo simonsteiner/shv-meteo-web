@@ -2,18 +2,19 @@
 // Express provider applied), the key that identifies a feature, and the
 // 2000-feature cap per view. Pure; used by the shard script and the client.
 import type { Bbox, ObstacleFeature } from "../types.ts";
+import { isMarked } from "./marking.ts";
 
 /** Cable ends: their pylon dots show only from z13 (the official style). */
 const CABLE_TYPES = ["TRANSMISSION_LINE", "CABLE_CAR", "CATENARY", "BRIDGE"];
 
 /** Whether the map shows `f` at `zoom`: nothing below 7; polygons always;
- * up to z11 a line or point symbol needs a MARKED marking or a height that
+ * up to z11 a line or point symbol needs a marking (isMarked) or a height that
  * drops as zoom rises; cable pylon dots only from z13. */
 export function visibleAt(f: ObstacleFeature, zoom: number): boolean {
   if (zoom < 7) return false;
   const type = f.geometry?.type;
   const p = f.properties ?? {};
-  const marked = p.marking === "MARKED";
+  const marked = isMarked(p.marking);
   const h = p.maxHeightAgl ?? 0;
   if (type === "Polygon" || type === "MultiPolygon") return true;
   if (type === "Point") {
@@ -58,8 +59,8 @@ export function capFeatures(
   return [...fs]
     .sort((a, b) => {
       const marked =
-        Number(b.properties.marking === "MARKED") -
-        Number(a.properties.marking === "MARKED");
+        Number(isMarked(b.properties.marking)) -
+        Number(isMarked(a.properties.marking));
       if (marked) return marked;
       const cable =
         Number(b.properties.obstacleType === "CABLE_CAR") -

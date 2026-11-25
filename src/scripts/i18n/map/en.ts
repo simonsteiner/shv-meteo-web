@@ -179,7 +179,12 @@ export const map: MapStrings = {
     bazlId: "FOCA ID:",
     effective: "In force since:",
     marking: "Marking:",
-    markedYes: "🔴 Marked",
+    markingName: {
+      MARKED: "Marked",
+      CABLE_WARNER: "Cable warning spheres",
+      ORANGE_MARKS: "Orange marking",
+      RED_WHITE_RED: "Red-white-red",
+    },
     none: "None",
     lighting: "Lighting:",
     updated: "Updated:",

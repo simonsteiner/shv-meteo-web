@@ -287,12 +287,26 @@ test("an obstacle sheet shows heights, marking and lighting", () => {
     "1500 m amsl",
     "80 m",
     "CH-123",
-    "[map.sheet.markedYes]",
+    "[map.sheet.markingName.MARKED]",
     "💡 DAY",
     "/assets/obstacles/ms_pole.svg",
     "46.0000° N, 8.0000° E",
   ])
     assert.ok(html.includes(part), part);
+});
+
+test("an obstacle sheet names a cable warner's marking, never Keine beside Markiert", () => {
+  const html = obstacleSheetHtml(
+    obstacle(
+      { obstacleType: "CABLE_CAR", marking: "CABLE_WARNER" },
+      "LineString",
+    ),
+    say,
+  );
+  assert.ok(html.includes("[map.sheet.marked]"));
+  assert.ok(html.includes("[map.sheet.markingName.CABLE_WARNER]"));
+  // the marking row, not the lighting row, which says none for this one
+  assert.ok(!html.includes("[map.sheet.marking]</span><span>[map.sheet.none]"));
 });
 
 test("an obstacle sheet escapes upstream text and needs no position", () => {

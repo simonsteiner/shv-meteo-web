@@ -179,7 +179,12 @@ export const map: MapStrings = {
     bazlId: "ID OFAC:",
     effective: "En vigueur depuis:",
     marking: "Balisage:",
-    markedYes: "🔴 Balisé",
+    markingName: {
+      MARKED: "Balisé",
+      CABLE_WARNER: "Boules de balisage",
+      ORANGE_MARKS: "Balisage orange",
+      RED_WHITE_RED: "Rouge-blanc-rouge",
+    },
     none: "Aucun",
     lighting: "Éclairage:",
     updated: "Mis à jour:",

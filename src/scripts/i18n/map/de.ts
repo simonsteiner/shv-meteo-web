@@ -176,7 +176,12 @@ export const map = {
     bazlId: "BAZL-ID:",
     effective: "In Kraft seit:",
     marking: "Markierung:",
-    markedYes: "🔴 Markiert",
+    markingName: {
+      MARKED: "Markiert",
+      CABLE_WARNER: "Kabelwarnkugeln",
+      ORANGE_MARKS: "Orange Markierung",
+      RED_WHITE_RED: "Rot-weiss-rot",
+    },
     none: "Keine",
     lighting: "Beleuchtung:",
     updated: "Aktualisiert:",
