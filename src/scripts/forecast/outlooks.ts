@@ -102,7 +102,8 @@ export function colorize(
 }
 
 export interface OutlookFrame {
-  /** Local time, e.g. "2026-11-23T06:00". */
+  /** Naive Zurich time, no offset, e.g. "2026-11-23T06:00": read as text
+   * (naiveSwiss), never through new Date(). */
   start: string;
   end: string;
   url: string;

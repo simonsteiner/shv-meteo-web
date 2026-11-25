@@ -1,18 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { formatSwiss, naiveSwiss, swissHour, swissTime } from "./swiss-time.ts";
-
-/** Runs `body` with the process in time zone `tz`, as a visitor abroad. */
-export function inZone(tz: string, body: () => void): void {
-  const before = process.env.TZ;
-  process.env.TZ = tz;
-  try {
-    body();
-  } finally {
-    if (before === undefined) delete process.env.TZ;
-    else process.env.TZ = before;
-  }
-}
+import { inZone } from "./test-zone.ts";
 
 for (const tz of ["UTC", "America/New_York"])
   test(`Swiss times stay Swiss in ${tz}, across the DST change`, () => {
@@ -43,4 +32,8 @@ test("a naive Zurich time is read as text, whatever the zone", () => {
     });
   });
   assert.equal(naiveSwiss("not a time", "de-CH"), null);
+  // an offset is no naive time: never read it as Swiss
+  assert.equal(naiveSwiss("2026-11-25T06:00Z", "de-CH"), null);
+  assert.equal(naiveSwiss("2026-11-25T06:00+01:00", "de-CH"), null);
+  assert.equal(naiveSwiss("2026-11-25T06:00:00", "de-CH")?.time, "06:00");
 });
