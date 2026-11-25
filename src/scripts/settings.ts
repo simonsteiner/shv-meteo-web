@@ -7,7 +7,7 @@
 // pre-flight checklist lives in sessionStorage: it survives moving between
 // pages but not closing the tab. Storage is a parameter, for the tests.
 
-import { isOneOf } from "./coerce.ts";
+import { isOneOf, isRecord } from "./coerce.ts";
 
 export const LANGS = ["de", "fr", "it", "en"] as const;
 const THEMES = ["dark", "light"] as const;
@@ -132,10 +132,6 @@ const oneOf =
   <T extends string>(allowed: readonly T[]) =>
   (v: unknown): T | undefined =>
     isOneOf(allowed, v) ? v : undefined;
-
-function isRecord(v: unknown): v is Record<string, unknown> {
-  return typeof v === "object" && v !== null && !Array.isArray(v);
-}
 
 /** Each key's check: the value when allowed, else undefined. */
 const PARSERS: {

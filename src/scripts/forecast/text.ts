@@ -2,6 +2,8 @@
 // (three regions), the paragliding and gliding forecasts, or the general
 // situation, each with its issue time.
 
+import { isRecord } from "../coerce.ts";
+
 export const TEXT_CATEGORIES = [
   "weather_report",
   "gleitschirm",
@@ -23,9 +25,7 @@ export interface TextProduct {
 }
 
 function record(v: unknown): Record<string, unknown> | null {
-  return typeof v === "object" && v !== null
-    ? (v as Record<string, unknown>)
-    : null;
+  return isRecord(v) ? v : null;
 }
 
 function str(v: unknown): string | null {
