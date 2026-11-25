@@ -91,8 +91,7 @@ async function getJson<T>(url: string, label: string): Promise<T | null> {
 }
 
 /** `load` memoised per key: callers share one request, and a null answer
- * is forgotten (only if it is still the kept one) so the next call asks
- * again. */
+ * is forgotten so the next call asks again. */
 function retryable<T>(
   load: (key: string) => Promise<T | null>,
 ): (key?: string) => Promise<T | null> {
@@ -100,12 +99,11 @@ function retryable<T>(
   return (key = "") => {
     let pending = kept.get(key);
     if (!pending) {
-      const mine: Promise<T | null> = load(key).then((answer) => {
-        if (answer === null && kept.get(key) === mine) kept.delete(key);
+      pending = load(key).then((answer) => {
+        if (answer === null) kept.delete(key);
         return answer;
       });
-      pending = mine;
-      kept.set(key, mine);
+      kept.set(key, pending);
     }
     return pending;
   };
@@ -113,8 +111,12 @@ function retryable<T>(
 
 /** A GIS snapshot from public/data/, else the upstream CDN; kept for the
  * page's lifetime. Null (logged) when both fail. */
-function snapshot<T>(local: string, cdn: string, label: string) {
-  return retryable<T>(async () => {
+function snapshot<T>(
+  local: string,
+  cdn: string,
+  label: string,
+): () => Promise<T | null> {
+  const memo = retryable<T>(async () => {
     try {
       const resp = await fetch(local);
       if (resp.ok) return (await resp.json()) as T;
@@ -143,6 +145,7 @@ function snapshot<T>(local: string, cdn: string, label: string) {
     }
     return null;
   });
+  return () => memo();
 }
 
 const CDN = "https://shv-app-static-prod.ubmeteo.io/v1";
@@ -222,7 +225,7 @@ export const ShvApi = {
       );
       return { features, incomplete: failed };
     } catch (err) {
-      if (options.signal?.aborted) return null;
+      if ((err as { name?: string })?.name === "AbortError") return null;
       console.error("[ShvApi.getObstacles] Failed to load obstacles:", err);
       return null;
     }
