@@ -81,7 +81,18 @@ export function mountMap(root: HTMLElement): void {
   );
   const sites = siteLayers((f) => store.select("site", f));
   const zones = zoneLayers(say);
-  const obstacles = obstacleLayer(map, (f) => store.select("obstacle", f));
+  // the data sets that failed to load (load-status.ts)
+  const failed = new Set<Dataset>();
+  const obstacles = obstacleLayer(
+    map,
+    (f) => store.select("obstacle", f),
+    (bad) => {
+      if (bad === failed.has("obstacles")) return;
+      if (bad) failed.add("obstacles");
+      else failed.delete("obstacles");
+      renderControls();
+    },
+  );
   const stationsLayer = L.layerGroup();
   const foehnLayer = L.layerGroup();
   const webcamsLayer = L.layerGroup();
@@ -107,7 +118,6 @@ export function mountMap(root: HTMLElement): void {
   let foehn: FoehnReport | null = null;
   let pilotMarker: L.Marker | null = null;
   let pilotFix = 0;
-  const failed = new Set<Dataset>();
   // what was drawn last, so a store change redraws only what it touched
   let drawn = NOTHING_DRAWN;
 

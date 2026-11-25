@@ -124,6 +124,11 @@ function snapshot(local: string, cdn: string, label: string) {
 
 const CDN = "https://shv-app-static-prod.ubmeteo.io/v1";
 
+/** A view's obstacles, and whether reading them failed. */
+export interface ObstacleAnswer extends FeatureCollection<ObstacleFeature> {
+  failed: boolean;
+}
+
 // One request per page load: the header's Foehn badge and the view on the
 // same page share a call. Keyed by pair, so the pair switcher gets its own.
 // A failed call (null) is forgotten, so the next caller asks again.
@@ -169,11 +174,12 @@ export const ShvApi = {
     "getWildschutz",
   ),
 
-  /** The obstacles a map view shows; rejects only when `signal` aborts. */
+  /** The obstacles a map view shows, `failed` (and none) when the shards
+   * couldn't be read; rejects only when `signal` aborts. */
   async getObstacles(
     { zoom, ...bbox }: Bbox & { zoom: number },
     options: { signal?: AbortSignal } = {},
-  ): Promise<FeatureCollection<ObstacleFeature>> {
+  ): Promise<ObstacleAnswer> {
     try {
       obstacleIndexPromise ??= fetchObstacleShard("index.json").then(
         (shard) => shard.value as ShardIndex,
@@ -186,13 +192,14 @@ export const ShvApi = {
         fetchObstacleCell,
         options.signal,
       );
-      return { type: "FeatureCollection", features };
+      return { type: "FeatureCollection", features, failed: false };
     } catch (err) {
       if ((err as { name?: string })?.name === "AbortError") throw err;
       console.error("[ShvApi.getObstacles] Failed to load obstacles:", err);
       obstacleIndexPromise = null;
     }
-    return { type: "FeatureCollection", features: [] };
+    // no obstacles drawn must not read as no obstacles there
+    return { type: "FeatureCollection", features: [], failed: true };
   },
 
   getMeasurements(): Promise<FeatureCollection<MeasurementFeature> | null> {

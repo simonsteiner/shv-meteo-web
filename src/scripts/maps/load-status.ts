@@ -1,5 +1,6 @@
 // The map's data sets that failed to load, said on the map rather than
-// only in the console: each counts while a layer it fills is shown.
+// only in the console: each counts while a layer it fills is shown. The
+// obstacles load as the map moves, so they count until a load succeeds.
 
 import { fill, type Say } from "../i18n/text.ts";
 import type { Layers } from "../settings.ts";
@@ -12,6 +13,7 @@ export const DATASETS = [
   "measurements",
   "foehn",
   "webcams",
+  "obstacles",
 ] as const;
 export type Dataset = (typeof DATASETS)[number];
 
@@ -23,6 +25,7 @@ const FILLS: Record<Dataset, (keyof Layers)[]> = {
   measurements: ["stations"],
   foehn: ["foehnAxis"],
   webcams: ["webcams"],
+  obstacles: ["obstacles"],
 };
 
 /** The failed data sets a shown layer needs, in DATASETS order. */

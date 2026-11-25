@@ -20,6 +20,7 @@ export const map: MapStrings = {
     measurements: "Mesures",
     foehn: "Paires de stations du fœhn",
     webcams: "Webcams",
+    obstacles: "Obstacles à la navigation aérienne",
   },
   category: {
     METEO: "Météo",

@@ -46,3 +46,11 @@ test("the status line names the failed data sets in every language", () => {
     "Not loaded: foehn, webcams",
   );
 });
+
+test("failed obstacles count while the obstacle layer is shown", () => {
+  const failed = new Set(["obstacles"] as const);
+  assert.deepEqual(failedShown(failed, layers), []);
+  assert.deepEqual(failedShown(failed, { ...layers, obstacles: true }), [
+    "obstacles",
+  ]);
+});

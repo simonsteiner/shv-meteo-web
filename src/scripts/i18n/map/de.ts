@@ -18,6 +18,7 @@ export const map = {
     measurements: "Messwerte",
     foehn: "Föhn-Stationspaare",
     webcams: "Webcams",
+    obstacles: "Luftfahrthindernisse",
   },
   category: {
     METEO: "Meteo",
