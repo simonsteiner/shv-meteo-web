@@ -11,19 +11,27 @@ import { ShvApi } from "../api.ts";
 import { drawChart } from "../charts/draw.ts";
 import { foehnChartConfig } from "../charts/foehn.ts";
 import { chartColors } from "../charts/theme.ts";
-import { must } from "../dom.ts";
+import { must, useFallback } from "../dom.ts";
+import { settled } from "../settled.ts";
+import { alertLook, formatDelta } from "../foehn/look.ts";
 import { DEFAULT_PAIR } from "../foehn/pairs.ts";
-import type { FoehnReport } from "../foehn/report.ts";
+import type { StationPair } from "../foehn/report.ts";
 import { handoffUrl } from "../handoff.ts";
-import { applyText, say as sayIn, type Dictionary } from "../i18n/text.ts";
+import { applyText, fill } from "../i18n/text.ts";
 import type { MeasurementFeature, Webcam } from "../types.ts";
 import { pairPillsHtml, stationCardHtml, webcamCardHtml } from "./cards.ts";
 import { stationModal } from "./modal.ts";
 import {
-  bannerClass,
-  bannerIcon,
+  chartKey,
+  chartView,
+  choosePair,
+  initialPairState,
+  reportCame,
+  retryButton,
+  shownPair,
+} from "./pair-state.ts";
+import {
   chartTitleKey,
-  formatDelta,
   pairStatusText,
   sideKeys,
   stationReading,
@@ -33,43 +41,40 @@ import {
   withWeatherQuery,
   type WeatherTab,
 } from "./query.ts";
-import { filterStations, PROVIDERS, type Provider } from "./stations.ts";
-import { filterWebcams } from "./webcams.ts";
+import { listView } from "./lists.ts";
+import { PROVIDERS, type Provider } from "./stations.ts";
 
-/** How many cards a list shows, as the old view did. */
-const MAX_STATIONS = 48;
-const MAX_WEBCAMS = 36;
-
-const dictionary = (): Dictionary => store.t;
-const say = (key: string) => sayIn(dictionary(), key);
+const { say } = store;
 
 export function mountWeather(root: HTMLElement): void {
   const query = readWeatherQuery(location.search);
-  let pairId = query.pair ?? DEFAULT_PAIR;
+  let pairs = initialPairState(query.pair ?? DEFAULT_PAIR);
   let tab: WeatherTab = query.tab ?? "stations";
   let provider: Provider = "ALL";
   let search = "";
-  // undefined while loading, null when the call failed
-  let foehn: FoehnReport | null | undefined;
-  let foehnPair = pairId;
-  // the pair whose report failed to load, so its chart shows the empty
-  // state and a click on it retries
-  let failedPair: string | null = null;
   let stations: MeasurementFeature[] | null | undefined;
   let webcams: Webcam[] | null | undefined;
   let lang: string | null = null;
   let chart: Chart | null = null;
-  let chartKey = "";
+  // what was drawn last: the chart's key and pair, and the pills
+  let drawnKey = "";
+  let drawnPair: string | null = null;
+  let pillsHtml = "";
+  // a retry of the failed first report is loading
+  let retrying = false;
 
   const q = <T extends Element = HTMLElement>(s: string) => must<T>(root, s);
   const foehnStatus = q("[data-foehn-status]");
+  const foehnRetry = q("[data-foehn-retry]");
   const foehnBody = q("[data-foehn-body]");
   const gauge = q("[data-pair-gauge]");
   const canvas = q<HTMLCanvasElement>("[data-foehn-chart]");
+  const chartBox = q(".chart-canvas-container");
   const chartEmpty = q(".chart-empty");
   const searchInput = q<HTMLInputElement>("[data-weather-search]");
   const providerPills = q("[data-provider-pills]");
   const listStatus = q("[data-list-status]");
+  const listMore = q("[data-list-more]");
   const stationCards = q("[data-station-cards]");
   const webcamCards = q("[data-webcam-cards]");
   const modal = stationModal(
@@ -83,33 +88,46 @@ export function mountWeather(root: HTMLElement): void {
     history.replaceState(
       history.state,
       "",
-      withWeatherQuery(location.href, { tab, pair: pairId }, DEFAULT_PAIR),
+      withWeatherQuery(
+        location.href,
+        { tab, pair: pairs.pairId },
+        DEFAULT_PAIR,
+      ),
     );
   }
 
   function renderFoehn(): void {
-    const pairs = foehn?.pairs ?? [];
-    const pair = pairs.find((p) => p.id === pairId) ?? pairs[0];
-    if (!foehn || !pair) {
+    const pair = shownPair(pairs);
+    if (!pairs.report || !pair) {
       foehnStatus.hidden = false;
       foehnStatus.textContent = say(
-        foehn === undefined ? "weather.loading" : "weather.foehnUnavailable",
+        pairs.report === undefined
+          ? "weather.loading"
+          : "weather.foehnUnavailable",
       );
+      // a failed first report has no pills to click, so it gets a button
+      const retry = retryButton(pairs, retrying);
+      foehnRetry.hidden = retry === "hidden";
+      foehnRetry.setAttribute("aria-disabled", String(retry === "busy"));
       foehnBody.hidden = true;
       gauge.hidden = true;
       return;
     }
     foehnStatus.hidden = true;
+    // a retry that worked hands its focus to the pair it loaded
+    const retryFocused = document.activeElement === foehnRetry;
+    foehnRetry.hidden = true;
     foehnBody.hidden = false;
     gauge.hidden = false;
-    const banner = bannerClass(pair.alertLevel);
+    const look = alertLook(pair.alertLevel);
     const delta = formatDelta(pair.delta);
-    gauge.className = `foehn-gauge-pill ${banner}`;
+    gauge.className = `foehn-gauge-pill ${look.banner}`;
     q("[data-pair-delta]").textContent = delta;
     q("[data-pair-unit]").textContent = pair.unit;
-    q("[data-pair-pills]").innerHTML = pairPillsHtml(pairs, pair.id);
-    q("[data-pair-banner]").className = `foehn-banner ${banner}`;
-    q("[data-pair-icon]").textContent = bannerIcon(pair.alertLevel);
+    renderPills(pairs.report.pairs, pair.id);
+    if (retryFocused) focusPill(pair.id);
+    q("[data-pair-banner]").className = `foehn-banner ${look.banner}`;
+    q("[data-pair-icon]").textContent = look.icon;
     const status = pairStatusText(pair, say);
     q("[data-pair-status]").textContent = status.title;
     q("[data-pair-description]").textContent = status.text;
@@ -129,35 +147,64 @@ export function mountWeather(root: HTMLElement): void {
           : "";
     }
     q("[data-pair-arrow]").textContent = `Δ = ${delta} ${pair.unit}`;
-    q("[data-pair-chart-title]").textContent = say(chartTitleKey(pair.id));
+    renderChart(pair);
+  }
 
-    // the history belongs to the pair the report was fetched for; until a
-    // switched pair's report arrives, the chart keeps the old one, and if
-    // it fails, the chart shows the empty state
-    let pairHistory: FoehnReport["history"] | null = null;
-    if (foehnPair === pair.id) pairHistory = foehn.history;
-    else if (failedPair === pair.id) pairHistory = [];
-    if (pairHistory === null) return;
-    const key = `${pair.id}|${store.state.theme}|${lang}|${pairHistory.length}|${pairHistory[pairHistory.length - 1]?.timestamp}`;
-    if (key === chartKey) return;
-    chartKey = key;
-    chartEmpty.hidden = pairHistory.length > 0;
-    canvas.hidden = pairHistory.length === 0;
-    if (pairHistory.length === 0) {
-      chart?.destroy();
-      chart = null;
-      return;
+  // The pills are rebuilt only when their content changes, and keep the
+  // keyboard focus when they are.
+  function renderPills(all: readonly StationPair[], selected: string): void {
+    const html = pairPillsHtml(all, selected);
+    if (html === pillsHtml) return;
+    pillsHtml = html;
+    const row = q("[data-pair-pills]");
+    const active = document.activeElement;
+    const focused =
+      active instanceof HTMLElement && row.contains(active)
+        ? active.dataset.pairId
+        : undefined;
+    row.innerHTML = html;
+    if (focused !== undefined) focusPill(focused);
+  }
+
+  function focusPill(id: string): void {
+    Array.from(
+      q("[data-pair-pills]").querySelectorAll<HTMLElement>("[data-pair-id]"),
+    )
+      .find((el) => el.dataset.pairId === id)
+      ?.focus();
+  }
+
+  // The chart and its title change together: a switched pair's chart is
+  // dimmed until its report comes, rather than shown under the new name.
+  function renderChart(pair: StationPair): void {
+    const view = chartView(pairs, pair.id);
+    const pending = view.kind === "pending";
+    chartBox.classList.toggle("is-pending", pending);
+    chartBox.setAttribute("aria-busy", String(pending));
+    const key = chartKey(view, store.state.theme, store.state.lang);
+    if (view.kind !== "pending" && key !== drawnKey) {
+      drawnKey = key;
+      drawnPair = view.pairId;
+      const history = view.kind === "chart" ? view.history : [];
+      chartEmpty.hidden = history.length > 0;
+      canvas.hidden = history.length === 0;
+      if (history.length === 0) {
+        chart?.destroy();
+        chart = null;
+      } else
+        chart = drawChart(
+          canvas,
+          foehnChartConfig(
+            history,
+            pair,
+            chartColors(store.state.theme),
+            say("weather.differenceLabel"),
+          ),
+          chart,
+        );
     }
-    chart = drawChart(
-      canvas,
-      foehnChartConfig(
-        pairHistory,
-        pair,
-        chartColors(store.state.theme),
-        say("weather.differenceLabel"),
-      ),
-      chart,
-    );
+    if (drawnPair)
+      q("[data-pair-chart-title]").textContent = say(chartTitleKey(drawnPair));
   }
 
   function renderLists(): void {
@@ -177,25 +224,20 @@ export function mountWeather(root: HTMLElement): void {
     );
     providerPills.hidden = tab !== "stations";
 
-    const shownStations = stations
-      ? filterStations(stations, provider, search)
-      : [];
-    const shownWebcams = webcams ? filterWebcams(webcams, search) : [];
-    q('[data-count="stations"]').textContent = String(shownStations.length);
-    q('[data-count="providers"]').textContent = String(shownStations.length);
-    q('[data-count="webcams"]').textContent = String(shownWebcams.length);
-
-    const data = tab === "stations" ? stations : webcams;
-    const shown = tab === "stations" ? shownStations : shownWebcams;
-    listStatus.hidden = !!data && shown.length > 0;
-    if (data === undefined) listStatus.textContent = say("weather.loading");
-    else if (data === null)
-      listStatus.textContent = say(
-        tab === "stations"
-          ? "weather.stationsUnavailable"
-          : "weather.webcamsUnavailable",
-      );
-    else listStatus.textContent = say("weather.noMatches");
+    const view = listView({ tab, stations, webcams, provider, search });
+    q('[data-count="stations"]').textContent = String(view.counts.stations);
+    q('[data-count="providers"]').textContent = String(
+      view.counts.allProviders,
+    );
+    q('[data-count="webcams"]').textContent = String(view.counts.webcams);
+    listStatus.hidden = view.statusKey === null;
+    if (view.statusKey) listStatus.textContent = say(view.statusKey);
+    // the cards show the first matches only; the search narrows them
+    listMore.hidden = view.shown >= view.matches;
+    listMore.textContent = fill(say("weather.moreMatches"), {
+      shown: view.shown,
+      total: view.matches,
+    });
 
     stationCards.hidden = tab !== "stations";
     webcamCards.hidden = tab !== "webcams";
@@ -206,54 +248,42 @@ export function mountWeather(root: HTMLElement): void {
         temp: say("weather.tempShort"),
         windDirection: say("weather.windDirection"),
       };
-      stationCards.innerHTML = shownStations
-        .slice(0, MAX_STATIONS)
+      stationCards.innerHTML = view.stations
         .map((st) => stationCardHtml(st, text))
         .join("");
     } else {
-      webcamCards.innerHTML = shownWebcams
-        .slice(0, MAX_WEBCAMS)
-        .map(webcamCardHtml)
-        .join("");
+      webcamCards.innerHTML = view.webcams.map(webcamCardHtml).join("");
     }
   }
 
   function render(): void {
     if (store.state.lang !== lang) {
       lang = store.state.lang;
-      applyText(root, dictionary());
+      applyText(root, store.t);
     }
     renderFoehn();
     renderLists();
     modal.refresh();
   }
 
-  function failPair(id: string): void {
-    if (pairId !== id) return;
-    failedPair = id;
-    render();
+  function loadPair(id: string): void {
+    void settled(
+      ShvApi.getFoehn(id),
+      "[weather] Cannot load the pair's report:",
+    ).then((report) => {
+      pairs = reportCame(pairs, id, report);
+      retrying = false;
+      render();
+    });
   }
 
   function selectPair(id: string): void {
-    // a click on the shown pair retries it only when its report failed
-    if (id === pairId && id !== failedPair) return;
-    pairId = id;
-    failedPair = null;
+    const next = choosePair(pairs, id);
+    pairs = next.state;
+    if (!next.fetch) return;
     writeUrl();
     render();
-    ShvApi.getFoehn(id)
-      .then((report) => {
-        if (pairId !== id) return;
-        // getJson has logged the failure
-        if (!report) return failPair(id);
-        foehn = report;
-        foehnPair = id;
-        render();
-      })
-      .catch((err: unknown) => {
-        console.error("[weather] Cannot load the pair's history:", err);
-        failPair(id);
-      });
+    loadPair(id);
   }
 
   function activate(target: Element): void {
@@ -273,6 +303,11 @@ export function mountWeather(root: HTMLElement): void {
     const target = event.target as Element;
     const pair = target.closest<HTMLElement>("[data-pair-id]")?.dataset.pairId;
     if (pair) return selectPair(pair);
+    if (target.closest("[data-foehn-retry]")) {
+      if (retrying) return;
+      retrying = true;
+      return selectPair(pairs.pairId);
+    }
     const tabButton = target.closest<HTMLElement>("[data-weather-tab]");
     if (tabButton) {
       tab = tabButton.dataset.weatherTab === "webcams" ? "webcams" : "stations";
@@ -309,34 +344,25 @@ export function mountWeather(root: HTMLElement): void {
     "error",
     (event) => {
       const img = event.target;
-      if (!(img instanceof HTMLImageElement) || !img.dataset.fallback) return;
-      img.src = img.dataset.fallback;
-      delete img.dataset.fallback;
+      if (img instanceof HTMLImageElement) useFallback(img);
     },
     true,
   );
 
-  const settle = <T>(
-    label: string,
-    p: Promise<T | null>,
-    set: (v: T | null) => void,
-  ) =>
-    p
-      .catch((err: unknown) => {
-        console.error(`[weather] Cannot load the ${label}:`, err);
-        return null;
-      })
-      .then((v) => {
-        set(v);
-        render();
-      });
-  settle("Foehn report", ShvApi.getFoehn(pairId), (v) => (foehn = v));
-  settle(
-    "measurements",
+  loadPair(pairs.pairId);
+  void settled(
     ShvApi.getMeasurements(),
-    (v) => (stations = v?.features ?? null),
+    "[weather] Cannot load the measurements:",
+  ).then((v) => {
+    stations = v?.features ?? null;
+    render();
+  });
+  void settled(ShvApi.getWebcams(), "[weather] Cannot load the webcams:").then(
+    (v) => {
+      webcams = v?.webcams ?? null;
+      render();
+    },
   );
-  settle("webcams", ShvApi.getWebcams(), (v) => (webcams = v?.webcams ?? null));
 
   store.subscribe(render);
   render();

@@ -12,6 +12,16 @@ export const map: MapStrings = {
   centerButton: "Centre on Switzerland",
   layersTitle: "Map layers",
   close: "Close",
+  loadFailed: "Couldn't load: {names}",
+  dataset: {
+    sites: "Flying sites",
+    airspaces: "Airspaces",
+    wildlife: "Wildlife reserves",
+    measurements: "Measurements",
+    foehn: "Föhn station pairs",
+    webcams: "Webcams",
+    obstacles: "Aviation obstacles",
+  },
   category: {
     METEO: "Weather",
     AIRSPACE: "Airspace",

@@ -228,6 +228,12 @@
   width: 100%;
 }
 
+/* a switched pair's chart until its report comes (weather/pair-state.ts) */
+.chart-canvas-container.is-pending {
+  opacity: 0.4;
+  transition: opacity 0.2s;
+}
+
 .sec-pair-card {
   background: var(--bg-primary);
   padding: 10px 14px;
@@ -352,6 +358,12 @@
   flex: 1;
 }
 
+/* A retry that is loading stays focusable, so it isn't disabled */
+.foehn-retry[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: progress;
+}
+
 /* Parts the page shows and hides; their own display rules would otherwise
    win over [hidden]. */
 .foehn-gauge-pill[hidden],
@@ -361,6 +373,7 @@
 .provider-filter-pills[hidden],
 .modal-canvas-box[hidden],
 .weather-status[hidden],
+.foehn-retry[hidden],
 .chart-canvas-container canvas[hidden] {
   display: none;
 }

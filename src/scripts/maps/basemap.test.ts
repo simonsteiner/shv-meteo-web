@@ -5,7 +5,9 @@ import {
   BASE_LAYERS,
   BASE_MAP_IMAGES,
   DEFAULT_CENTER,
+  PILOT_ZOOM,
   baseMapKey,
+  pilotZoom,
   viewFor,
 } from "./basemap.ts";
 
@@ -27,4 +29,10 @@ test("a handed-over selection centres the map, a zoom zooms it", () => {
   assert.deepEqual(viewFor([47, 8.5], null, 9), { center: [47, 8.5], zoom: 9 });
   assert.deepEqual(viewFor(null, 11, 9), { center: DEFAULT_CENTER, zoom: 11 });
   assert.equal(viewFor(null, null, 9), null);
+});
+
+test("a pilot position zooms in to PILOT_ZOOM, never out", () => {
+  assert.equal(pilotZoom(null, 9), PILOT_ZOOM);
+  assert.equal(pilotZoom(null, 15), 15);
+  assert.equal(pilotZoom(10, 15), 10);
 });

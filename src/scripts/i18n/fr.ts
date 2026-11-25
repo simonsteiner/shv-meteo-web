@@ -102,10 +102,12 @@ export const fr: Strings = {
     seriesDew: "Point de rosée (°C)",
     seriesWind: "Vent (km/h)",
     foehnUnavailable: "Données de fœhn momentanément indisponibles.",
+    retry: "Réessayer",
     noHistory: "Aucun historique disponible.",
     stationsUnavailable: "Mesures en direct momentanément indisponibles.",
     webcamsUnavailable: "Webcams momentanément indisponibles.",
     noMatches: "Aucun résultat.",
+    moreMatches: "{shown} sur {total} affichés. La recherche affine la liste.",
     loading: "Chargement des données météo...",
   },
   forecast: {

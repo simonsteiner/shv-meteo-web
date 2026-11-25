@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { readWeatherQuery, withWeatherQuery } from "./query.ts";
+import { readWeatherQuery, weatherUrl, withWeatherQuery } from "./query.ts";
 
 test("readWeatherQuery reads a known tab and pair", () => {
   assert.deepEqual(readWeatherQuery("?tab=webcams&pair=GVE_GUT"), {
@@ -39,4 +39,12 @@ test("withWeatherQuery writes only what differs from the defaults", () => {
     ),
     "/weather/",
   );
+});
+
+test("weatherUrl opens a pair, the default and unknown ones without a query", () => {
+  assert.equal(weatherUrl("GVE_GUT"), "/weather/?pair=GVE_GUT");
+  const back = new URL(weatherUrl("GVE_GUT"), "https://localhost").search;
+  assert.equal(readWeatherQuery(back).pair, "GVE_GUT");
+  assert.equal(weatherUrl("KLO_LUG"), "/weather/");
+  assert.equal(weatherUrl("<script>"), "/weather/");
 });

@@ -9,6 +9,7 @@
 import L from "leaflet";
 import { store } from "../state.ts";
 import { ShvApi } from "../api.ts";
+import { settledInto } from "../settled.ts";
 import { must } from "../dom.ts";
 import {
   readHandoff,
@@ -16,19 +17,8 @@ import {
   withoutHandoff,
   type Handoff,
 } from "../handoff.ts";
-import {
-  applyText,
-  fill,
-  say as sayIn,
-  type Dictionary,
-  type Say,
-} from "../i18n/text.ts";
-import {
-  mountSheet,
-  selectionOf,
-  type Selection,
-  type SelectionKind,
-} from "../sheet/render.ts";
+import { applyText } from "../i18n/text.ts";
+import { mountSheet, selectionOf } from "../sheet/render.ts";
 import type {
   BaseMap,
   Compass,
@@ -36,40 +26,42 @@ import type {
   MapCategory,
   MeteoMode,
 } from "../settings.ts";
-import type {
-  FlyingSiteFeature,
-  MeasurementFeature,
-  Webcam,
-} from "../types.ts";
+import type { FlyingSiteFeature, MeasurementFeature } from "../types.ts";
+import { DEFAULT_CENTER, DEFAULT_ZOOM, pilotZoom, viewFor } from "./basemap.ts";
+import type { LatLngTuple } from "./centroid.ts";
 import {
-  DEFAULT_CENTER,
-  DEFAULT_ZOOM,
-  PILOT_ZOOM,
-  viewFor,
-} from "./basemap.ts";
-import { featureLatLng, type LatLngTuple } from "./centroid.ts";
+  findHandoff,
+  revealFor,
+  stationModeFor,
+  type HandoffTarget,
+} from "./handoff-target.ts";
 import { drawFoehn, drawStations, drawWebcams } from "./layer-meteo.ts";
 import { obstacleLayer } from "./layer-obstacles.ts";
+import { NOTHING_DRAWN, redraws } from "./redraws.ts";
+import { failedShown, loadStatusText, type Dataset } from "./load-status.ts";
 import { siteLayers } from "./layer-sites.ts";
 import { zoneLayers } from "./layer-zones.ts";
-import { locatePilot, type LatLng } from "./locate.ts";
-import { findSite } from "./sites.ts";
-import { stationLatLng } from "./stations.ts";
+import { locatePilot } from "./locate.ts";
 import { centredIcon, createMap, showLayer } from "./view.ts";
+import { controlsView, pressed, type Control } from "./controls.ts";
 import type { FoehnReport } from "../foehn/report.ts";
+import { weatherUrl } from "../weather/query.ts";
 
-const dictionary = (): Dictionary => store.t;
-const say: Say = (key) => sayIn(dictionary(), key);
+const { say } = store;
 
-function select(kind: SelectionKind | null, value: unknown = null): void {
-  store.select(kind, value);
-}
+/** The drawer's toggle buttons, each by its data attribute. */
+const CONTROL_SELECTORS: [Control, string][] = [
+  ["wind", "[data-wind]"],
+  ["meteoMode", "[data-meteo-mode]"],
+  ["base", "[data-base]"],
+  ["mapCategory", "[data-map-category]"],
+];
 
 export function mountMap(root: HTMLElement): void {
   const handoff: Handoff | null = readHandoff(location.search);
   const zoom = readZoom(location.search);
   // ?z sets the zoom of a ?locate handoff only, and only once, so the
-  // header's GPS button later centres the pilot at PILOT_ZOOM
+  // header's GPS button later keeps the zoom (pilotZoom)
   let locateZoom = handoff && "locate" in handoff ? zoom : null;
   if (handoff || zoom !== null)
     history.replaceState(history.state, "", withoutHandoff(location.href));
@@ -88,9 +80,20 @@ export function mountMap(root: HTMLElement): void {
     store.state.baseMap,
     zoom,
   );
-  const sites = siteLayers((f) => select("site", f));
-  const zones = zoneLayers(() => say);
-  const obstacles = obstacleLayer(map, (f) => select("obstacle", f));
+  const sites = siteLayers((f) => store.select("site", f));
+  const zones = zoneLayers(say);
+  // the data sets that failed to load (load-status.ts)
+  const failed = new Set<Dataset>();
+  const obstacles = obstacleLayer(
+    map,
+    (f) => store.select("obstacle", f),
+    (bad) => {
+      if (bad === failed.has("obstacles")) return;
+      if (bad) failed.add("obstacles");
+      else failed.delete("obstacles");
+      renderControls();
+    },
+  );
   const stationsLayer = L.layerGroup();
   const foehnLayer = L.layerGroup();
   const webcamsLayer = L.layerGroup();
@@ -108,31 +111,25 @@ export function mountMap(root: HTMLElement): void {
   };
   const sheet = mountSheet(
     must<HTMLElement>(document, "#bottom-sheet-container"),
-    () => select(null),
-    () => say,
+    () => store.select(null),
+    say,
   );
 
   let stations: MeasurementFeature[] = [];
-  let webcams: Webcam[] = [];
   let foehn: FoehnReport | null = null;
   let pilotMarker: L.Marker | null = null;
+  let pilotFix = 0;
   // what was drawn last, so a store change redraws only what it touched
-  let lang: string | null = null;
-  let sitesKey = "";
-  let stationsMode: MeteoMode | null = null;
-  let obstaclesShown = false;
-  let shownSelection: Selection | null = null;
-  let sheetLang: string | null = null;
-
-  function stationMode(): "WIND" | "TEMPERATURE" {
-    return store.state.meteoMode === "TEMPERATURE" ? "TEMPERATURE" : "WIND";
-  }
+  let drawn = NOTHING_DRAWN;
 
   function redrawStations(): void {
     if (!store.state.layers.stations) return;
-    stationsMode = store.state.meteoMode;
-    drawStations(stationsLayer, map, stations, stationMode(), (f) =>
-      select("station", f),
+    drawStations(
+      stationsLayer,
+      map,
+      stations,
+      stationModeFor(store.state.meteoMode),
+      (f) => store.select("station", f),
     );
   }
 
@@ -141,123 +138,101 @@ export function mountMap(root: HTMLElement): void {
     if (view) map.setView(view.center, view.zoom);
   }
 
-  function renderControls(): void {
-    const { searchQuery, windFilter, layers, meteoMode, baseMap, mapCategory } =
-      store.state;
-    const search: string = searchQuery;
-    const wind: string[] = windFilter;
-    if (searchInput.value !== search) searchInput.value = search;
-    q('.clear-btn[data-action="clear-search"]').classList.toggle(
-      "hidden",
-      !search,
-    );
-    q("[data-filter-pills]").classList.toggle(
-      "hidden",
-      !search && wind.length === 0,
-    );
-    q('[data-pill="wind"]').classList.toggle("hidden", wind.length === 0);
-    q('[data-pill="search"]').classList.toggle("hidden", !search);
-    const dirs = wind.join(", ");
-    q('[data-pill-text="wind"]').textContent = fill(say("map.windPill"), {
-      dirs,
-    });
-    q('[data-pill-text="search"]').textContent = `"${search}"`;
-    const badge = q("[data-wind-count]");
-    badge.classList.toggle("hidden", wind.length === 0);
-    badge.textContent = String(wind.length);
-    q("[data-wind-reset]").classList.toggle("hidden", wind.length === 0);
-    q("[data-wind-reset-label]").textContent = fill(say("map.resetWind"), {
-      dirs,
-    });
+  // shows the handed-over selection's layer, selects it and goes there
+  function takeHandoff(target: HandoffTarget | null): void {
+    if (!target) return;
+    const { kind, value } = target.selection;
+    const reveal = revealFor(target.selection, store.state);
+    if (reveal.meteoMode) store.setMeteoMode(reveal.meteoMode);
+    if (reveal.clearSearch) store.setSearchQuery("");
+    if (reveal.clearWind) store.clearWindFilter();
+    for (const key of reveal.layers) store.toggleLayer(key);
+    store.select(kind, value);
+    moveTo(target.at);
+  }
 
-    const press = (el: HTMLElement, on: boolean) => {
-      el.classList.toggle("active", on);
-      el.setAttribute("aria-pressed", String(on));
-    };
-    for (const b of all("[data-wind]"))
-      press(b, wind.includes(b.dataset.wind ?? ""));
-    for (const b of all("[data-meteo-mode]"))
-      press(b, b.dataset.meteoMode === meteoMode);
-    for (const b of all("[data-base]")) press(b, b.dataset.base === baseMap);
-    for (const b of all("[data-map-category]"))
-      press(b, b.dataset.mapCategory === mapCategory);
+  function renderControls(): void {
+    const state = store.state;
+    const view = controlsView(state, say);
+    if (searchInput.value !== view.search) searchInput.value = view.search;
+    const show = (selector: string, on: boolean) =>
+      q(selector).classList.toggle("hidden", !on);
+    show('.clear-btn[data-action="clear-search"]', view.searchShown);
+    show("[data-filter-pills]", view.pillsShown);
+    show('[data-pill="wind"]', view.windShown);
+    show('[data-pill="search"]', view.searchShown);
+    show("[data-wind-count]", view.windShown);
+    show("[data-wind-reset]", view.windShown);
+    show("[data-dabs-link]", view.dabsShown);
+    q('[data-pill-text="wind"]').textContent = view.windPillText;
+    q('[data-pill-text="search"]').textContent = view.searchPillText;
+    q("[data-wind-count]").textContent = String(view.windCount);
+    q("[data-wind-reset-label]").textContent = view.windResetLabel;
+
+    for (const [control, selector] of CONTROL_SELECTORS)
+      for (const b of all(selector)) {
+        const on = pressed(state, control, b.dataset[control]);
+        b.classList.toggle("active", on);
+        b.setAttribute("aria-pressed", String(on));
+      }
     for (const pane of all("[data-pane]")) {
-      const on = pane.dataset.pane === mapCategory;
+      const on = pane.dataset.pane === state.mapCategory;
       pane.classList.toggle("active", on);
       pane.classList.toggle("hidden", !on);
     }
     for (const box of all<HTMLInputElement>("input[data-layer]")) {
       const key = box.dataset.layer as keyof Layers;
-      box.checked = layers[key] === true;
+      box.checked = state.layers[key] === true;
     }
-    q("[data-dabs-link]").classList.toggle(
-      "hidden",
-      mapCategory !== "AIRSPACE",
-    );
+    const status = q("[data-map-status]");
+    status.textContent = loadStatusText(failedShown(failed, state.layers), say);
+    status.classList.toggle("hidden", !status.textContent);
   }
 
   function renderPilot(): void {
-    const pilot = store.state.pilotLocation as LatLng | null;
+    const { pilotLocation: pilot, pilotFix: fix } = store.state;
     if (!pilot) return;
     const at: LatLngTuple = [pilot.lat, pilot.lng];
-    if (pilotMarker) {
-      pilotMarker.setLatLng(at);
-      return;
-    }
-    pilotMarker = L.marker(at, {
-      icon: centredIcon(
-        "pilot-loc-icon",
-        '<div class="pilot-pulse"><div class="pilot-center"></div></div>',
-        [24, 24],
-      ),
-    }).addTo(map);
-    map.setView(at, locateZoom ?? PILOT_ZOOM);
+    if (pilotMarker) pilotMarker.setLatLng(at);
+    else
+      pilotMarker = L.marker(at, {
+        icon: centredIcon(
+          "pilot-loc-icon",
+          '<div class="pilot-pulse"><div class="pilot-center"></div></div>',
+          [24, 24],
+        ),
+      }).addTo(map);
+    // each new position, from the GPS button or ?locate, centres the map
+    if (fix === pilotFix) return;
+    pilotFix = fix;
+    map.setView(at, pilotZoom(locateZoom, map.getZoom()));
     locateZoom = null;
   }
 
   function render(): void {
     const state = store.state;
-    const langChanged = state.lang !== lang;
-    if (langChanged) {
-      lang = state.lang;
-      applyText(root, dictionary());
-    }
+    const selection = selectionOf(state);
+    const next = redraws(drawn, state, selection);
+    const { redraw } = next;
+    drawn = next.drawn;
+    if (redraw.text) applyText(root, store.t);
     setBaseMap(state.baseMap);
     for (const key of Object.keys(layerOf) as (keyof Layers)[])
       showLayer(map, layerOf[key], state.layers[key] === true);
     // the obstacles load when shown and as the map moves, and go when hidden
-    if (state.layers.obstacles !== obstaclesShown) {
-      obstaclesShown = state.layers.obstacles;
-      if (obstaclesShown) void obstacles.update();
-      else obstacles.clear();
-    }
-    // hidden stations aren't redrawn as the map moves, so showing them
-    // draws them afresh
-    if (!state.layers.stations) stationsMode = null;
-    else if (state.meteoMode !== stationsMode) redrawStations();
-    if (langChanged) drawFoehn(foehnLayer, foehn, say, openWeather);
-
-    const key = `${state.searchQuery}|${state.windFilter.join(",")}|${state.lang}`;
-    if (key !== sitesKey) {
-      sitesKey = key;
+    if (redraw.obstacles === "load") void obstacles.update();
+    else if (redraw.obstacles === "clear") obstacles.clear();
+    if (redraw.stations) redrawStations();
+    if (redraw.text) drawFoehn(foehnLayer, foehn, say, openWeather);
+    if (redraw.sites)
       sites.draw(state.searchQuery, state.windFilter, say, state.lang);
-    }
     renderControls();
     renderPilot();
-
-    const selection = selectionOf(state);
-    const same =
-      selection?.kind === shownSelection?.kind &&
-      selection?.value === shownSelection?.value;
-    if (!same || state.lang !== sheetLang) {
-      shownSelection = selection;
-      sheetLang = state.lang;
-      sheet.show(selection, say, sites.names);
-    }
+    if (redraw.sheet) sheet.show(selection, sites.names);
   }
 
-  function openWeather(): void {
-    store.setTab("weather");
+  function openWeather(pairId: string): void {
+    location.assign(weatherUrl(pairId));
   }
 
   function setDrawer(open: boolean): void {
@@ -320,87 +295,84 @@ export function mountMap(root: HTMLElement): void {
     redrawStations();
   });
   map.on("click", () => {
-    if (selectionOf(store.state)) select(null);
+    if (selectionOf(store.state)) store.select(null);
   });
 
   // Each data set loads on its own, so a slow or failed one holds up none
-  // of the others; a failure leaves its layer empty.
-  ShvApi.getFlyingSites()
-    .then((data) => {
+  // of the others; a failure (logged) leaves its layer empty and says so
+  // while the layer is shown. That counts a throw while drawing the data,
+  // not only a failed call.
+  function fail(dataset: Dataset): void {
+    failed.add(dataset);
+    render();
+  }
+
+  function load<T>(
+    dataset: Dataset,
+    call: Promise<T | null>,
+    label: string,
+    use: (data: T) => void,
+  ): void {
+    void settledInto(call, label, use, () => fail(dataset));
+  }
+
+  load(
+    "sites",
+    ShvApi.getFlyingSites(),
+    "[maps] Cannot load the flying sites:",
+    (data) => {
       const features = (data.features ?? []) as FlyingSiteFeature[];
       sites.setData(features);
-      sitesKey = "";
-      if (handoff && "site" in handoff) {
-        const site = findSite(features, handoff.site);
-        if (!site)
-          console.error(`[maps] Handed-over site not found: ${handoff.site}`);
-        else {
-          select("site", site);
-          moveTo(featureLatLng(site));
-        }
-      }
+      drawn = { ...drawn, sites: "" };
+      takeHandoff(findHandoff(handoff, { kind: "site", items: features }));
       render();
-    })
-    .catch((err: unknown) =>
-      console.error("[maps] Cannot load the flying sites:", err),
-    );
-  ShvApi.getAirspaces()
-    .then((data) => zones.airspace.addData(data as GeoJSON.FeatureCollection))
-    .catch((err: unknown) =>
-      console.error("[maps] Cannot load the airspaces:", err),
-    );
-  ShvApi.getWildschutz()
-    .then((data) => zones.wildlife.addData(data as GeoJSON.FeatureCollection))
-    .catch((err: unknown) =>
-      console.error("[maps] Cannot load the wildlife zones:", err),
-    );
-  ShvApi.getMeasurements()
-    .then((data) => {
-      stations = data?.features ?? [];
-      stationsMode = null;
+    },
+  );
+  load(
+    "airspaces",
+    ShvApi.getAirspaces(),
+    "[maps] Cannot load the airspaces:",
+    (data) => zones.airspace.addData(data as GeoJSON.FeatureCollection),
+  );
+  load(
+    "wildlife",
+    ShvApi.getWildschutz(),
+    "[maps] Cannot load the wildlife reserves:",
+    (data) => zones.wildlife.addData(data as GeoJSON.FeatureCollection),
+  );
+  load(
+    "measurements",
+    ShvApi.getMeasurements(),
+    "[maps] Cannot load the measurements:",
+    (data) => {
+      stations = data.features ?? [];
       redrawStations();
-      if (handoff && "station" in handoff) {
-        const st = stations.find((f) => f.id === handoff.station);
-        if (!st)
-          console.error(
-            `[maps] Handed-over station not found: ${handoff.station}`,
-          );
-        else {
-          select("station", st);
-          moveTo(stationLatLng(st));
-        }
-      }
-    })
-    .catch((err: unknown) =>
-      console.error("[maps] Cannot load the measurements:", err),
-    );
-  ShvApi.getFoehn()
-    .then((report) => {
+      takeHandoff(findHandoff(handoff, { kind: "station", items: stations }));
+    },
+  );
+  load(
+    "foehn",
+    ShvApi.getFoehn(),
+    "[maps] Cannot load the Foehn report:",
+    (report) => {
       foehn = report;
       drawFoehn(foehnLayer, foehn, say, openWeather);
-    })
-    .catch((err: unknown) =>
-      console.error("[maps] Cannot load the Foehn report:", err),
-    );
-  ShvApi.getWebcams()
-    .then((data) => {
-      webcams = data?.webcams ?? [];
-      drawWebcams(webcamsLayer, webcams, (w) => select("webcam", w));
-      if (handoff && "webcam" in handoff) {
-        const cam = webcams.find((w) => w.identifier === handoff.webcam);
-        if (cam) select("webcam", cam);
-        else
-          console.error(
-            `[maps] Handed-over webcam not found: ${handoff.webcam}`,
-          );
-      }
-    })
-    .catch((err: unknown) =>
-      console.error("[maps] Cannot load the webcams:", err),
-    );
+    },
+  );
+  load(
+    "webcams",
+    ShvApi.getWebcams(),
+    "[maps] Cannot load the webcams:",
+    (data) => {
+      const webcams = data.webcams ?? [];
+      drawWebcams(webcamsLayer, webcams, (w) => store.select("webcam", w));
+      takeHandoff(findHandoff(handoff, { kind: "webcam", items: webcams }));
+    },
+  );
   if (handoff && "locate" in handoff)
     void locatePilot().then((at) => {
       if (at) store.setPilotLocation(at);
+      locateZoom = null;
     });
 
   store.subscribe(render);

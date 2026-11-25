@@ -101,11 +101,13 @@ export const it: Strings = {
     seriesDew: "Punto di rugiada (°C)",
     seriesWind: "Vento (km/h)",
     foehnUnavailable: "Dati sul favonio temporaneamente non disponibili.",
+    retry: "Riprova",
     noHistory: "Nessuno storico disponibile.",
     stationsUnavailable:
       "Misure in tempo reale temporaneamente non disponibili.",
     webcamsUnavailable: "Webcam temporaneamente non disponibili.",
     noMatches: "Nessun risultato.",
+    moreMatches: "{shown} di {total} mostrati. La ricerca restringe l'elenco.",
     loading: "Caricamento dei dati meteo...",
   },
   forecast: {

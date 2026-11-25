@@ -6,6 +6,7 @@
 // the tests.
 
 import { dictionaryFor, type Strings } from "./i18n/dictionaries.ts";
+import { say } from "./i18n/text.ts";
 import type { LatLng } from "./maps/locate.ts";
 import { CHECK_POINTS } from "./safety/checklist.ts";
 import type { SelectionKind } from "./sheet/render.ts";
@@ -41,6 +42,8 @@ export interface State extends Settings {
   selectedWebcam: unknown;
   selectedObstacle: unknown;
   pilotLocation: LatLng | null;
+  /** How many positions have arrived; the map centres on each new one. */
+  pilotFix: number;
   /** The ticked pre-flight checklist points, per browser tab. */
   checklist: Record<string, boolean>;
   /** The vario starts muted on every page: audio may only start on a click. */
@@ -97,6 +100,7 @@ export class AppState {
       selectedWebcam: null,
       selectedObstacle: null,
       pilotLocation: null,
+      pilotFix: 0,
       checklist: { ...checklist, ...loadChecklist(session) },
       varioMuted: true,
     };
@@ -127,6 +131,10 @@ export class AppState {
   get t(): Strings {
     return dictionaryFor(this.state.lang);
   }
+
+  /** The current language's string at a dotted key, "" when it is missing
+   * (logged); a page hands it to the pure modules that build text. */
+  readonly say = (key: string): string => say(this.t, key);
 
   /** Every tab is a page, so switching tabs navigates. */
   setTab(tab: Tab): void {
@@ -210,6 +218,7 @@ export class AppState {
 
   setPilotLocation(at: LatLng | null): void {
     this.state.pilotLocation = at;
+    if (at) this.state.pilotFix += 1;
     this.notify();
   }
 

@@ -117,16 +117,18 @@ export type FetchJson = (
 /** The obstacles a view shows: the tier's cells around `bbox`, only the
  * quarters of a split cell that `bbox` touches, deduped by `_uid` (a
  * feature lies in every cell it touches), cut to `bbox` and capped. A cell
- * that fails to load counts as empty, logged. */
+ * that fails to load counts as empty, logged, and sets `failed`, so the
+ * view's gap isn't read as no obstacles there. */
 export async function loadObstacles(
   bbox: Bbox,
   zoom: number,
   index: ShardIndex,
   fetchJson: FetchJson,
   signal?: AbortSignal,
-): Promise<ObstacleFeature[]> {
+): Promise<{ features: ObstacleFeature[]; failed: boolean }> {
   const tier = tierFor(zoom);
-  if (!tier) return [];
+  if (!tier) return { features: [], failed: false };
+  let failed = false;
   const have = new Set(index.tiers[tier.name] ?? []);
   const keys = cellsFor(bbox, tier).filter((k) => have.has(k));
 
@@ -151,6 +153,7 @@ export async function loadObstacles(
           `[obstacles] Cell ${tier.name}/${k} failed, left empty:`,
           err,
         );
+        failed = true;
         return [];
       }),
     ),
@@ -164,5 +167,5 @@ export async function loadObstacles(
     seen.add(uid);
     features.push(f);
   }
-  return capFeatures(features);
+  return { features: capFeatures(features), failed };
 }

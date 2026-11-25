@@ -12,6 +12,16 @@ export const map: MapStrings = {
   centerButton: "Centra la Svizzera",
   layersTitle: "Livelli mappa",
   close: "Chiudi",
+  loadFailed: "Non caricato: {names}",
+  dataset: {
+    sites: "Siti di volo",
+    airspaces: "Spazi aerei",
+    wildlife: "Zone di protezione della fauna",
+    measurements: "Misurazioni",
+    foehn: "Coppie di stazioni del favonio",
+    webcams: "Webcam",
+    obstacles: "Ostacoli alla navigazione aerea",
+  },
   category: {
     METEO: "Meteo",
     AIRSPACE: "Spazio aereo",

@@ -3,6 +3,7 @@
 // names at the ends and the difference on a badge along the line.
 
 import { escapeHtml } from "../escape.ts";
+import { alertLook, formatDeltaUnit, pairLabel } from "../foehn/look.ts";
 import { pairNameKey } from "../foehn/pairs.ts";
 import type { FoehnReport, StationPair } from "../foehn/report.ts";
 import type { Say } from "../i18n/text.ts";
@@ -19,26 +20,6 @@ export interface FoehnAxis {
   color: string;
   endpointsHtml: [string, string];
   badgeHtml: string;
-}
-
-/** The line colour of an alert level. */
-export function axisColor(level: string): string {
-  if (level === "DANGER") return "#EF4444";
-  if (level === "MODERATE") return "#F59E0B";
-  return "#0089CF";
-}
-
-/** The badge class of an alert level, as the header's Foehn pill. */
-export function alertClass(level: string): string {
-  if (level === "DANGER") return "badge-danger";
-  if (level === "MODERATE") return "badge-warning";
-  return "badge-safe";
-}
-
-/** A difference with its sign and unit: `+3.2 hPa`, a dash when unknown. */
-export function formatDelta(delta: number | null, unit: string): string {
-  if (delta === null) return DASH;
-  return `${delta > 0 ? "+" : ""}${delta} ${unit}`;
 }
 
 /** The point `t` of the way from `a` to `b`. */
@@ -73,18 +54,17 @@ export function foehnAxes(report: FoehnReport | null, say: Say): FoehnAxis[] {
     const to = latLng(pair.station2?.coordinates);
     if (!from || !to) continue;
     const name = say(pairNameKey(pair.id));
-    const label = pair.id.replace("_", ` ${DASH} `);
     out.push({
       id: pair.id,
       from,
       to,
       badgeAt: along(from, to, pair.midpointPosition ?? 0.5),
-      color: axisColor(pair.alertLevel),
+      color: alertLook(pair.alertLevel).color,
       endpointsHtml: [
         endpointHtml(pair, pair.station1),
         endpointHtml(pair, pair.station2),
       ],
-      badgeHtml: `<div class="foehn-map-badge ${alertClass(pair.alertLevel)}" title="${escapeHtml(name)}"><span class="foehn-badge-id">${escapeHtml(label)}</span><span class="foehn-badge-val">Δ: ${escapeHtml(formatDelta(pair.delta, pair.unit))}</span></div>`,
+      badgeHtml: `<div class="foehn-map-badge ${alertLook(pair.alertLevel).badge}" title="${escapeHtml(name)}"><span class="foehn-badge-id">${escapeHtml(pairLabel(pair.id))}</span><span class="foehn-badge-val">Δ: ${escapeHtml(formatDeltaUnit(pair.delta, pair.unit))}</span></div>`,
     });
   }
   return out;

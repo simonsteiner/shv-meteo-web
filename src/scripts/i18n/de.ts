@@ -98,10 +98,13 @@ export const de = {
     seriesDew: "Taupunkt (°C)",
     seriesWind: "Wind (km/h)",
     foehnUnavailable: "Föhndaten vorübergehend nicht verfügbar.",
+    retry: "Erneut versuchen",
     noHistory: "Kein Verlauf verfügbar.",
     stationsUnavailable: "Live-Messwerte vorübergehend nicht verfügbar.",
     webcamsUnavailable: "Webcams vorübergehend nicht verfügbar.",
     noMatches: "Keine Treffer.",
+    moreMatches:
+      "{shown} von {total} angezeigt. Die Suche grenzt die Liste ein.",
     loading: "Wetterdaten werden geladen...",
   },
   forecast: {

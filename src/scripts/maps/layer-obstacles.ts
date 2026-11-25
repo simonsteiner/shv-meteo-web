@@ -22,9 +22,12 @@ export interface ObstacleLayer {
   clear(): void;
 }
 
+/** `onLoad` hears after each load whether it failed, so the page can say
+ * so: an empty hazard layer must not read as no hazards. */
 export function obstacleLayer(
   map: L.Map,
   pick: (f: ObstacleFeature) => void,
+  onLoad: (failed: boolean) => void,
 ): ObstacleLayer {
   const renderer = L.canvas({ padding: 0.5 });
   const drawn = new Map<string, { layer: L.Layer; at: L.LatLng | null }>();
@@ -79,7 +82,9 @@ export function obstacleLayer(
   async function update(): Promise<void> {
     const zoom = map.getZoom();
     if (zoom < OBSTACLE_MIN_ZOOM) {
+      // none are shown this far out, so none are missing
       clear();
+      onLoad(false);
       return;
     }
     const level = Math.floor(zoom);
@@ -103,6 +108,7 @@ export function obstacleLayer(
         { signal: mine.signal },
       );
       if (request !== mine) return;
+      onLoad(data.failed);
       const fresh = data.features.filter((f) => !drawn.has(obstacleKey(f)));
       if (fresh.length)
         layer.addData({

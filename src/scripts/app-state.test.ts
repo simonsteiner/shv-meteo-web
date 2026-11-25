@@ -188,3 +188,22 @@ test("switching tabs navigates to the tab's page", () => {
   store.setTab("weather");
   assert.deepEqual(visited, ["/weather/"]);
 });
+
+test("each pilot position counts as a new fix, even at the same place", () => {
+  const { store } = make();
+  assert.equal(store.state.pilotFix, 0);
+  store.setPilotLocation({ lat: 46.7, lng: 7.9 });
+  store.setPilotLocation({ lat: 46.7, lng: 7.9 });
+  assert.equal(store.state.pilotFix, 2);
+  store.setPilotLocation(null);
+  assert.equal(store.state.pilotFix, 2);
+});
+
+test("say reads the current language's string, also when passed on", () => {
+  const { store } = make();
+  const { say } = store;
+  const de = say("map.close");
+  store.setLang("fr");
+  assert.notEqual(say("map.close"), de);
+  assert.equal(say("map.close"), store.t.map.close);
+});

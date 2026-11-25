@@ -66,10 +66,6 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png [--size 1280x800] [--wai
 
 It launches a headless Chromium (`$CHROME`, else Playwright's newest under `~/.cache/ms-playwright`, else `chromium` on `PATH`; that lookup is Linux-only, so on macOS or Windows set `$CHROME` to the browser binary), waits for the load event plus `--wait` ms so the map tiles arrive, and prints the page's exceptions and console errors. `--no-sandbox` is for a container running as root, where Chromium's sandbox won't start. The refactor PRs attach before/after shots taken with it. The README gallery in `screenshots/` is taken with it too.
 
-## Chrome DevTools MCP
-
-[.agents/mcp_config.json](../.agents/mcp_config.json) configures the `chrome-devtools-mcp` server for AI coding agents. It connects to `ws://host.lima.internal:9222/devtools/browser`, a Chrome on the host of a Lima VM; change the endpoint to match where your Chrome runs.
-
 ## Troubleshooting
 
 - **`/api` returns 500 and the Astro terminal logs a proxy error**: `wrangler pages dev` is not running on `8788`; use `npm run dev`.

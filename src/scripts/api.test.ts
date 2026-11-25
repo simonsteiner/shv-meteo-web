@@ -166,3 +166,40 @@ test("the DABS date is Swiss, not UTC", () => {
   // 23:30 UTC on 14 January is 00:30 on 15 January (CET)
   assert.equal(buildDabs(new Date("2026-01-14T23:30:00Z")).date, "2026-01-15");
 });
+
+test("getObstacles says when its index or a cell failed, and rethrows an abort", async (t) => {
+  t.mock.method(console, "error", () => {});
+  const view = { minLon: 8, minLat: 46.5, maxLon: 8.1, maxLat: 46.6, zoom: 13 };
+  const index = { generatedAt: "", tiers: { z13: ["32_186"] } };
+  const cell = { type: "FeatureCollection", features: [] };
+  let answers: Record<string, unknown> = {};
+  const real = globalThis.fetch;
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    if (init?.signal?.aborted)
+      throw new DOMException("The operation was aborted.", "AbortError");
+    const body = answers[String(input)];
+    return body === undefined
+      ? new Response("missing", { status: 404 })
+      : Response.json(body);
+  }) as typeof fetch;
+  try {
+    // no index: nothing drawn, and said
+    assert.deepEqual(await ShvApi.getObstacles(view), {
+      type: "FeatureCollection",
+      features: [],
+      failed: true,
+    });
+    // the index came, its cell failed
+    answers = { "/data/obstacles/index.json": index };
+    assert.equal((await ShvApi.getObstacles(view)).failed, true);
+    const abort = new AbortController();
+    abort.abort();
+    await assert.rejects(ShvApi.getObstacles(view, { signal: abort.signal }), {
+      name: "AbortError",
+    });
+    answers = { "/data/obstacles/z13/32_186.json": cell };
+    assert.equal((await ShvApi.getObstacles(view)).failed, false);
+  } finally {
+    globalThis.fetch = real;
+  }
+});

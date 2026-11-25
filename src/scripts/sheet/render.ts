@@ -3,6 +3,7 @@
 // button, its scrim or Escape, and swaps the webcam's image (thumbnail on
 // error, time-lapse on demand) without any inline handler.
 
+import { useFallback } from "../dom.ts";
 import type { Say } from "../i18n/text.ts";
 import type {
   FlyingSiteFeature,
@@ -66,17 +67,14 @@ function sheetFor(
 
 export interface Sheet {
   /** Shows `sel`, or hides the sheet for null. */
-  show(
-    sel: Selection | null,
-    say: Say,
-    names: ReadonlyMap<string, string>,
-  ): void;
+  show(sel: Selection | null, names: ReadonlyMap<string, string>): void;
 }
 
+/** `say` reads the current language's strings (store.say). */
 export function mountSheet(
   container: HTMLElement,
   close: () => void,
-  say: () => Say,
+  say: Say,
 ): Sheet {
   let open = false;
 
@@ -90,7 +88,7 @@ export function mountSheet(
     button.classList.toggle("btn-primary", !playing);
     button.classList.toggle("btn-secondary", playing);
     if (label)
-      label.textContent = say()(
+      label.textContent = say(
         playing ? "map.sheet.timelapse" : "map.sheet.currentImage",
       );
   }
@@ -112,13 +110,10 @@ export function mountSheet(
         return;
       }
       if (!img.hasAttribute("data-webcam-img")) return;
-      const fallback = img.dataset.fallback;
-      if (fallback && img.src !== fallback) {
-        img.src = fallback;
-        return;
-      }
+      // the webcam swaps back to its latest image, so keep the fallback
+      if (useFallback(img, { once: false })) return;
       console.error("[sheet] The webcam has no image to show:", img.src);
-      img.parentElement?.insertAdjacentHTML("beforebegin", noImageHtml(say()));
+      img.parentElement?.insertAdjacentHTML("beforebegin", noImageHtml(say));
       img.parentElement?.remove();
     },
     true,
@@ -128,10 +123,10 @@ export function mountSheet(
   });
 
   return {
-    show(sel, sayNow, names) {
+    show(sel, names) {
       open = sel !== null;
       container.classList.toggle("hidden", !open);
-      container.innerHTML = sel ? sheetFor(sel, sayNow, names) : "";
+      container.innerHTML = sel ? sheetFor(sel, say, names) : "";
     },
   };
 }

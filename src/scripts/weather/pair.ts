@@ -1,7 +1,8 @@
-// How the weather page shows a station pair: the difference with its sign,
-// the colour for its alert level, and the words for each side.
+// How the weather page words a station pair: each side, each station's
+// reading, the chart's title and the status; its colours and the signed
+// difference are in foehn/look.ts.
 
-import { signed } from "../charts/theme.ts";
+import { formatDelta } from "../foehn/look.ts";
 import { PAIRS } from "../foehn/pairs.ts";
 import {
   PAIR_STATUSES,
@@ -9,36 +10,6 @@ import {
   type StationPair,
 } from "../foehn/report.ts";
 import { fill, type Say } from "../i18n/text.ts";
-
-export type Banner = "banner-danger" | "banner-warning" | "banner-safe";
-
-/** A difference with a plus sign when positive; a dash when missing. */
-export function formatDelta(delta: number | null): string {
-  return delta === null ? "\u2013" : signed(delta);
-}
-
-export function bannerClass(level: StationPair["alertLevel"]): Banner {
-  if (level === "DANGER") return "banner-danger";
-  if (level === "MODERATE") return "banner-warning";
-  return "banner-safe";
-}
-
-export function alertTextClass(level: StationPair["alertLevel"]): string {
-  if (level === "DANGER") return "text-danger";
-  if (level === "MODERATE") return "text-warning";
-  return "";
-}
-
-export function bannerIcon(level: StationPair["alertLevel"]): string {
-  if (level === "DANGER") return "⚠️";
-  if (level === "MODERATE") return "⚡";
-  return "✅";
-}
-
-/** "KLO \u2013 LUG" for KLO_LUG. */
-export function pairLabel(id: string): string {
-  return id.replace("_", " \u2013 ");
-}
 
 /** The dictionary keys for the two sides: station2 is shown first, south
  * or east of the pair. */
