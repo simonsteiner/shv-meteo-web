@@ -178,6 +178,10 @@
   gap: 8px;
 }
 
+.dabs-links a[hidden] {
+  display: none;
+}
+
 /* Vario Card */
 .vario-display-box {
   display: flex;

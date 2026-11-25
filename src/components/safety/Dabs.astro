@@ -3,6 +3,8 @@
 // Nothing is fetched, so it claims no status and no validity. Today's and
 // tomorrow's PDF are skybriefing's own links (/o/dabs?today, ?tomorrow,
 // checked 2026-11-25); the page is the one the official app links.
+// Tomorrow's shows only once skybriefing publishes it, at 16:00 Swiss time:
+// hidden here, shown by safety/page.ts (safety/dabs.ts).
 const BULLETIN_URL = "https://www.skybriefing.com/de/dabs";
 const PDF_TODAY_URL = "https://www.skybriefing.com/o/dabs?today";
 const PDF_TOMORROW_URL = "https://www.skybriefing.com/o/dabs?tomorrow";
@@ -36,6 +38,8 @@ const PDF_TOMORROW_URL = "https://www.skybriefing.com/o/dabs?tomorrow";
         target="_blank"
         rel="noopener"
         class="btn-secondary"
+        data-dabs-tomorrow
+        hidden
       >
         <span data-t="safety.dabsPdfTomorrow"></span> ↗
       </a>
