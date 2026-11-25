@@ -26,6 +26,13 @@ test("a missing series or no time steps is a problem", () => {
   assert.equal(pointProblem(point), "no time steps");
 });
 
+test("a series that is there but misshapen throws", () => {
+  // the throw is what moves fetchForecast on to the run before
+  const point = pointAnswer();
+  (point.parameters as Record<string, unknown>).temperature = null;
+  assert.throws(() => pointProblem(point), /no levels array/);
+});
+
 test("a column without one complete level is a problem", () => {
   // humidity still being written: every value null, so no level has a dew
   // point and the sounding would have nothing to draw
