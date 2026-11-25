@@ -27,3 +27,12 @@ test("toHpa drops a pressure no station can measure", () => {
   assert.equal(toHpa(299), null);
   assert.equal(toHpa(56760), 567.6);
 });
+
+test("toHpa keeps 300 to 1100 hPa, in hPa or in pascals", () => {
+  assert.equal(toHpa(300), 300);
+  assert.equal(toHpa(1100), 1100);
+  assert.equal(toHpa(1101), null);
+  assert.equal(toHpa(30000), 300);
+  assert.equal(toHpa(110000), 1100);
+  assert.equal(toHpa(25000), null);
+});

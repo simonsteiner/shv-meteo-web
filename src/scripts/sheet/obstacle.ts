@@ -103,9 +103,7 @@ export function obstacleSheetHtml(f: ObstacleFeature, say: Say): string {
     sourceId ? attr(say("map.sheet.bazlId"), sourceId, "attr-mono") : "",
     attr(
       say("map.sheet.marking"),
-      marked
-        ? `\u{1F534} ${markingLabel(p.marking, say)}`
-        : say("map.sheet.none"),
+      `${marked ? "\u{1F534} " : ""}${markingLabel(p.marking, say)}`,
     ),
     attr(
       say("map.sheet.lighting"),

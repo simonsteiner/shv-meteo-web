@@ -13,7 +13,7 @@ import {
   type PairConfig,
 } from "./pairs.ts";
 
-type AlertLevel = "NONE" | "MODERATE" | "DANGER";
+type AlertLevel = "UNKNOWN" | "NONE" | "MODERATE" | "DANGER";
 
 /** What a pair's difference means; the dictionaries word each one. */
 export const PAIR_STATUSES = [
@@ -89,8 +89,8 @@ export function assess(
   delta: number | null,
 ): Pick<StationPair, "status" | "alertLevel"> {
   const calm = { status: "CALM", alertLevel: "NONE" } as const;
-  // no difference is no data, never calm
-  if (delta === null) return { status: "NO_DATA", alertLevel: "NONE" };
+  // no difference is no data, never calm, and never drawn as all clear
+  if (delta === null) return { status: "NO_DATA", alertLevel: "UNKNOWN" };
   if (cfg.id === "KLO_LUG") {
     if (delta >= 8)
       return { status: "SEVERE_SOUTH_FOEHN", alertLevel: "DANGER" };
