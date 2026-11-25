@@ -8,7 +8,7 @@ Ask the SHV to register a **confidential OIDC client for this site** in the `SHV
 
 airspace.shv-fsvl.ch is set up the same way: its own client `airspace`, a server-side callback and PKCE (below), so the SHV has done this before.
 
-Membership would be read from the access token's `realm_access.roles`, where the official app looks for `m`, `c`, `s` or `a` (decompiled, [shv-native-app.md](../reference/shv-native-app.md) section 3). Two things only the SHV can settle: that these roles really mark a *current* member, and how soon a lapsed member loses them. The request asks both.
+Membership would be read from the access token's `realm_access.roles`, where the official app looks for `m`, `c`, `s` or `a` (decompiled, [shv-native-auth.md](../reference/shv-native-auth.md#login-keycloak-oidc-with-pkce)). Two things only the SHV can settle: that these roles really mark a *current* member, and how soon a lapsed member loses them. The request asks both.
 
 ## What was probed
 
@@ -147,7 +147,7 @@ It proves where the membership role sits and that it is present for a current me
 ## Sources
 
 - The probes above, run on 2026-11-24 with `curl`.
-- [shv-native-app.md](../reference/shv-native-app.md): the official app's PKCE flow, its role check and the member web service.
+- [shv-native-auth.md](../reference/shv-native-auth.md): the official app's PKCE flow, its role check and the member web service.
 - [2026-11-24-shv-app-network-calls.md](2026-11-24-shv-app-network-calls.md): the app's calls, logged in.
 - [target.md](../plan/2026-11-23-astro-cloudflare/target.md) ("Auth"): the cookie design this builds on.
 - OpenID Connect Core 1.0, section 3.1.3.7 (ID token validation) and 3.1.2.1 (`prompt=none`): <https://openid.net/specs/openid-connect-core-1_0.html>.

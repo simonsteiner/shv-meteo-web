@@ -15,4 +15,4 @@ The web version reproduces the native mobile application in the browser: static 
 
 ## Member login
 
-There is none. The copy-paste PKCE login against SHV Keycloak reused the official Android app's public client; it went with Express (PR9) and the Profile tab (PR13). The header links to the SHV member portal, and `purgeLegacyAuth` clears the session id and profile old versions stored. How the official app's login works is in [reference/shv-native-app.md](../reference/shv-native-app.md); the design to use if login returns is in the [migration plan](../plan/2026-11-23-astro-cloudflare/target.md#auth-deferred).
+There is none. The copy-paste PKCE login against SHV Keycloak reused the official Android app's public client; it went with Express (PR9) and the Profile tab (PR13). The header links to the SHV member portal, and `purgeLegacyAuth` clears the session id and profile old versions stored. How the official app's login works is in [reference/shv-native-auth.md](../reference/shv-native-auth.md); the design to use if login returns is in the [migration plan](../plan/2026-11-23-astro-cloudflare/target.md#auth-deferred).

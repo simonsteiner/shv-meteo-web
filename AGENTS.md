@@ -77,7 +77,8 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 - `docs/deployment.md`: Cloudflare Pages, deploying by hand, rollback, state and secrets.
 - `docs/architecture.md`: index of `docs/architecture/`: every upstream and `/api` route, what the data holds, how the code is organised.
 - `docs/research/`: dated research notes with the measurements behind a decision; read the one on a topic before reopening it.
-- `docs/reference/shv-native-app.md`: reverse-engineered notes on the official app, Keycloak and the member web service; read before bringing back login or member data.
+- `docs/reference/shv-native-app.md`: reverse-engineered notes on the official app: its hosts, code layout and the Previtemps sounding.
+- `docs/reference/shv-native-auth.md`: the official app's Keycloak login and member web service; read before bringing back login or member data.
 - `docs/reference/shv-app-emulator.md` and `docs/reference/shv-app-traffic-capture.md`: running the official app on an Android emulator and capturing its HTTPS calls.
 - `docs/plan/`: the migration plan (`2026-11-23-astro-cloudflare/`, shipped, a record) and the follow-up plan (`2026-11-24-follow-ups/`), in order.
 - `GLOSSARY.md`: domain terms in English and German.
