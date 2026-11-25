@@ -305,8 +305,11 @@ test("an obstacle sheet names a cable warner's marking, never Keine beside Marki
   );
   assert.ok(html.includes("[map.sheet.marked]"));
   assert.ok(html.includes("[map.sheet.markingName.CABLE_WARNER]"));
-  // the marking row, not the lighting row, which says none for this one
-  assert.ok(!html.includes("[map.sheet.marking]</span><span>[map.sheet.none]"));
+  // the marking row itself, not the lighting row, which says none here
+  const row = /\[map\.sheet\.marking\]<\/span><span[^>]*>([^<]*)<\/span>/.exec(
+    html,
+  );
+  assert.equal(row?.[1], "\u{1F534} [map.sheet.markingName.CABLE_WARNER]");
 });
 
 test("an obstacle sheet escapes upstream text and needs no position", () => {
