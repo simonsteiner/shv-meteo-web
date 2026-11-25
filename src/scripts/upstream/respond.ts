@@ -19,9 +19,10 @@ const DEFAULT_TYPE = "application/json; charset=utf-8";
 /** When the body was fetched from upstream, in ms since the epoch: kept
  * with the cached copy and sent with every 200. */
 const FETCHED_AT = "x-fetched-at";
-/** The largest stale copy parsed in full; a larger one (measurements is
- * about 2 MB) only has its outer brackets checked, since target.md keeps
- * every Function under about 200 KB of parsing and 10 ms of CPU. */
+/** The largest body parsed in full (a stale copy, or a checked route's
+ * fresh one); a larger one (measurements is about 2 MB) only has its outer
+ * brackets checked, since target.md keeps every Function under about 200 KB
+ * of parsing and 10 ms of CPU. */
 const PARSE_LIMIT = 200 * 1024;
 
 function unavailable(route: Route): Response {
@@ -87,7 +88,8 @@ async function fallback(
   key: string,
   drop: () => void,
 ): Promise<Response | null> {
-  if (stale.ageMs > route.maxStaleSeconds * 1000) {
+  // written so an unreadable age (NaN) counts as too old
+  if (!(stale.ageMs <= route.maxStaleSeconds * 1000)) {
     console.error(
       `[respond] The cached copy of ${key} is ${Math.round(stale.ageMs / 60_000)} min old, past the route's ${route.maxStaleSeconds / 60} min`,
     );
