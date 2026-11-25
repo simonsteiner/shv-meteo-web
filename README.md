@@ -27,7 +27,7 @@ It is a static [Astro](https://astro.build) site on Cloudflare Pages. The browse
   * Outlooks: sunshine and precipitation probability, animated over the coming days.
   * The surface pressure (isobar) chart.
   * Soundings from MeteoSwiss ICON-CH1 as an emagram, the temperature coloured by lapse rate.
-* **Safety** (`/safety/`): the SHV 5-point pre-flight check, emergency numbers (Rega 1414, 112, radio channel K) and the tree-landing steps, links to the day's DABS on skybriefing, an audio vario simulator, and a logbook kept in your browser with a CSV export.
+* **Safety** (`/safety/`): the SHV 5-point pre-flight check, emergency numbers (Rega 1414, 112, Rega emergency radio on the E-channel, 161.300 MHz) and the tree-landing steps, links to the day's DABS on skybriefing, an audio vario simulator, and a logbook kept in your browser with a CSV export.
 
 ---
 

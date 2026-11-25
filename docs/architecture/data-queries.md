@@ -39,7 +39,7 @@ Run as branch previews of project `shv-meteo`: PR9's spike Function (`spike`), t
 
 ### Foehn with filtered calls (2026-11-23)
 
-`/api/foehn` now asks upstream only for what the report reads: `measurements/current` once per parameter with `parameters=` and the box around that parameter's stations (`pressure_msl`, 20 KB; `temperature`, 20 KB) and each series from 25 hours back (`start=`, 6 KB rather than 14 days in 76 KB). On a branch preview, 16 fresh reports took 3 to 13 ms CPU, median 5.5 ms (15 under 10 ms), against 8 to 29 ms before, with the same output. Eight per-station boxes were tried first and took a median of 10.5 ms: each upstream call costs CPU too. Details in [the research note](../research/2026-11-23-soundings-and-foehn-sources.md).
+`/api/foehn` now asks upstream only for what the report reads: `measurements/current` once per parameter with `parameters=` and the box around that parameter's stations (`pressure_standard_msl`, 20 KB; `temperature`, 20 KB) and each series from 25 hours back (`start=`, 6 KB rather than 14 days in 76 KB). On a branch preview, 16 fresh reports took 3 to 13 ms CPU, median 5.5 ms (15 under 10 ms), against 8 to 29 ms before, with the same output. Eight per-station boxes were tried first and took a median of 10.5 ms: each upstream call costs CPU too. Details in [the research note](../research/2026-11-23-soundings-and-foehn-sources.md).
 
 ### Soundings built in the browser (2026-11-23)
 
