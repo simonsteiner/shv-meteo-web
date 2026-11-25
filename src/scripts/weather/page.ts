@@ -19,7 +19,7 @@ import type { StationPair } from "../foehn/report.ts";
 import { handoffUrl } from "../handoff.ts";
 import { applyText, fill } from "../i18n/text.ts";
 import type { MeasurementFeature, Webcam } from "../types.ts";
-import { swissTime } from "../foehn/pairs.ts";
+import { swissTime } from "../swiss-time.ts";
 import { whileVisible } from "../live/refresh.ts";
 import { pairPillsHtml, stationCardHtml, webcamCardHtml } from "./cards.ts";
 import { stationModal } from "./modal.ts";

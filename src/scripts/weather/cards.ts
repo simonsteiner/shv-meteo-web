@@ -3,7 +3,7 @@
 // come in from the dictionary.
 
 import { downwindRotation } from "../wind-arrow.ts";
-import { swissTime } from "../foehn/pairs.ts";
+import { swissTime } from "../swiss-time.ts";
 import { isOldMeasurement, measurementTime } from "../live/measured.ts";
 import { escapeHtml } from "../escape.ts";
 import type { StationPair } from "../foehn/report.ts";

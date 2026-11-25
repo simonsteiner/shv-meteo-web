@@ -3,6 +3,7 @@
 // colours them through a palette (sunshine yellow to red, precipitation
 // green). Pure: the pixels are a parameter.
 
+import { naiveSwiss } from "../swiss-time.ts";
 import { safeUrl } from "../escape.ts";
 
 export const OUTLOOK_TYPES = [
@@ -139,20 +140,14 @@ export function outlookFrames(
   return frames;
 }
 
-/** "Mo., 23.11. 06:00 \u2013 12:00" in the locale. */
+/** "Mo., 23.11. 06:00 \u2013 12:00" in the locale. The frames' times are
+ * naive Zurich times, read as text (naiveSwiss), so the device's zone
+ * never shifts them. */
 export function intervalLabel(frame: OutlookFrame, locale: string): string {
-  const start = new Date(frame.start);
-  const end = new Date(frame.end);
-  const time: Intl.DateTimeFormatOptions = {
-    hour: "2-digit",
-    minute: "2-digit",
-  };
-  const day = start.toLocaleDateString(locale, {
-    weekday: "short",
-    day: "2-digit",
-    month: "2-digit",
-  });
-  return `${day} ${start.toLocaleTimeString(locale, time)} \u2013 ${end.toLocaleTimeString(locale, time)}`;
+  const start = naiveSwiss(frame.start, locale);
+  const end = naiveSwiss(frame.end, locale);
+  if (!start || !end) return `${frame.start} \u2013 ${frame.end}`;
+  return `${start.day} ${start.time} \u2013 ${end.time}`;
 }
 
 /** The legend's CSS gradient per palette. */

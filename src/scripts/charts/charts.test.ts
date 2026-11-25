@@ -38,7 +38,8 @@ test("foehnChartConfig plots the history in the pair's unit and colour", () => {
 });
 
 test("stationSeries joins temperature, dew point and wind on their timestamps", () => {
-  const t0 = new Date(2026, 10, 23, 9, 0).getTime();
+  // 09:00 in Zurich (CET)
+  const t0 = Date.UTC(2026, 10, 23, 8, 0);
   const t1 = t0 + 600_000;
   const series = stationSeries({
     id: "meteo_swiss:PIL",
@@ -105,4 +106,22 @@ test("stationChartConfig draws no dew point line for a station without one", () 
     config.data.datasets.map((d) => d.label),
     ["Temperatur (°C)", "Wind (km/h)"],
   );
+});
+
+test("the station chart's times are Swiss, wherever the browser is", () => {
+  const before = process.env.TZ;
+  process.env.TZ = "America/New_York";
+  try {
+    const t = Date.UTC(2026, 10, 25, 17, 40);
+    const series = stationSeries({
+      id: "meteo_swiss:KLO",
+      timeseries: [
+        { parameter: "temperature", measurements: [{ time: t, value: 3 }] },
+      ],
+    });
+    assert.deepEqual(series.labels, ["18:40"]);
+  } finally {
+    if (before === undefined) delete process.env.TZ;
+    else process.env.TZ = before;
+  }
 });

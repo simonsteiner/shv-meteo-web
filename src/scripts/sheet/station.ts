@@ -2,7 +2,7 @@
 // its latest wind, temperature and pressures (src/scripts/maps/stations.ts
 // and pressure.ts do the units).
 
-import { swissTime } from "../foehn/pairs.ts";
+import { swissTime } from "../swiss-time.ts";
 import { isOldMeasurement, measurementTime } from "../live/measured.ts";
 import { escapeHtml } from "../escape.ts";
 import { fill, type Say } from "../i18n/text.ts";

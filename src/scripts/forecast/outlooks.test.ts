@@ -88,6 +88,24 @@ test("intervalLabel gives the day and both times in the locale", () => {
   );
 });
 
+test("intervalLabel reads the frames' Zurich times as text in any zone", () => {
+  const before = process.env.TZ;
+  // in Santiago 6 September 2026 has no 00:00: new Date() made it 01:00
+  process.env.TZ = "America/Santiago";
+  try {
+    assert.equal(
+      intervalLabel(
+        { start: "2026-09-06T00:00", end: "2026-09-06T06:00", url: "" },
+        "de-CH",
+      ),
+      "So., 06.09. 00:00 \u2013 06:00",
+    );
+  } finally {
+    if (before === undefined) delete process.env.TZ;
+    else process.env.TZ = before;
+  }
+});
+
 test("legendGradient follows the palette of the type", () => {
   assert.equal(
     legendGradient("RELATIVE_SUNSHINE"),

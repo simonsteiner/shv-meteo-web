@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { TimeseriesResponse } from "../types.ts";
-import { pairConfig, pairDelta, pairHistory, swissTime } from "./pairs.ts";
+import { swissTime } from "../swiss-time.ts";
+import { pairConfig, pairDelta, pairHistory } from "./pairs.ts";
 
 const KLO_LUG = pairConfig("KLO_LUG");
 const GVE_GUT = pairConfig("GVE_GUT");

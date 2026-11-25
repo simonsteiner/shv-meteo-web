@@ -7,6 +7,7 @@
 // 4/8 hPa for KLO_LUG, 3/6 hPa for the others) are this app's own, from the
 // old Express server, not found in the official app.
 import type { TimeseriesResponse } from "../types.ts";
+import { swissTime } from "../swiss-time.ts";
 import { round1, toCelsius, toHpa } from "../units.ts";
 
 export interface PairConfig {
@@ -118,18 +119,6 @@ export interface HistoryPoint {
   /** The difference, in the pair's unit despite the name (the client reads it). */
   diffHpa: number;
   unit: PairConfig["unit"];
-}
-
-const SWISS_TIME = new Intl.DateTimeFormat("de-CH", {
-  timeZone: "Europe/Zurich",
-  hour: "2-digit",
-  minute: "2-digit",
-  hourCycle: "h23",
-});
-
-/** HH:MM of `ms` in Europe/Zurich, whatever the runtime's own zone. */
-export function swissTime(ms: number): string {
-  return SWISS_TIME.format(new Date(ms));
 }
 
 function series(ts: TimeseriesResponse | null, parameter: string) {
