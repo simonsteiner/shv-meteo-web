@@ -12,6 +12,14 @@ test("the alert level picks the colour and classes everywhere", () => {
   assert.equal(alertLook("NONE").text, "");
 });
 
+test("a pair without data looks neither calm nor alarmed", () => {
+  const look = alertLook("UNKNOWN");
+  assert.equal(look.badge, "badge-unknown");
+  assert.equal(look.banner, "banner-unknown");
+  assert.notEqual(look.icon, alertLook("NONE").icon);
+  assert.notEqual(look.color, alertLook("NONE").color);
+});
+
 test("an unknown alert level looks calm", () => {
   assert.equal(alertLook("SEVERE"), alertLook("NONE"));
   assert.equal(alertLook("toString"), alertLook("NONE"));
