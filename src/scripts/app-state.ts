@@ -5,12 +5,14 @@
 // position) lives for one page. Storage and navigation are parameters, for
 // the tests.
 
+import { isOneOf } from "./coerce.ts";
 import { dictionaryFor, type Strings } from "./i18n/dictionaries.ts";
 import { say } from "./i18n/text.ts";
 import type { LatLng } from "./maps/locate.ts";
 import { CHECK_POINTS } from "./safety/checklist.ts";
 import type { SelectionKind } from "./sheet/render.ts";
 import {
+  LAYER_KEYS,
   loadChecklist,
   loadSettings,
   saveChecklist,
@@ -19,7 +21,7 @@ import {
   type Compass,
   type KeyValueStorage,
   type Lang,
-  type Layers,
+  type LayerKey,
   type MapCategory,
   type MeteoMode,
   type Settings,
@@ -30,7 +32,7 @@ export const TABS = ["map", "weather", "forecast", "safety"] as const;
 export type Tab = (typeof TABS)[number];
 
 export function isTab(v: unknown): v is Tab {
-  return TABS.includes(v as Tab);
+  return isOneOf(TABS, v);
 }
 
 export interface State extends Settings {
@@ -53,21 +55,21 @@ export interface State extends Settings {
 export type Listener = (state: State) => void;
 
 /** The layers each map category shows; every other layer is hidden. */
-const CATEGORY_LAYERS: Record<MapCategory, (keyof Layers)[]> = {
+const CATEGORY_LAYERS: Record<MapCategory, LayerKey[]> = {
   METEO: ["stations"],
   AIRSPACE: ["airspace", "wildschutz"],
   FLYING_AREAS: ["launches", "landings", "landingPatterns"],
 };
 
 /** The live-weather layers each meteo mode shows (the others it hides). */
-const MODE_LAYERS: Record<MeteoMode, (keyof Layers)[]> = {
+const MODE_LAYERS: Record<MeteoMode, LayerKey[]> = {
   WIND: ["stations"],
   TEMPERATURE: ["stations"],
   PRESSURE_DIFFERENCE: ["foehnAxis"],
   WEBCAM: ["webcams"],
   NONE: [],
 };
-const MODE_SWITCHED: (keyof Layers)[] = ["stations", "webcams", "foehnAxis"];
+const MODE_SWITCHED: LayerKey[] = ["stations", "webcams", "foehnAxis"];
 
 export interface StoreOptions {
   local: KeyValueStorage;
@@ -161,8 +163,7 @@ export class AppState {
     saveSetting(this.local, "mapCategory", category);
     const shown = CATEGORY_LAYERS[category];
     const layers = { ...this.state.layers };
-    for (const key of Object.keys(layers) as (keyof Layers)[])
-      layers[key] = shown.includes(key);
+    for (const key of LAYER_KEYS) layers[key] = shown.includes(key);
     this.save("layers", layers);
     this.notify();
   }
@@ -176,11 +177,7 @@ export class AppState {
     this.notify();
   }
 
-  toggleLayer(key: keyof Layers): void {
-    if (!Object.prototype.hasOwnProperty.call(this.state.layers, key)) {
-      console.error(`[AppState.toggleLayer] Unknown layer ${String(key)}`);
-      return;
-    }
+  toggleLayer(key: LayerKey): void {
     this.save("layers", {
       ...this.state.layers,
       [key]: !this.state.layers[key],

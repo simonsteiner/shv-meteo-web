@@ -1,11 +1,13 @@
 // The five-point pre-flight check; which points are ticked lives in the
 // store, per browser tab (src/scripts/settings.ts, `loadChecklist`).
 
+import { isOneOf } from "../coerce.ts";
+
 export const CHECK_POINTS = ["p1", "p2", "p3", "p4", "p5"] as const;
 export type CheckPoint = (typeof CHECK_POINTS)[number];
 
 export function isCheckPoint(v: unknown): v is CheckPoint {
-  return CHECK_POINTS.includes(v as CheckPoint);
+  return isOneOf(CHECK_POINTS, v);
 }
 
 /** Whether every point is ticked; other keys in the stored map don't count. */

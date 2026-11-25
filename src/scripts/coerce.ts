@@ -17,3 +17,12 @@ export function nonZeroNum(v: unknown): number | null {
   const n = num(v);
   return n === 0 ? null : n;
 }
+
+/** Whether `v` is one of `allowed`: the check that narrows an untyped
+ * string (a `data-*` attribute, a query value, a stored one) to a union. */
+export function isOneOf<T extends string>(
+  allowed: readonly T[],
+  v: unknown,
+): v is T {
+  return (allowed as readonly unknown[]).includes(v);
+}

@@ -1,6 +1,7 @@
 // The map's base layers, its default view and where a handed-over
 // selection puts it (src/scripts/handoff.ts).
 
+import { isOneOf } from "../coerce.ts";
 import { ZOOM_RANGE } from "../handoff.ts";
 import { BASE_MAPS, type BaseMap } from "../settings.ts";
 import type { LatLngTuple } from "./centroid.ts";
@@ -77,9 +78,7 @@ export const BASE_MAP_IMAGES: Record<BaseMap, string | null> = {
 
 /** `key` when it names a base map, else the colour pixel map. */
 export function baseMapKey(key: unknown): BaseMap {
-  return (BASE_MAPS as readonly unknown[]).includes(key)
-    ? (key as BaseMap)
-    : "topoColor";
+  return isOneOf(BASE_MAPS, key) ? key : "topoColor";
 }
 
 /** Where the map goes for a handed-over selection at `at` (null when it

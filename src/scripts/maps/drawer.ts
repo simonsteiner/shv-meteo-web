@@ -2,9 +2,9 @@
 // src/components/map/LayersDrawer.astro loops over it, and
 // src/scripts/maps/page.ts keeps the controls in step with the store.
 
-import type { BaseMap, Layers, MapCategory, MeteoMode } from "../settings.ts";
+import type { BaseMap, LayerKey, MapCategory, MeteoMode } from "../settings.ts";
 
-export type LayerKey = keyof Layers;
+export type { LayerKey };
 
 export type DrawerSection =
   | { kind: "meteo" }
