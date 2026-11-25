@@ -5,6 +5,7 @@
 // is how the header's language switch reaches the page.
 
 import { store } from "../state.ts";
+import { tomorrowPublished } from "./dabs.ts";
 import { must } from "../dom.ts";
 import { applyText } from "../i18n/text.ts";
 import {
@@ -196,6 +197,15 @@ export function mountSafety(root: HTMLElement): void {
     if (event.key === "Escape") closeDialog();
   });
   window.addEventListener("pagehide", () => audio.stop());
+
+  // tomorrow's DABS only once it is published (16:00 Swiss time), checked
+  // again whenever the page comes back into view
+  const tomorrowLink = must<HTMLElement>(root, "[data-dabs-tomorrow]");
+  const showTomorrow = () => {
+    tomorrowLink.hidden = !tomorrowPublished(Date.now());
+  };
+  document.addEventListener("visibilitychange", showTomorrow);
+  showTomorrow();
 
   store.subscribe(render);
   render();

@@ -276,9 +276,9 @@ export const en: Strings = {
       "Alarm button or 5-tone calling signal 21414 (ZVEI), with or without a 123.0 Hz tone squelch (CTCSS). Acknowledgement: 3 long tones. Use it only where there is no mobile network.",
     dabsBadge: "Airspace",
     dabsNotes:
-      "Published daily at 16:00 LT for the next day via Skybriefing. Mandatory consultation prior to cross-country flights!",
+      "Published daily at 16:00 LT for the next day; updates for the current day at 09:00, 13:00 and 16:00 LT. For details always refer to the NOTAM.",
     dabsPdfToday: "Today's DABS (PDF)",
-    dabsPdfTomorrow: "Tomorrow's DABS (PDF, from 16:00 LT)",
+    dabsPdfTomorrow: "Tomorrow's DABS (PDF)",
     varioSinkLabel: "Heavy sink",
     varioLiftLabel: "Rocket lift!",
     logbookBadge: "Logbook",
