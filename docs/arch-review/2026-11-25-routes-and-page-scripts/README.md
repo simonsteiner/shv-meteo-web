@@ -32,10 +32,10 @@ The backlog, in rank order. After the scan only three parts of the report change
 | [C1](C1-route-owns-its-parameters.md) | Each route owns its parameter rules | 🟢 Strong | ↔ two-way | coupling | in-progress | `refactor/route-owns-its-parameters` | | | |
 | [C2](C2-one-failure-mode-for-shvapi.md) | One failure mode and typed answers for `ShvApi` | 🟢 Strong | ↔ two-way | maintainability | in-progress | `refactor/one-failure-mode-for-shvapi` | | | |
 | [C3](C3-map-session-module.md) | Move the map page's loading, handoff and redraw into one module | 🟢 Strong | ↔ two-way | deepening | in-progress | `refactor/map-session-module` | | | builds on C2 |
-| [C4](C4-weather-view-state.md) | Let the pair state own retry and what was drawn | 🟡 Worth exploring | ↔ two-way | deepening | todo | `refactor/weather-view-state` | | | |
-| [C5](C5-checked-data-dispatch.md) | Check `data-*` values before they reach the store | 🟡 Worth exploring | ↔ two-way | maintainability | todo | `refactor/checked-data-dispatch` | | | |
-| [C6](C6-forecast-stepper.md) | One stepper for the forecast play buttons | 🟡 Worth exploring | ↔ two-way | maintainability | todo | `refactor/forecast-stepper` | | | |
-| [C7](C7-per-tab-stylesheets.md) | Each tab imports its own stylesheets | ⚪ Speculative | ↔ two-way | coupling | todo | `refactor/per-tab-stylesheets` | | | cascade order risk |
+| [C4](C4-weather-view-state.md) | Let the pair state own retry and what was drawn | 🟡 Worth exploring | ↔ two-way | deepening | in-progress | `refactor/weather-view-state` | | | |
+| [C5](C5-checked-data-dispatch.md) | Check `data-*` values before they reach the store | 🟡 Worth exploring | ↔ two-way | maintainability | in-progress | `refactor/checked-data-dispatch` | | | |
+| [C6](C6-forecast-stepper.md) | One stepper for the forecast play buttons | 🟡 Worth exploring | ↔ two-way | maintainability | in-progress | `refactor/forecast-stepper` | | | |
+| [C7](C7-per-tab-stylesheets.md) | Each tab imports its own stylesheets | ⚪ Speculative | ↔ two-way | coupling | in-progress | `refactor/per-tab-stylesheets` | | | cascade order risk |
 | [S1](#s1--one-station-id-pattern) | One station id pattern | - | ↔ two-way | coupling | in-progress | rides with C1 | | | |
 | [S2](#s2--hand-the-compute-its-timeout) | Hand the compute its timeout | - | ↔ two-way | coupling | in-progress | rides with C1 | | | |
 | [S3](#s3--one-default-pair-and-one-retryable-memo-in-shvapi) | One default pair and one retryable memo in `ShvApi` | - | ↔ two-way | maintainability | in-progress | rides with C2 | | | |
