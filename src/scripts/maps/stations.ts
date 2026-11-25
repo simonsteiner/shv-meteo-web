@@ -6,7 +6,8 @@ import { num } from "../coerce.ts";
 import { escapeHtml } from "../escape.ts";
 import type { MeasurementFeature } from "../types.ts";
 import { downwindRotation } from "../wind-arrow.ts";
-import { round1, toCelsius, toHpa } from "../units.ts";
+import { stationPressures, type StationPressures } from "../pressure.ts";
+import { round1, toCelsius } from "../units.ts";
 import type { LatLngTuple } from "./centroid.ts";
 
 /** The official app's wind colour scale: each bucket's upper bound in
@@ -57,22 +58,23 @@ export interface StationMeasurements {
   gustKmh: number | null;
   dirDeg: number | null;
   tempC: number | null;
-  qnhHpa: number | null;
+  /** QNH or QFF, and QFE (pressure.ts). */
+  pressure: StationPressures;
 }
 
-/** A station's latest values, rounded to one decimal (QNH to whole hPa). */
+/** A station's latest values, rounded to one decimal (pressures to whole
+ * hPa). */
 export function stationMeasurements(
   f: MeasurementFeature,
 ): StationMeasurements {
   const p = f.properties ?? {};
   const one = (v: number | null) => (v === null ? null : round1(v));
-  const qnh = toHpa(num(p.pressureStandardMslValue));
   return {
     windKmh: one(num(p.windSpeedValue)),
     gustKmh: one(num(p.windGustValue)),
     dirDeg: num(p.windDirectionValue),
     tempC: one(toCelsius(num(p.temperature2mValue) ?? num(p.temperatureValue))),
-    qnhHpa: qnh === null ? null : Math.round(qnh),
+    pressure: stationPressures(p),
   };
 }
 

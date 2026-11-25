@@ -61,8 +61,20 @@ Two stations whose difference in pressure or temperature indicates föhn, bise o
 _Avoid_: Transect, Alpentransekt
 
 **Pressure difference** (Druckdifferenz):
-The sea-level pressure difference across a station pair, in hPa; the Gotthard pair (Lugano minus Kloten) is the main föhn indicator.
+The QNH difference across a station pair, in hPa; the Gotthard pair (Lugano minus Kloten) is the main föhn indicator.
 _Avoid_: Delta p, pressure gradient
+
+**QNH**:
+A station's pressure reduced to sea level through the standard atmosphere, what pilots set on the altimeter; upstream's `pressure_standard_msl`.
+_Avoid_: Sea-level pressure (when QFF is meant), MSL
+
+**QFF**:
+A station's pressure reduced to sea level with its actual temperature, the meteorologists' sea-level pressure; upstream's `pressure_msl`, labelled QFF, never QNH.
+_Avoid_: QNH, MSL
+
+**QFE** (Stationsdruck):
+The pressure at the station itself, not reduced; upstream's `pressure_surface`.
+_Avoid_: Surface pressure (in UI text), QNH
 
 **Föhn**:
 A warm, gusty downslope wind across the Alps, south föhn or north föhn, dangerous for free flight.

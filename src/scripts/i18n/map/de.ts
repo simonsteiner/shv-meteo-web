@@ -153,6 +153,8 @@ export const map = {
     gusts: "Böen: {v} km/h",
     temperature: "Temperatur",
     pressure: "Druck (QNH)",
+    pressureQff: "Druck (QFF)",
+    pressureQfe: "Stationsdruck (QFE)",
     noMeasurements: "Diese Station meldet gerade keine Werte.",
     webcam: "Webcam",
     liveWebcam: "Live Webcam",

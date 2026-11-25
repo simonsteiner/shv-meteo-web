@@ -51,12 +51,12 @@ test("measurements convert Kelvin and keep hPa and km/h", () => {
     gustKmh: 30,
     dirDeg: 270,
     tempC: 5,
-    qnhHpa: 1013,
+    pressure: { sea: { kind: "QNH", hpa: 1013 }, qfeHpa: null },
   });
   const celsius = stationMeasurements(station({ temperatureValue: -3.44 }));
   assert.equal(celsius.tempC, -3.4);
   assert.equal(celsius.windKmh, null);
-  assert.equal(celsius.qnhHpa, null);
+  assert.equal(celsius.pressure.sea, null);
 });
 
 test("a station position is lat, lng, or null when invalid", () => {

@@ -1,6 +1,6 @@
 // A weather station's sheet: provider, name, altitude and position, and
-// its latest wind, temperature and QNH (src/scripts/maps/stations.ts does
-// the units).
+// its latest wind, temperature and pressures (src/scripts/maps/stations.ts
+// and pressure.ts do the units).
 
 import { escapeHtml } from "../escape.ts";
 import { fill, type Say } from "../i18n/text.ts";
@@ -41,9 +41,19 @@ export function stationSheetHtml(f: MeasurementFeature, say: Say): string {
     r.tempC === null
       ? ""
       : metric(say("map.sheet.temperature"), `${r.tempC} °C`),
-    r.qnhHpa === null
+    r.pressure.sea === null
       ? ""
-      : metric(say("map.sheet.pressure"), `${r.qnhHpa} hPa`),
+      : metric(
+          say(
+            r.pressure.sea.kind === "QNH"
+              ? "map.sheet.pressure"
+              : "map.sheet.pressureQff",
+          ),
+          `${r.pressure.sea.hpa} hPa`,
+        ),
+    r.pressure.qfeHpa === null
+      ? ""
+      : metric(say("map.sheet.pressureQfe"), `${r.pressure.qfeHpa} hPa`),
   ].join("");
   const body = `${
     metrics

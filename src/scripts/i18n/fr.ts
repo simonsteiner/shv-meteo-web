@@ -97,6 +97,8 @@ export const fr: Strings = {
     dewPoint: "Point de rosée",
     humidityFull: "Humidité",
     qnhFull: "Pression QNH",
+    qffFull: "Pression QFF",
+    qfeFull: "Pression station QFE",
     history24h: "Évolution 24h (vent & température)",
     loadingSeries: "Chargement de la série...",
     seriesUnavailable: "Aucune série disponible",

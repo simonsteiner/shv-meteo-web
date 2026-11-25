@@ -181,6 +181,23 @@ test("a station sheet shows converted measurements", () => {
     assert.ok(html.includes(part), part);
 });
 
+test("a station sheet shows an MSL-only station's QFF and its QFE", () => {
+  const html = stationSheetHtml(
+    station({
+      name: "Konstanz",
+      providerKey: "dwd",
+      pressureMslValue: 1013.4,
+      pressureSurfaceValue: 962.3,
+    }),
+    say,
+  );
+  assert.ok(html.includes("[map.sheet.pressureQff]"));
+  assert.ok(html.includes("1013 hPa"));
+  assert.ok(html.includes("[map.sheet.pressureQfe]"));
+  assert.ok(html.includes("962 hPa"));
+  assert.ok(!html.includes("[map.sheet.pressure]"));
+});
+
 test("a station without values or a position says so instead of inventing them", () => {
   const html = stationSheetHtml(station({ name: EVIL }, [Number.NaN, 0]), say);
   inert(html);

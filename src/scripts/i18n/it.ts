@@ -96,6 +96,8 @@ export const it: Strings = {
     dewPoint: "Punto di rugiada",
     humidityFull: "Umidità",
     qnhFull: "Pressione QNH",
+    qffFull: "Pressione QFF",
+    qfeFull: "Pressione stazione QFE",
     history24h: "Andamento 24h (vento & temperatura)",
     loadingSeries: "Caricamento della serie...",
     seriesUnavailable: "Nessuna serie disponibile",

@@ -42,9 +42,18 @@ test("stationCardHtml labels station pressure QFE, never QNH", () => {
   assert.ok(qfe.includes(">QFE<"));
   assert.ok(!qfe.includes("QNH"));
   assert.ok(qfe.includes(">850<"));
-  const qnh = card({ pressureMslValue: 1021.2, pressureSurfaceValue: 850.4 });
+  const qnh = card({
+    pressureStandardMslValue: 1019.8,
+    pressureMslValue: 1021.2,
+    pressureSurfaceValue: 850.4,
+  });
   assert.ok(qnh.includes(">QNH<"));
-  assert.ok(qnh.includes(">1021<"));
+  assert.ok(qnh.includes(">1020<"));
+  // an MSL value alone is QFF, as DWD and Météo-France send it
+  const qff = card({ pressureMslValue: 1021.2, pressureSurfaceValue: 850.4 });
+  assert.ok(qff.includes(">QFF<"));
+  assert.ok(qff.includes(">1021<"));
+  assert.ok(!qff.includes("QNH"));
 });
 
 test("the card's arrow points downwind, as on the map, and is left out without a direction", () => {

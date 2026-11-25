@@ -51,11 +51,14 @@ export function stationCardHtml(
       : `<div class="st-card-arrow" style="transform: rotate(${turn}deg)" title="${escapeHtml(`${text.windDirection} ${Math.round(v.dirDeg)}°`)}">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2L4 20l8-4 8 4z"/></svg>
     </div>`;
-  // a station without QNH shows its own pressure, labelled QFE, not QNH
-  const [pressureLabel, pressure] =
-    v.qnhHpa === null && v.surfaceHpa !== null
-      ? ["QFE", v.surfaceHpa]
-      : ["QNH", v.qnhHpa];
+  // the sea-level pressure labelled QNH or QFF, else the station's own
+  // pressure labelled QFE (pressure.ts)
+  const { sea, qfeHpa } = v.pressure;
+  const [pressureLabel, pressure] = sea
+    ? [sea.kind, sea.hpa]
+    : qfeHpa !== null
+      ? ["QFE", qfeHpa]
+      : ["QNH", null];
   // upstream sends 0 for an unknown altitude
   const meta = [
     p.altitude ? `${p.altitude}m` : "",

@@ -93,6 +93,8 @@ export const de = {
     dewPoint: "Taupunkt",
     humidityFull: "Luftfeuchte",
     qnhFull: "Luftdruck QNH",
+    qffFull: "Luftdruck QFF",
+    qfeFull: "Stationsdruck QFE",
     history24h: "24h Verlauf (Wind & Temperatur)",
     loadingSeries: "Zeitreihe wird geladen...",
     seriesUnavailable: "Keine Zeitreihe verfügbar",

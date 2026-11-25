@@ -156,6 +156,8 @@ export const map: MapStrings = {
     gusts: "Rafales: {v} km/h",
     temperature: "Température",
     pressure: "Pression (QNH)",
+    pressureQff: "Pression (QFF)",
+    pressureQfe: "Pression station (QFE)",
     noMeasurements: "Cette station ne transmet aucune valeur pour le moment.",
     webcam: "Webcam",
     liveWebcam: "Webcam en direct",

@@ -1,9 +1,10 @@
 // A station's latest values as the weather page shows them, converted
-// through units.ts (upstream sends Kelvin and pascals at times; wind
+// through units.ts and pressure.ts (upstream sends Kelvin and pascals at times; wind
 // and gusts already arrive in km/h), and the station list's filters.
 
 import type { MeasurementFeature } from "../types.ts";
-import { round1, toCelsius, toHpa } from "../units.ts";
+import { stationPressures, type StationPressures } from "../pressure.ts";
+import { round1, toCelsius } from "../units.ts";
 
 /** The provider filter's keys, in the order the pills show them. */
 export const PROVIDERS = [
@@ -29,10 +30,8 @@ export interface StationValues {
   dewC: number | null;
   /** %, rounded */
   humidity: number | null;
-  /** Sea-level pressure (QNH), hPa, rounded */
-  qnhHpa: number | null;
-  /** Pressure at the station itself (QFE), hPa, rounded; not a QNH */
-  surfaceHpa: number | null;
+  /** QNH or QFF, and QFE (pressure.ts). */
+  pressure: StationPressures;
 }
 
 function num(v: unknown): number | null {
@@ -47,8 +46,6 @@ export function stationValues(st: MeasurementFeature): StationValues {
   const p = st.properties;
   const wind = num(p.windSpeedValue);
   const gust = num(p.windGustValue);
-  const qnh = toHpa(num(p.pressureMslValue) ?? num(p.pressureStandardMslValue));
-  const surface = toHpa(num(p.pressureSurfaceValue));
   const humidity =
     num(p.relativeHumidity2mValue) ?? num(p.relativeHumidityValue);
   return {
@@ -60,8 +57,7 @@ export function stationValues(st: MeasurementFeature): StationValues {
     ),
     dewC: rounded(toCelsius(num(p.dewPoint2mValue) ?? num(p.dewPointValue))),
     humidity: humidity === null ? null : Math.round(humidity),
-    qnhHpa: qnh === null ? null : Math.round(qnh),
-    surfaceHpa: surface === null ? null : Math.round(surface),
+    pressure: stationPressures(p),
   };
 }
 
