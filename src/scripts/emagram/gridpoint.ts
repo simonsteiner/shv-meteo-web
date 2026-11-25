@@ -15,7 +15,7 @@ export function tileIndex(lat: number, lon: number): { x: number; y: number } {
   };
 }
 
-export function tileUrl(lat: number, lon: number): string {
+function tileUrl(lat: number, lon: number): string {
   const { x, y } = tileIndex(lat, lon);
   return `https://static-prod.ubmeteo.io/v1/products/grid/10/${x}/${y}.json`;
 }
