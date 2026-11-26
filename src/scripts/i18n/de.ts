@@ -220,6 +220,8 @@ export const de = {
     isobarenSub:
       "Offizielle mitteleuropäische Frontenanalyse mit Hoch- und Tiefdruckzentren",
     isobarenAlt: "Isobarenkarte Schweiz & Europa",
+    isobarenZoomIn: "Tippe auf die Karte, um sie zu vergrössern.",
+    isobarenZoomOut: "Tippe auf die Karte, um sie wieder einzupassen.",
   },
   safety: {
     title: "Sicherheit, Notfall & Tools",

@@ -154,6 +154,29 @@
   border-radius: 12px;
   padding: 12px;
   margin-top: 16px;
+  overflow-x: auto;
+}
+
+/* A tap switches the chart between the card's width and the width
+   src/scripts/forecast/isobaren-page.ts sets inline. */
+.isobaren-zoom {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
+.isobaren-zoom[aria-pressed="true"] {
+  cursor: zoom-out;
+}
+
+.isobaren-hint {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
 }
 
 /* Upstream's SVG declares 1168x756 px; scale it to the card's width. */
