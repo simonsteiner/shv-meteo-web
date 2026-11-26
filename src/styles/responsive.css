@@ -1,6 +1,17 @@
 /* ==========================================================
    RESPONSIVE DESIGN (DESKTOP / TABLET)
    ========================================================== */
+/* The header by width, measured with the German words, the longest:
+   below 540px the logo alone; the title from 540px; from 768px the tabs
+   join the header as icons, which leave room for the title again from
+   900px; from 1280px the tabs show their names and the subtitle returns,
+   in at most two lines. */
+@media (min-width: 540px) {
+  .brand-text {
+    display: flex;
+  }
+}
+
 @media (min-width: 768px) {
   :root {
     --header-height: 64px;
@@ -40,7 +51,7 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 14px;
+    padding: 8px 10px;
     border-radius: 10px;
     border: 1px solid transparent;
     background: transparent;
@@ -49,6 +60,20 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .brand-text {
+    display: none;
+  }
+
+  /* the name stays for screen readers; the link's title shows it on hover */
+  .header-nav-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
     white-space: nowrap;
   }
 
@@ -99,5 +124,32 @@
     border-radius: 20px;
     border: 1px solid var(--border-strong);
     max-height: 82vh;
+  }
+}
+
+@media (min-width: 900px) {
+  .brand-text {
+    display: flex;
+  }
+}
+
+@media (min-width: 1280px) {
+  .header-nav-link {
+    padding: 8px 14px;
+  }
+
+  .header-nav-label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+
+  .brand-sub {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
   }
 }
