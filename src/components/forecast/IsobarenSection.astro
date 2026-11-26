@@ -1,6 +1,7 @@
 ---
 // The isobar chart, an SVG upstream draws per language (German for
-// English); src/scripts/forecast/isobaren-page.ts sets its source.
+// English); src/scripts/forecast/isobaren-page.ts sets its source and
+// zooms it on a tap.
 ---
 
 <div class="forecast-content-card" data-forecast-isobaren>
@@ -12,15 +13,24 @@
     </div>
   </div>
 
-  <div class="isobaren-map-container">
-    <img
-      class="isobaren-img"
-      data-isobaren-img
-      data-t-alt="forecast.isobarenAlt"
-      loading="eager"
-      alt=""
-    />
+  <div class="isobaren-map-container" data-isobaren-box>
+    <button
+      type="button"
+      class="isobaren-zoom"
+      aria-pressed="false"
+      aria-describedby="isobaren-hint"
+      data-isobaren-zoom
+    >
+      <img
+        class="isobaren-img"
+        data-isobaren-img
+        data-t-alt="forecast.isobarenAlt"
+        loading="eager"
+        alt=""
+      />
+    </button>
   </div>
+  <p class="isobaren-hint" id="isobaren-hint" data-isobaren-hint hidden></p>
 </div>
 
 <script>

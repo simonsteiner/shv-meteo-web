@@ -225,6 +225,8 @@ export const fr: Strings = {
     isobarenSub:
       "Analyse officielle des fronts en Europe centrale avec centres de haute et basse pression",
     isobarenAlt: "Carte des isobares Suisse & Europe",
+    isobarenZoomIn: "Touchez ou cliquez sur la carte pour l'agrandir.",
+    isobarenZoomOut: "Touchez ou cliquez sur la carte pour la réduire.",
   },
   safety: {
     title: "Sécurité, Urgences & Outils",
