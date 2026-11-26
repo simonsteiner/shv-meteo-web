@@ -148,6 +148,7 @@ export const map: MapStrings = {
     qrAlt: "Codice QR Twint",
     qrHint: "Scansiona il codice QR Twint sul posto",
     responsible: "Club responsabile",
+    officialMap: "Stato attuale sulla carta ufficiale FSVL ↗",
     website: "Sito web ↗",
     openInMaps: "Navigazione / Percorso",
     station: "Stazione meteo",

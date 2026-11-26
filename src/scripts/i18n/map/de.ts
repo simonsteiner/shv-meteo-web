@@ -145,6 +145,7 @@ export const map = {
     qrAlt: "Twint QR-Code",
     qrHint: "Twint QR-Code vor Ort scannen",
     responsible: "Betreuender Club",
+    officialMap: "Aktueller Stand auf der offiziellen SHV-Karte ↗",
     website: "Website ↗",
     openInMaps: "Navigation / Route",
     station: "Wetterstation",
