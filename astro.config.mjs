@@ -1,4 +1,5 @@
 // @ts-check
+import { rmSync } from "node:fs";
 import { defineConfig } from "astro/config";
 import { csp } from "./src/scripts/access/csp.ts";
 
@@ -9,7 +10,18 @@ export default defineConfig({
   site: "https://shv-meteo.pages.dev",
   // A hashed meta CSP in every built page (src/scripts/access/csp.ts); the
   // rest of the headers are in public/_headers.
-  integrations: [csp()],
+  // `npm run gis` puts dev-only copies of the GIS datasets in
+  // public/data/gis/ (src/scripts/gis.ts); a build never ships them.
+  integrations: [
+    csp(),
+    {
+      name: "drop-dev-gis",
+      hooks: {
+        "astro:build:done": ({ dir }) =>
+          rmSync(new URL("data/gis/", dir), { recursive: true, force: true }),
+      },
+    },
+  ],
   vite: {
     server: {
       proxy: {

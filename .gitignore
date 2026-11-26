@@ -7,6 +7,7 @@ apk_analysis/
 .astro/
 .wrangler/
 public/data/obstacles/
+public/data/gis/
 .cache/
 test-results/
 playwright-report/

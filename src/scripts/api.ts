@@ -1,5 +1,6 @@
 // ShvApi: the browser's only API client and only caller of fetch. The
-// flying sites, airspaces and wildlife reserves come live from the SHV CDN,
+// flying sites, airspaces and wildlife reserves come live from the SHV CDN
+// (a local copy first under `npm run dev`, gis.ts),
 // the outlooks and the isobar chart straight from upstream, and everything
 // else goes through the Pages Functions under /api
 // (docs/architecture/data-queries.md). A read never rejects: a failed
@@ -23,6 +24,7 @@ import {
 } from "./emagram/sounding.ts";
 import { loadObstacles, type ShardIndex } from "./obstacles/cells.ts";
 import { keepRecent, type Sized } from "./obstacles/recent.ts";
+import { GIS_DATASETS, GIS_DEV_DIR, type GisDataset } from "./gis.ts";
 
 /** The multi-day outlook frames' index; upstream answers with CORS `*`. */
 export const OUTLOOKS_URL =
@@ -108,25 +110,47 @@ function retryable<T>(
   };
 }
 
-/** A GIS dataset from the SHV CDN, read once per page load; null (logged)
- * when it fails, and asked again next time. */
-function live<T>(url: string, label: string): () => Promise<T | null> {
-  const memo = retryable<T>(() => getJson<T>(url, label));
+/** Whether this is `npm run dev`; a built page and Node's tests aren't. */
+const DEV = import.meta.env?.DEV === true;
+
+/** A GIS dataset: with `dev`, the local copy `npm run gis` wrote, when
+ * there is one; otherwise, or without one, the SHV CDN. Null (logged) when
+ * the CDN read fails. */
+export async function readGis<T>(
+  { url, file }: GisDataset,
+  label: string,
+  dev: boolean,
+): Promise<T | null> {
+  if (dev) {
+    try {
+      const resp = await fetch(`${GIS_DEV_DIR}/${file}`);
+      if (resp.ok) return (await resp.json()) as T;
+      console.warn(
+        `[ShvApi.${label}] No local copy (npm run gis), reading the CDN:`,
+        resp.status,
+      );
+    } catch (e) {
+      console.warn(
+        `[ShvApi.${label}] Local copy unreadable, reading the CDN:`,
+        e,
+      );
+    }
+  }
+  return getJson<T>(url, label);
+}
+
+/** A GIS dataset, read once per page load and asked again after a failure. */
+function live<T>(dataset: GisDataset, label: string): () => Promise<T | null> {
+  const memo = retryable<T>(() => readGis<T>(dataset, label, DEV));
   return () => memo();
 }
 
-const CDN = "https://shv-app-static-prod.ubmeteo.io/v1";
-
-/** The GIS datasets on the SHV CDN, regenerated there every hour; with
- * OUTLOOKS_URL, all the browser reads without /api (the CSP's connect-src,
- * access/csp.ts, allows their origins). Never copied into public/data/: a
- * copy goes stale (closures, new airspaces); the site sheet links the
- * official map for the reference (OFFICIAL_MAP_URL, sheet/site.ts). */
-export const GIS_URLS = [
-  `${CDN}/flyingsites.geojson`,
-  `${CDN}/airspaces/shv.geojson`,
-  `${CDN}/wildschutz/shv.geojson`,
-] as const;
+/** The GIS datasets' CDN URLs; with OUTLOOKS_URL, all the browser reads
+ * without /api (the CSP's connect-src, access/csp.ts, allows their
+ * origins). Never committed as copies: a copy goes stale (closures, new
+ * airspaces); the site sheet links the official map for the reference
+ * (OFFICIAL_MAP_URL, sheet/site.ts). */
+export const GIS_URLS = Object.values(GIS_DATASETS).map((d) => d.url);
 
 /** A view's obstacles; `incomplete` when some cells couldn't be read and
  * the rest are drawn. */
@@ -171,11 +195,17 @@ const fetchObstacleCell = keepRecent(OBSTACLE_CACHE_BYTES, fetchObstacleShard);
 
 export const ShvApi = {
   getFlyingSites: live<FeatureCollection<FlyingSiteFeature>>(
-    GIS_URLS[0],
+    GIS_DATASETS.flyingSites,
     "getFlyingSites",
   ),
-  getAirspaces: live<GeoJSON.FeatureCollection>(GIS_URLS[1], "getAirspaces"),
-  getWildschutz: live<GeoJSON.FeatureCollection>(GIS_URLS[2], "getWildschutz"),
+  getAirspaces: live<GeoJSON.FeatureCollection>(
+    GIS_DATASETS.airspaces,
+    "getAirspaces",
+  ),
+  getWildschutz: live<GeoJSON.FeatureCollection>(
+    GIS_DATASETS.wildschutz,
+    "getWildschutz",
+  ),
 
   /** The obstacles a map view shows, `incomplete` when some of its cells
    * couldn't be read (the rest still come); null when its index couldn't

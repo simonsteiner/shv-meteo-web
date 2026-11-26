@@ -16,6 +16,7 @@
     "format": "prettier --write .",
     "shot": "node --experimental-strip-types scripts/shot.ts",
     "prepare": "lefthook install || true",
+    "gis": "node --experimental-strip-types scripts/gis.ts",
     "grid": "node --experimental-strip-types scripts/previtemps-grid.ts",
     "obstacles": "node --experimental-strip-types --max-old-space-size=4096 scripts/obstacles.ts"
   },
