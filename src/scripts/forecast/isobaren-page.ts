@@ -21,6 +21,10 @@ export function mountIsobaren(root: HTMLElement): void {
   let lang: string | null = null;
   img.addEventListener("error", () => {
     console.error("[forecast] The isobar chart failed to load:", img.src);
+    hint.hidden = true;
+  });
+  img.addEventListener("load", () => {
+    hint.hidden = false;
   });
 
   function showHint(): void {

@@ -217,8 +217,8 @@ export const en: Strings = {
     isobarenSub:
       "Official Central European frontal analysis with high and low pressure centres",
     isobarenAlt: "Isobar chart Switzerland & Europe",
-    isobarenZoomIn: "Tap the chart to zoom in.",
-    isobarenZoomOut: "Tap the chart to fit it again.",
+    isobarenZoomIn: "Tap or click the chart to zoom in.",
+    isobarenZoomOut: "Tap or click the chart to fit it again.",
   },
   safety: {
     title: "Safety, Emergency & Pilot Tools",
