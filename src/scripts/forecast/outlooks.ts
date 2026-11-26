@@ -3,6 +3,7 @@
 // colours them through a palette (sunshine yellow to red, precipitation
 // green). Pure: the pixels are a parameter.
 
+import { naiveSwiss } from "../swiss-time.ts";
 import { safeUrl } from "../escape.ts";
 
 export const OUTLOOK_TYPES = [
@@ -101,7 +102,8 @@ export function colorize(
 }
 
 export interface OutlookFrame {
-  /** Local time, e.g. "2026-11-23T06:00". */
+  /** Naive Zurich time, no offset, e.g. "2026-11-23T06:00": read as text
+   * (naiveSwiss), never through new Date(). */
   start: string;
   end: string;
   url: string;
@@ -139,20 +141,26 @@ export function outlookFrames(
   return frames;
 }
 
-/** "Mo., 23.11. 06:00 \u2013 12:00" in the locale. */
-export function intervalLabel(frame: OutlookFrame, locale: string): string {
-  const start = new Date(frame.start);
-  const end = new Date(frame.end);
-  const time: Intl.DateTimeFormatOptions = {
-    hour: "2-digit",
-    minute: "2-digit",
+/** The hours a frame covers, from its naive start and end read as text;
+ * null when either is malformed. The legend says it, so it matches the
+ * set the viewer took (6 h, not the 12 h it used to claim). */
+export function intervalHours(frame: OutlookFrame): number | null {
+  const ms = (t: string) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(t);
+    return m ? Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) : Number.NaN;
   };
-  const day = start.toLocaleDateString(locale, {
-    weekday: "short",
-    day: "2-digit",
-    month: "2-digit",
-  });
-  return `${day} ${start.toLocaleTimeString(locale, time)} \u2013 ${end.toLocaleTimeString(locale, time)}`;
+  const hours = (ms(frame.end) - ms(frame.start)) / 3_600_000;
+  return Number.isFinite(hours) && hours > 0 ? hours : null;
+}
+
+/** "Mo., 23.11. 06:00 \u2013 12:00" in the locale. The frames' times are
+ * naive Zurich times, read as text (naiveSwiss), so the device's zone
+ * never shifts them. */
+export function intervalLabel(frame: OutlookFrame, locale: string): string {
+  const start = naiveSwiss(frame.start, locale);
+  const end = naiveSwiss(frame.end, locale);
+  if (!start || !end) return `${frame.start} \u2013 ${frame.end}`;
+  return `${start.day} ${start.time} \u2013 ${end.time}`;
 }
 
 /** The legend's CSS gradient per palette. */

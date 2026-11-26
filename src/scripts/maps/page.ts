@@ -19,6 +19,7 @@ import {
 } from "../handoff.ts";
 import { readPick } from "../data-pick.ts";
 import { applyText } from "../i18n/text.ts";
+import { whileVisible } from "../live/refresh.ts";
 import { mountSheet, selectionOf } from "../sheet/render.ts";
 import {
   BASE_MAPS,
@@ -119,6 +120,8 @@ function mountMap(root: HTMLElement): void {
   );
 
   let stations: MeasurementFeature[] = [];
+  // when the stations were fetched, if they are the edge's stale copy
+  let stationsAsOf: number | null = null;
   let foehn: FoehnReport | null = null;
   let pilotMarker: L.Marker | null = null;
 
@@ -131,6 +134,22 @@ function mountMap(root: HTMLElement): void {
       stationModeFor(store.state.meteoMode),
       (f) => store.select("station", f),
     );
+  }
+
+  function takeStations(data: { features?: MeasurementFeature[] }): void {
+    stations = data.features ?? [];
+    const fresh = ShvApi.freshness(data);
+    stationsAsOf = fresh?.stale ? fresh.fetchedAt : null;
+    redrawStations();
+  }
+
+  /** The open station sheet, if any, shown again with the station's new
+   * values: a new object, so render redraws the sheet; the map stays. */
+  function reselectStation(): void {
+    const open = store.state.selectedStation as MeasurementFeature | null;
+    if (!open) return;
+    const now = stations.find((f) => f.id === open.id);
+    if (now) store.select("station", now);
   }
 
   function moveTo(at: LatLngTuple | null): void {
@@ -219,7 +238,11 @@ function mountMap(root: HTMLElement): void {
       sites.draw(state.searchQuery, state.windFilter, say, state.lang);
     renderControls(status);
     renderPilot(pilot);
-    if (redraw.sheet) sheet.show(selection, sites.names);
+    if (redraw.sheet)
+      sheet.show(selection, sites.names, {
+        now: Date.now(),
+        asOf: stationsAsOf,
+      });
     // the obstacles load when shown and as the map moves, and go when hidden.
     // Last, because below their minimum zoom update() answers onLoad at once,
     // and the render that starts must not be overwritten by this one's status
@@ -345,11 +368,40 @@ function mountMap(root: HTMLElement): void {
     ShvApi.getMeasurements(),
     "[maps] Cannot load the measurements:",
     (data) => {
-      stations = data.features ?? [];
-      redrawStations();
+      takeStations(data);
       return { kind: "station", items: stations };
     },
   );
+  // every 90 s while the page is visible and the stations are shown, one
+  // request at a time. A failed refresh keeps the arrows; one that works
+  // goes through the session like the first load, so it clears a failed
+  // first load and acts on its ?station handoff, and an open station
+  // sheet is shown again with the new values
+  let refreshing = false;
+  whileVisible(() => {
+    if (refreshing || !store.state.layers.stations) return;
+    refreshing = true;
+    void ShvApi.getMeasurements({ fresh: true }).then((data) => {
+      refreshing = false;
+      if (!data) return;
+      try {
+        takeHandoff(
+          session.settle(
+            "measurements",
+            data,
+            "[maps] Cannot draw the refreshed measurements:",
+            (fresh) => {
+              takeStations(fresh);
+              return { kind: "station", items: stations };
+            },
+          ),
+        );
+        reselectStation();
+      } finally {
+        render();
+      }
+    });
+  });
   load(
     "foehn",
     ShvApi.getFoehn(),

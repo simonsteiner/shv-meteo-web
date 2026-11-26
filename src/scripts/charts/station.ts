@@ -5,22 +5,17 @@
 
 import type { ChartConfiguration } from "chart.js";
 import type { TimeseriesResponse } from "../types.ts";
+import { swissTime } from "../swiss-time.ts";
 import { round1, toCelsius } from "../units.ts";
 import type { ChartColors } from "./theme.ts";
 
 export interface StationSeries {
-  /** HH:MM in the browser's time zone. */
+  /** HH:MM in Swiss time. */
   labels: string[];
   tempC: (number | null)[];
   /** All null when the station sends no dew point. */
   dewC: (number | null)[];
   windKmh: (number | null)[];
-}
-
-function hhmm(ms: number): string {
-  const d = new Date(ms);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 /** The temperature and dew point (°C) and wind (km/h) series on one time
@@ -43,7 +38,7 @@ export function stationSeries(ts: TimeseriesResponse | null): StationSeries {
     new Set([...temp.keys(), ...dew.keys(), ...wind.keys()]),
   ).sort((a, b) => a - b);
   return {
-    labels: times.map(hhmm),
+    labels: times.map(swissTime),
     tempC: times.map((t) => temp.get(t) ?? null),
     dewC: times.map((t) => dew.get(t) ?? null),
     windKmh: times.map((t) => wind.get(t) ?? null),

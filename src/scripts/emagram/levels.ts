@@ -48,9 +48,10 @@ export function dewPoint(qKg: number, pressHpa: number): number {
   return Math.max(-60, Math.min(45, (243.5 * logE) / (17.67 - logE)));
 }
 
-/** One time step's values per parameter, one per model level (top first).
- * The height is a constant field: a single value per level serves every
- * time step. */
+/** One time step's values per parameter, top first: one per model level,
+ * except `height_half_level`, which holds the N + 1 layer boundaries of
+ * the N levels. The height is a constant field: a single value per row
+ * serves every time step. */
 export function valuesAt(
   matrices: Record<SoundingParameter, number[][]>,
   t: number,
@@ -70,17 +71,44 @@ export function valuesAt(
 const isNumber = (v: unknown): v is number =>
   typeof v === "number" && Number.isFinite(v);
 
+/** Whether the heights fit the levels: upstream sends the layers'
+ * boundaries (`height_half_level`, 81 values from 22 km down to the ground)
+ * for 80 full levels, one more than the levels. */
+export function halfLevelsFit(
+  byParam: Pick<
+    Record<SoundingParameter, unknown[]>,
+    "temperature" | "height_half_level"
+  >,
+): boolean {
+  return byParam.height_half_level.length === byParam.temperature.length + 1;
+}
+
 /** The sounding's levels at one time step, ground first, up to 550 hPa. A
- * level missing any value is left out rather than filled in. */
+ * level's height is the middle of its layer, the mean of half levels `l`
+ * and `l + 1`, as the official app computes it (APK `ex7.java`); heights
+ * that aren't one more than the levels give no level (`pointProblem` names
+ * them). A level missing any value is left out rather than filled in. */
 export function soundingLevels(
   byParam: Record<SoundingParameter, (number | undefined)[]>,
 ): SoundingLevel[] {
   const levels: SoundingLevel[] = [];
+  if (!halfLevelsFit(byParam)) {
+    console.error(
+      `[soundingLevels] ${byParam.height_half_level.length} half levels for ${byParam.temperature.length} levels, not one more: no levels drawn`,
+    );
+    return levels;
+  }
+  // each level's unrounded height and temperature, for its lapse rate
+  const raw = new Map<SoundingLevel, { heightM: number; tempC: number }>();
+  const half = byParam.height_half_level;
   for (let l = byParam.temperature.length - 1; l >= 0; l--) {
     const tempK = byParam.temperature[l];
     const pressPa = byParam.pressure[l];
     const q = byParam.specific_humidity[l];
-    const heightM = byParam.height_half_level[l];
+    const upper = half[l];
+    const lower = half[l + 1];
+    const heightM =
+      isNumber(upper) && isNumber(lower) ? (upper + lower) / 2 : undefined;
     const u = byParam.wind_u[l];
     const v = byParam.wind_v[l];
     if (
@@ -94,7 +122,7 @@ export function soundingLevels(
       continue;
     const pressHpa = pressPa / 100;
     if (pressHpa < 550) break;
-    levels.push({
+    const level: SoundingLevel = {
       heightM: Math.round(heightM),
       pressHpa: round1(pressHpa),
       tempC: round1(tempK - 273.15),
@@ -103,12 +131,16 @@ export function soundingLevels(
       // where the wind comes from, in degrees
       dirDeg: Math.round(((Math.atan2(-u, -v) * 180) / Math.PI + 360) % 360),
       lapseRate: 0,
-    });
+    };
+    levels.push(level);
+    raw.set(level, { heightM, tempC: tempK - 273.15 });
   }
   levels.sort((a, b) => a.heightM - b.heightM);
   for (let i = 1; i < levels.length; i++) {
-    const dz = levels[i].heightM - levels[i - 1].heightM;
-    const dt = levels[i].tempC - levels[i - 1].tempC;
+    const lo = raw.get(levels[i - 1])!;
+    const hi = raw.get(levels[i])!;
+    const dz = hi.heightM - lo.heightM;
+    const dt = hi.tempC - lo.tempC;
     levels[i].lapseRate = dz > 10 ? round1(dt / (dz / 100)) : 0;
   }
   return levels;

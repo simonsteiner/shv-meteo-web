@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { buildDabs, isobarenUrl, OUTLOOKS_URL, ShvApi } from "./api.ts";
+import { isobarenUrl, OUTLOOKS_URL, ShvApi } from "./api.ts";
 import { pointAnswer } from "./emagram/point.fixture.ts";
 
 test("getFoehn() twice makes one fetch, getFoehn('GVE_GUT') a second", async () => {
@@ -146,27 +146,6 @@ test("the outlooks come from upstream", () => {
   assert.match(OUTLOOKS_URL, /^https:\/\/static-prod\.ubmeteo\.io\//);
 });
 
-test("buildDabs returns the former /api/dabs fields for the date", () => {
-  assert.deepEqual(buildDabs(new Date("2026-07-14T10:00:00Z")), {
-    date: "2026-07-14",
-    status: "ACTIVE",
-    bulletinUrl: "https://www.skybriefing.com/de/dabs",
-    bulletinPdfUrl: "https://www.skybriefing.com/dabs/dabs.pdf",
-    validity: "00:00 - 23:59 LT (2026-07-14)",
-    notesDe:
-      "Täglich ab 16:00 LT für den Folgetag durch Skybriefing publiziert. Vor jedem Streckenflug obligatorisch zu konsultieren!",
-    notesEn:
-      "Published daily at 16:00 LT for the next day via Skybriefing. Mandatory consultation prior to cross-country flights!",
-  });
-});
-
-test("the DABS date is Swiss, not UTC", () => {
-  // 23:30 UTC on 14 July is 01:30 on 15 July in Zurich (CEST)
-  assert.equal(buildDabs(new Date("2026-07-14T23:30:00Z")).date, "2026-07-15");
-  // 23:30 UTC on 14 January is 00:30 on 15 January (CET)
-  assert.equal(buildDabs(new Date("2026-01-14T23:30:00Z")).date, "2026-01-15");
-});
-
 test("getObstacles says when its index or a cell failed, and answers null for an abort", async (t) => {
   t.mock.method(console, "error", () => {});
   const view = { minLon: 8, minLat: 46.5, maxLon: 8.1, maxLat: 46.6, zoom: 13 };
@@ -199,4 +178,74 @@ test("getObstacles says when its index or a cell failed, and answers null for an
   } finally {
     globalThis.fetch = real;
   }
+});
+
+test("an answer says when it was fetched and whether it is a stand-in", async () => {
+  let answer = 0;
+  await withFetch(
+    (url) =>
+      url === "/api/webcams"
+        ? Response.json(
+            { webcams: [] },
+            {
+              headers:
+                answer++ === 0
+                  ? { "x-fetched-at": "1795625400000", "x-cache": "stale" }
+                  : { "x-fetched-at": "1795626000000", "x-cache": "miss" },
+            },
+          )
+        : Response.json({}),
+    async () => {
+      const stale = await ShvApi.getWebcams();
+      assert.deepEqual(ShvApi.freshness(stale), {
+        fetchedAt: 1795625400000,
+        stale: true,
+      });
+      const fresh = await ShvApi.getWebcams();
+      assert.deepEqual(ShvApi.freshness(fresh), {
+        fetchedAt: 1795626000000,
+        stale: false,
+      });
+      // a static file carries neither header
+      const outlooks = await ShvApi.getOutlooks();
+      assert.equal(ShvApi.freshness(outlooks), null);
+      assert.equal(ShvApi.freshness(null), null);
+    },
+  );
+});
+
+test("a fresh getMeasurements asks again, and later reads share its answer", async () => {
+  let n = 0;
+  const calls = await withFetch(
+    () => Response.json({ type: "FeatureCollection", features: [], n: ++n }),
+    async () => {
+      const first = await ShvApi.getMeasurements();
+      assert.equal(await ShvApi.getMeasurements(), first);
+      const fresh = await ShvApi.getMeasurements({ fresh: true });
+      assert.notEqual(fresh, first);
+      assert.equal(await ShvApi.getMeasurements(), fresh);
+    },
+  );
+  // the first read may share an earlier test's answer (the memo is the
+  // module's); the fresh one always asks, and the plain reads never do
+  assert.equal(calls.filter((u) => u === "/api/measurements").length, n);
+});
+
+test("a superseded read that fails doesn't evict the fresh one", async () => {
+  let n = 0;
+  let release: (r: Response) => void = () => {};
+  const calls = await withFetch(
+    () =>
+      ++n === 1
+        ? new Promise<Response>((resolve) => (release = resolve))
+        : Response.json({ type: "FeatureCollection", features: [], n }),
+    async () => {
+      const slow = ShvApi.getMeasurements({ fresh: true });
+      const fresh = await ShvApi.getMeasurements({ fresh: true });
+      release(new Response("down", { status: 503 }));
+      assert.equal(await slow, null);
+      assert.equal(await ShvApi.getMeasurements(), fresh);
+    },
+  );
+  assert.equal(calls.filter((u) => u === "/api/measurements").length, 2);
 });

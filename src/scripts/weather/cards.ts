@@ -2,6 +2,9 @@
 // cards and the webcam cards. Every upstream value is escaped; the words
 // come in from the dictionary.
 
+import { downwindRotation } from "../wind-arrow.ts";
+import { swissTime } from "../swiss-time.ts";
+import { isOldMeasurement, measurementTime } from "../live/measured.ts";
 import { escapeHtml } from "../escape.ts";
 import type { StationPair } from "../foehn/report.ts";
 import type { MeasurementFeature, Webcam } from "../types.ts";
@@ -32,22 +35,41 @@ export interface StationCardText {
   gust: string;
   temp: string;
   windDirection: string;
+  /** The measurement time's tooltip. */
+  measuredAt: string;
+  /** Said beside the time of a reading over an hour old. */
+  old: string;
 }
 
+/** A station's card at `now`: its measurement time in Swiss time, greyed
+ * out (`is-old`) when over an hour old. */
 export function stationCardHtml(
   st: MeasurementFeature,
   text: StationCardText,
+  now: number = Date.now(),
 ): string {
   const p = st.properties;
+  const measured = measurementTime(p);
+  const old = isOldMeasurement(measured, now);
   const v = stationValues(st);
   const wind = v.windKmh === null ? null : Math.round(v.windKmh);
   const gust = v.gustKmh === null ? null : Math.round(v.gustKmh);
-  const dir = v.dirDeg ?? 0;
-  // a station without QNH shows its own pressure, labelled QFE, not QNH
-  const [pressureLabel, pressure] =
-    v.qnhHpa === null && v.surfaceHpa !== null
-      ? ["QFE", v.surfaceHpa]
-      : ["QNH", v.qnhHpa];
+  const turn = downwindRotation(v.dirDeg);
+  // the arrow points downwind, as on the map; none without a direction
+  const arrow =
+    v.dirDeg === null || turn === null
+      ? ""
+      : `<div class="st-card-arrow" style="transform: rotate(${turn}deg)" title="${escapeHtml(`${text.windDirection} ${Math.round(v.dirDeg)}°`)}">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2L4 20l8-4 8 4z"/></svg>
+    </div>`;
+  // the sea-level pressure labelled QNH or QFF, else the station's own
+  // pressure labelled QFE (pressure.ts)
+  const { sea, qfeHpa } = v.pressure;
+  const [pressureLabel, pressure] = sea
+    ? [sea.kind, sea.hpa]
+    : qfeHpa !== null
+      ? ["QFE", qfeHpa]
+      : ["QNH", null];
   // upstream sends 0 for an unknown altitude
   const meta = [
     p.altitude ? `${p.altitude}m` : "",
@@ -55,15 +77,18 @@ export function stationCardHtml(
   ]
     .filter(Boolean)
     .join(" · ");
-  return `<div class="station-card-item" role="button" tabindex="0" data-station-id="${escapeHtml(st.id)}">
+  const time =
+    measured === null
+      ? ""
+      : `<span class="st-card-time" title="${escapeHtml(text.measuredAt)}">${swissTime(measured)}${old ? ` \u00b7 ${escapeHtml(text.old)}` : ""}</span>`;
+  return `<div class="station-card-item${old ? " is-old" : ""}" role="button" tabindex="0" data-station-id="${escapeHtml(st.id)}">
   <div class="st-card-top">
     <div>
       <h4 class="st-card-name">${escapeHtml(p.name || st.id)}</h4>
       <span class="st-card-alt">${escapeHtml(meta)}</span>
+      ${time}
     </div>
-    <div class="st-card-arrow" style="transform: rotate(${dir}deg)" title="${escapeHtml(`${text.windDirection} ${Math.round(dir)}°`)}">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2L4 20l8-4 8 4z"/></svg>
-    </div>
+    ${arrow}
   </div>
   <div class="st-card-stats">
     <div class="st-stat"><span class="st-stat-lbl">${escapeHtml(text.wind)}</span><span class="st-stat-val ${windClass(wind)}">${wind === null ? DASH : `${wind} km/h`}</span></div>

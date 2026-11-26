@@ -2,7 +2,6 @@ import { map } from "./map/de.ts";
 
 export const de = {
   appName: "Swiss Free Flight",
-  memberPortal: "SHV-Mitgliederportal",
   appSub: "Flugwetter & Fluggebiete · Quelle: SHV FSVL",
   tabs: {
     map: "Live-Karte",
@@ -47,6 +46,7 @@ export const de = {
       DEM_GRE: "Jura-Querung (Delémont \u2013 Grenchen)",
     },
     foehnStatus: {
+      NO_DATA: "Keine Daten",
       CALM: "Ruhig",
       MODERATE_SOUTH_FOEHN: "Mässiger Südföhn",
       SEVERE_SOUTH_FOEHN: "Starker Südföhn",
@@ -56,6 +56,8 @@ export const de = {
       STRONG_GRADIENT: "Starker Druckgradient",
     },
     foehnText: {
+      NO_DATA:
+        "Für dieses Stationspaar fehlt ein aktueller Wert. Keine Aussage zum Föhn möglich.",
       CALM: "Normale Druckverhältnisse. Sichere Bedingungen.",
       MODERATE_SOUTH_FOEHN:
         "Mässiger Südföhn ({delta} hPa). Zunehmende Turbulenz und Gefahr des Föhndurchbruchs in den Alpentälern.",
@@ -90,6 +92,11 @@ export const de = {
     dewPoint: "Taupunkt",
     humidityFull: "Luftfeuchte",
     qnhFull: "Luftdruck QNH",
+    measuredAt: "Messzeit",
+    oldMeasurement: "älter als eine Stunde",
+    asOf: "Stand {time}: Live-Messwerte nicht erreichbar, zwischengespeicherte Werte",
+    qffFull: "Luftdruck QFF",
+    qfeFull: "Stationsdruck QFE",
     history24h: "24h Verlauf (Wind & Temperatur)",
     loadingSeries: "Zeitreihe wird geladen...",
     seriesUnavailable: "Keine Zeitreihe verfügbar",
@@ -140,10 +147,11 @@ export const de = {
     typeSunshine: "Sonnenschein",
     typePrecipWeak: "Niederschlag leicht",
     typePrecipStrong: "Niederschlag stark",
-    legendSunshine: "Relative Sonnenscheindauer (6h)",
-    legendPrecipWeak: "Niederschlagswahrscheinlichkeit leicht (> 0.1 mm / 12h)",
+    legendSunshine: "Relative Sonnenscheindauer ({hours}h)",
+    legendPrecipWeak:
+      "Niederschlagswahrscheinlichkeit leicht (> 0.1 mm / {hours}h)",
     legendPrecipStrong:
-      "Niederschlagswahrscheinlichkeit stark (> 1.0 mm / 12h)",
+      "Niederschlagswahrscheinlichkeit stark (> 1.0 mm / {hours}h)",
     interval: "Intervall {n} von {total}",
     center: "Zentrieren",
     centerTitle: "Schweiz zentrieren",
@@ -225,7 +233,8 @@ export const de = {
     resetChecklist: "Checkliste zurücksetzen",
     sosTitle: "Notfallkontakte & Flugrettung Schweiz",
     rega: "Rega Notruf: 1414",
-    kRadio: "Rega-Funk / K-Funk: 161.300 MHz (CTCSS 151.4 Hz)",
+    // Rega's own wording (2026-11-25): https://www.rega.ch/im-einsatz/standorte-infrastruktur/notfunk/notfunk-alarmierung-der-rega
+    kRadio: "Rega-Notfunk, E-Kanal: 161.300 MHz",
     treeRescueTitle: "Verhalten bei Baumlandung",
     treeRescue1:
       "1. Ruhig bleiben! Sofort im Gurtzeug sichern (Schlinge/Karabiner an stabilem Ast).",
@@ -238,25 +247,6 @@ export const de = {
     dabsSub:
       "Offizielle tägliche Luftraumkarte der Schweizer Luftwaffe und Skyguide",
     dabsLink: "DABS auf Skybriefing öffnen",
-    logbookTitle: "Elektronisches Flugbuch",
-    addFlight: "Flug eintragen",
-    totalFlights: "Flüge Total",
-    totalAirtime: "Gesamte Flugzeit",
-    longestFlight: "Längster Flug",
-    date: "Datum",
-    site: "Startplatz",
-    landing: "Landeplatz",
-    glider: "Schirm / Gurtzeug",
-    duration: "Dauer (Minuten)",
-    distance: "XC Distanz (km)",
-    notes: "Bemerkungen",
-    saveFlight: "Flug speichern",
-    exportLog: "Exportieren (CSV)",
-    varioTitle: "Akustischer Variometer Simulator",
-    varioSub: "Realistischer Vario-Ton für Thermiktraining & Audio-Test",
-    varioClimb: "Steigen / Sinken:",
-    varioMute: "Ton einschalten",
-    varioUnmute: "Ton ausschalten",
     checklistBadge: "Pre-Flight",
     checklistSub:
       "Standardisierter Startcheck des Schweizerischen Hängegleiter-Verbandes",
@@ -267,25 +257,23 @@ export const de = {
     regaSub: "Kostenlos aus allen Schweizer Netzen",
     euroName: "Europäischer Notruf",
     euroSub: "Funktioniert auch ohne SIM-Karte",
+    // Rega's own wording (2026-11-25): https://www.rega.ch/im-einsatz/standorte-infrastruktur/notfunk/notfunk-alarmierung-der-rega
     kRadioSub:
-      "Notfallfunkkanal für Bergrettung in der Schweiz. CTCSS-Rufton 151.4 Hz aktivieren!",
-    dabsBadge: "Luftraumstatus",
-    dabsValidity: "Gültigkeit heute:",
+      "Alarm-Taste oder 5-Ton-Ruf 21414 (ZVEI), mit oder ohne Tonsquelch (CTCSS) 123.0 Hz. Quittung: 3 lange Töne. Nur verwenden, wenn kein Mobilnetz da ist.",
+    dabsBadge: "Luftraum",
+    dabsScheduleTitle: "Publikationszeiten (Skybriefing)",
+    dabsFirstVersion: "Erste Version (Version 1) für den Folgetag",
+    dabsUpdates:
+      "Aktualisierungen (Version 2 / 3 / 4) für den laufenden Tag, sofort gültig",
+    dabsNext: "Nächste Publikation: {time} LT",
+    dabsNextTomorrow: "Nächste Publikation: morgen {time} LT",
+    dabsNextFirst:
+      "Nächste Publikation: {time} LT, mit der ersten Version für morgen",
     dabsNotes:
-      "Täglich ab 16:00 LT für den Folgetag durch Skybriefing publiziert. Vor jedem Streckenflug obligatorisch zu konsultieren!",
-    dabsPdf: "DABS PDF herunterladen",
-    varioSinkLabel: "Saufen",
-    varioLiftLabel: "Hammer!",
-    logbookBadge: "Flugbuch",
-    logbookSub: "Erfasste Flüge & Flugstatistiken",
-    emptyTitle: "Noch keine Flüge im Flugbuch erfasst",
-    emptyHint: "Erfasse deinen ersten Flug mit «Flug eintragen» oben rechts.",
-    newFlight: "Neuen Flug erfassen",
-    sitePlaceholder: "z. B. Fiescheralp, Interlaken, Brunni...",
-    landingPlaceholder: "z. B. Fiesch Landeplatz, Höhematte...",
-    distancePlaceholder: "z. B. 25.4",
-    notesPlaceholder: "Thermik, Bedingungen, Route...",
-    cancel: "Abbrechen",
+      "Ergänzend zu den NOTAM stellt die DABS-Karte Gefahren, Einschränkungen und Änderungen im Schweizer Luftraum grafisch dar. Für Details immer die NOTAM konsultieren.",
+    dabsMandatory: "Vor jedem Streckenflug obligatorisch zu konsultieren!",
+    dabsPdfToday: "DABS heute (PDF)",
+    dabsPdfTomorrow: "DABS morgen (PDF)",
   },
 };
 

@@ -2,7 +2,7 @@
 
 A web app for Swiss paraglider and hang glider pilots that shows flying sites, airspace hazards, live weather and soaring forecasts from the public data behind the official SHV FSVL app. It is a static Astro site (`src/pages/`, one page per tab, each with its components in `src/components/<tab>/` and its TypeScript in `src/scripts/`; the header and bottom nav in `src/components/shell/`), plus Cloudflare Pages Functions (`functions/api/`) for the upstream calls a browser can't make. The browser loads static GIS data from `public/data/`, a few upstreams directly, and everything else through `/api/*`, where the Functions proxy and cache the upstream services (Ubique weather and webcams, SHV, MeteoSwiss ICON).
 
-Domain terms are in `GLOSSARY.md`. The Astro on Cloudflare Pages migration has shipped; what is left is in `docs/plan/2026-11-24-follow-ups/`.
+Domain terms are in `GLOSSARY.md`. Open work is planned in `docs/plan/`.
 
 ## Commands
 
@@ -30,13 +30,13 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 - **`ShvApi` is the only caller of `fetch` in the browser.** Every endpoint the browser reads, direct or through `/api`, gets a method in `src/scripts/api.ts`; views and components never fetch directly.
 - **A `ShvApi` read never rejects.** It resolves to its typed value, or to null (an empty list for the station catalogue) after logging `[ShvApi.<method>]`; callers handle null and never `.catch` the read itself (a `.catch` after `.then` still catches a throw while drawing).
 - **Proxy only what has to be proxied.** The browser calls an upstream directly only when it allows CORS and the payload is light; anything with CORS limits (or a 403 to an `Origin` header), heavy data or multi-station math gets a Pages Function. Read `docs/architecture/data-queries.md` before adding or changing an endpoint.
-- **Upstream weather units are quirky.** Wind and gusts already arrive in km/h (never multiply by 3.6), a temperature above 200 is Kelvin, a pressure above 5000 is in tenths of hPa. Convert through `src/scripts/units.ts` (`toCelsius`, `toHpa`).
+- **Upstream weather units are quirky.** Wind and gusts already arrive in km/h (never multiply by 3.6), a temperature above 200 is Kelvin, a pressure above 20,000 is in pascals (Holfuy's and Mistral's `pressureSurfaceValue`) and one outside 300 to 1100 hPa is missing. Convert through `src/scripts/units.ts` (`toCelsius`, `toHpa`).
 
 ### Functions
 
 - **A Function is a one-line adapter over `src/scripts/upstream/`.** A proxied endpoint is three pieces: its route in `ROUTES` (`src/scripts/upstream/routes.ts`: upstream URL, TTL, timeout, German error body, and its own `parse` of the path and query, 400 or 404 included, with the shared helpers in `params.ts`), the file under `functions/api/`, and the `ShvApi` method.
 - **The Function file calls `proxy`, `serve`, or a route helper that calls `serve`.** `proxy(name, ctx)` passes upstream's body through (`functions/api/webcams.ts`); `serve(name, ctx, compute)` answers what `compute(params, timeoutMs)` builds, which lives with its concern under `src/scripts/` (`functions/api/foehn.ts` over `src/scripts/foehn/fetch.ts`); a Function whose tests need to inject `fetch` calls a helper there that wraps `serve` (the sounding's `soundingRoute` in `src/scripts/emagram/fetch.ts`; the generated grid is imported by `emagram/grid.ts`, which the route's `parse` reads for its 404). Logic never goes in `functions/`, so every test is under `src/scripts/`.
-- **`respond.ts` owns caching and errors.** It streams the body unparsed, sets `Cache-Control`, keeps each 200 in the edge cache as the fallback for an upstream error (served only if it still looks like JSON), and answers anything else with a 503 that is never cached.
+- **`respond.ts` owns caching and errors.** It streams the body unparsed (a `checked` route's fresh body is read and checked as JSON first, so an empty or cut-off 200 counts as a failure), sets `Cache-Control`, keeps each 200 in the edge cache as the fallback for an upstream error (served only while it is younger than the route's `maxStaleSeconds` and still looks like JSON, with its `x-fetched-at`), and answers anything else with a 503 that is never cached.
 - **Functions keep no memory between requests.** The edge cache (`caches.default`) is the only state.
 
 ### UI and state
@@ -44,6 +44,7 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 - **App state lives in `store` (`src/scripts/state.ts`, over the `AppState` class in `app-state.ts`).** Values persisted to `localStorage` use `shv_*` keys through `src/scripts/settings.ts`; `store.setTab` navigates.
 - **A selection handed to the map travels in its URL.** Build and read it with `src/scripts/handoff.ts` (`?site`, `?station`, `?webcam`, `?locate`, each with an optional `&z=<zoom>`).
 - **UI strings come from `src/scripts/i18n/{de,fr,it,en}.ts` (the map's in `i18n/map/`) through `store.t`.** Add every new key to all four files; German is the default and the others are typed as its shape. Markup names its string with `data-t` and the page script fills it with `applyText` (`src/scripts/i18n/text.ts`).
+- **Every time shown is Swiss time.** Format it through `src/scripts/swiss-time.ts` (`swissTime`, `formatSwiss`, `naiveSwiss` for upstream's offset-less times), never `toLocale*String` or `getHours`, so a device abroad shows the same hours (`swissHour` gives the hour).
 - **Escape everything you put in an HTML string.** Stored and upstream values go through `escapeHtml` and URLs through `safeUrl` (`src/scripts/escape.ts`); upstream's forecast HTML goes through `sanitizeForecastHtml` (`src/scripts/forecast/sanitize.ts`).
 - **Keep page scripts thin.** A tab's `page.ts` attaches the handlers; the logic goes in pure modules with a `*.test.ts` beside them (`src/scripts/safety/`).
 - **Flying-site features are not all points.** Many are `Polygon`, `MultiPolygon` or `LineString`; get a position through `featureLatLng()` in `src/scripts/maps/centroid.ts`, never by indexing `geometry.coordinates`.
@@ -56,7 +57,7 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 ## Hard constraints
 
 - **Never add mock, sample or synthesized data.** No fake profiles, placeholder ratings, simulated measurements or generated trend curves; show an empty or error state when real data is missing.
-- **Never accept or store SHV passwords, and never send tokens to the browser.** The site has no member login; the header links to the SHV member portal. If login returns, it follows the member check research (`docs/research/2026-11-24-member-check.md`) and F16 in `docs/plan/2026-11-24-follow-ups/README.md`.
+- **Never accept or store SHV passwords, and never send tokens to the browser.** The site has no member login, and the header shows no login or member-portal button until it can do something for a logged-in member. If login returns, it follows the member check research in `docs/research/` and the plan item for it in `docs/plan/`.
 - **No member data in the browser.** `purgeLegacyAuth` (`src/scripts/settings.ts`) clears the old `shv_session_id` and `shv_profile` keys on every page load.
 - **Never bypass the git hooks** (`--no-verify`, `LEFTHOOK=0`). lefthook (`lefthook.yml`) blocks staged files over 5,000 tokens and any em or en dash. Split an oversized file along its seams; write a dash a user must see as a JavaScript unicode escape, as `src/scripts/foehn/pairs.ts` does.
 
@@ -83,5 +84,5 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 - `docs/reference/shv-native-app.md`: reverse-engineered notes on the official app: its hosts, code layout and the Previtemps sounding.
 - `docs/reference/shv-native-auth.md`: the official app's Keycloak login and member web service; read before bringing back login or member data.
 - `docs/reference/shv-app-emulator.md` and `docs/reference/shv-app-traffic-capture.md`: running the official app on an Android emulator and capturing its HTTPS calls.
-- `docs/plan/`: the migration plan (`2026-11-23-astro-cloudflare/`, shipped, a record) and the follow-up plan (`2026-11-24-follow-ups/`), in order.
+- `docs/plan/`: dated plans, one folder each; the newest hold the open work, the shipped ones stay as a record.
 - `GLOSSARY.md`: domain terms in English and German.

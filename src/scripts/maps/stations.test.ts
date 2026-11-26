@@ -36,14 +36,14 @@ test("temperatureColor steps at 0, 8, 15 and 22 °C", () => {
   assert.equal(temperatureColor(22), "#EF4444");
 });
 
-test("measurements convert Kelvin and tenths of hPa and keep km/h", () => {
+test("measurements convert Kelvin and keep hPa and km/h", () => {
   const r = stationMeasurements(
     station({
       windSpeedValue: 18.26,
       windGustValue: 30,
       windDirectionValue: 270,
       temperature2mValue: 278.15,
-      pressureStandardMslValue: 10132,
+      pressureStandardMslValue: 1013.2,
     }),
   );
   assert.deepEqual(r, {
@@ -51,12 +51,12 @@ test("measurements convert Kelvin and tenths of hPa and keep km/h", () => {
     gustKmh: 30,
     dirDeg: 270,
     tempC: 5,
-    qnhHpa: 1013,
+    pressure: { sea: { kind: "QNH", hpa: 1013 }, qfeHpa: null },
   });
   const celsius = stationMeasurements(station({ temperatureValue: -3.44 }));
   assert.equal(celsius.tempC, -3.4);
   assert.equal(celsius.windKmh, null);
-  assert.equal(celsius.qnhHpa, null);
+  assert.equal(celsius.pressure.sea, null);
 });
 
 test("a station position is lat, lng, or null when invalid", () => {
@@ -77,13 +77,22 @@ test("the wind marker is an arrow turned to the direction, a dot when calm", () 
     station({ windSpeedValue: 24.4, windDirectionValue: 200.4 }),
     "WIND",
   );
-  assert.ok(arrow?.html.includes("rotate(200deg)"));
+  // from 200° the wind blows to 20°: the arrow points downwind
+  assert.ok(arrow?.html.includes("rotate(20deg)"));
   assert.ok(arrow?.html.includes("#F5DA01"));
   assert.ok(arrow?.html.includes("Pilatus: 24 km/h (200°)"));
   const calm = stationMarker(station({ windSpeedValue: 2 }), "WIND");
   assert.ok(calm?.html.includes("wind-dot-svg"));
   assert.equal(stationMarker(station({ windSpeedValue: 10 }), "WIND"), null);
   assert.equal(stationMarker(station({}), "WIND"), null);
+});
+
+test("a north wind's arrow on the map points south", () => {
+  const arrow = stationMarker(
+    station({ windSpeedValue: 20, windDirectionValue: 0 }),
+    "WIND",
+  );
+  assert.ok(arrow?.html.includes("rotate(180deg)"));
 });
 
 test("the temperature marker shows the converted value", () => {

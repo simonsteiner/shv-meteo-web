@@ -3,7 +3,6 @@ import { map } from "./map/en.ts";
 
 export const en: Strings = {
   appName: "Swiss Free Flight",
-  memberPortal: "SHV member portal",
   appSub: "Soaring Weather & Sites · Source: SHV FSVL",
   tabs: {
     map: "Live Map",
@@ -47,6 +46,7 @@ export const en: Strings = {
       DEM_GRE: "Jura crossing (Delémont \u2013 Grenchen)",
     },
     foehnStatus: {
+      NO_DATA: "No data",
       CALM: "Calm",
       MODERATE_SOUTH_FOEHN: "Moderate south föhn",
       SEVERE_SOUTH_FOEHN: "Severe south föhn",
@@ -56,6 +56,8 @@ export const en: Strings = {
       STRONG_GRADIENT: "Strong pressure gradient",
     },
     foehnText: {
+      NO_DATA:
+        "A current value is missing for this station pair. No föhn assessment is possible.",
       CALM: "Normal pressure conditions. Safe flying conditions.",
       MODERATE_SOUTH_FOEHN:
         "Moderate south föhn ({delta} hPa). Increasing turbulence and risk of a föhn breakthrough in the alpine valleys.",
@@ -90,6 +92,11 @@ export const en: Strings = {
     dewPoint: "Dew point",
     humidityFull: "Humidity",
     qnhFull: "Pressure QNH",
+    measuredAt: "Measured at",
+    oldMeasurement: "over an hour old",
+    asOf: "As of {time}: live measurements unavailable, cached values",
+    qffFull: "Pressure QFF",
+    qfeFull: "Station pressure QFE",
     history24h: "24h history (wind & temperature)",
     loadingSeries: "Loading series...",
     seriesUnavailable: "No series available",
@@ -138,9 +145,11 @@ export const en: Strings = {
     typeSunshine: "Sunshine",
     typePrecipWeak: "Light precipitation",
     typePrecipStrong: "Heavy precipitation",
-    legendSunshine: "Relative sunshine duration (6h)",
-    legendPrecipWeak: "Probability of light precipitation (> 0.1 mm / 12h)",
-    legendPrecipStrong: "Probability of heavy precipitation (> 1.0 mm / 12h)",
+    legendSunshine: "Relative sunshine duration ({hours}h)",
+    legendPrecipWeak:
+      "Probability of light precipitation (> 0.1 mm / {hours}h)",
+    legendPrecipStrong:
+      "Probability of heavy precipitation (> 1.0 mm / {hours}h)",
     interval: "Interval {n} of {total}",
     center: "Centre",
     centerTitle: "Centre on Switzerland",
@@ -221,7 +230,8 @@ export const en: Strings = {
     resetChecklist: "Reset Checklist",
     sosTitle: "Emergency Contacts & Swiss Air Rescue",
     rega: "Rega Air Rescue: 1414",
-    kRadio: "Rega Emergency Radio (Channel K): 161.300 MHz (CTCSS 151.4 Hz)",
+    // Rega's own wording (2026-11-25): https://www.rega.ch/en/our-missions/sites-and-infrastructure/emergency-radio/emergency-radio-calling-out-rega
+    kRadio: "Rega emergency radio, E-channel: 161.300 MHz",
     treeRescueTitle: "Tree Landing Protocol",
     treeRescue1:
       "1. Stay calm! Secure yourself immediately with your lanyard/sling to a thick branch.",
@@ -233,25 +243,6 @@ export const en: Strings = {
     dabsSub:
       "Official daily aeronautical chart from Swiss Air Force & Skyguide",
     dabsLink: "Open DABS on Skybriefing",
-    logbookTitle: "Digital Flight Logbook",
-    addFlight: "Add Flight",
-    totalFlights: "Total Flights",
-    totalAirtime: "Total Airtime",
-    longestFlight: "Longest Flight",
-    date: "Date",
-    site: "Launch Site",
-    landing: "Landing Site",
-    glider: "Glider / Harness",
-    duration: "Duration (min)",
-    distance: "XC Distance (km)",
-    notes: "Notes",
-    saveFlight: "Save Flight",
-    exportLog: "Export (CSV)",
-    varioTitle: "Acoustic Variometer Simulator",
-    varioSub: "Realistic beeping audio for thermal practice & testing",
-    varioClimb: "Climb / Sink Rate:",
-    varioMute: "Turn On Audio",
-    varioUnmute: "Mute Audio",
     checklistBadge: "Pre-Flight",
     checklistSub:
       "Standard pre-flight check of the Swiss Hang Gliding Association",
@@ -262,24 +253,22 @@ export const en: Strings = {
     regaSub: "Free from every Swiss network",
     euroName: "European emergency number",
     euroSub: "Works without a SIM card too",
+    // Rega's own wording (2026-11-25): https://www.rega.ch/en/our-missions/sites-and-infrastructure/emergency-radio/emergency-radio-calling-out-rega
     kRadioSub:
-      "Emergency radio channel for mountain rescue in Switzerland. Turn on the CTCSS tone 151.4 Hz!",
-    dabsBadge: "Airspace status",
-    dabsValidity: "Valid today:",
+      "Alarm button or 5-tone calling signal 21414 (ZVEI), with or without a 123.0 Hz tone squelch (CTCSS). Acknowledgement: 3 long tones. Use it only where there is no mobile network.",
+    dabsBadge: "Airspace",
+    dabsScheduleTitle: "Publication times (Skybriefing)",
+    dabsFirstVersion: "First version (version 1) for the following day",
+    dabsUpdates:
+      "Updates (version 2 / 3 / 4) for the current day, in force immediately",
+    dabsNext: "Next publication: {time} LT",
+    dabsNextTomorrow: "Next publication: tomorrow {time} LT",
+    dabsNextFirst:
+      "Next publication: {time} LT, with the first version for tomorrow",
     dabsNotes:
-      "Published daily at 16:00 LT for the next day via Skybriefing. Mandatory consultation prior to cross-country flights!",
-    dabsPdf: "Download the DABS PDF",
-    varioSinkLabel: "Heavy sink",
-    varioLiftLabel: "Rocket lift!",
-    logbookBadge: "Logbook",
-    logbookSub: "Logged flights & statistics",
-    emptyTitle: "No flights logged yet",
-    emptyHint: "Log your first flight with «Add Flight» at the top right.",
-    newFlight: "Log a new flight",
-    sitePlaceholder: "e.g. Fiescheralp, Interlaken, Brunni...",
-    landingPlaceholder: "e.g. Fiesch landing, Höhematte...",
-    distancePlaceholder: "e.g. 25.4",
-    notesPlaceholder: "Thermals, conditions, route...",
-    cancel: "Cancel",
+      "In addition to the NOTAM, the DABS chart illustrates dangers, restrictions and changes in Swiss airspace. For detailed information always refer to the NOTAM.",
+    dabsMandatory: "Mandatory consultation prior to cross-country flights!",
+    dabsPdfToday: "Today's DABS (PDF)",
+    dabsPdfTomorrow: "Tomorrow's DABS (PDF)",
   },
 };

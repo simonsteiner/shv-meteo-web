@@ -166,6 +166,19 @@ test("a stale copy is refetched, and served when the refetch fails", async () =>
   assert.equal(fresh.headers.get("x-cache"), "miss");
 });
 
+test("the stored copy is kept as long as the route may serve it stale", async () => {
+  const { cache, store } = fakeCache();
+  const { ctx, settled } = context();
+  await respond(route, KEY, upstream("{}"), ctx, cache);
+  await settled();
+  const [copy] = [...store.values()];
+  assert.equal(
+    copy?.headers.get("Cache-Control"),
+    `max-age=${route.maxStaleSeconds}`,
+  );
+  assert.equal(route.maxStaleSeconds, 1800);
+});
+
 test("a 503 is never stored", async () => {
   const { cache, store } = fakeCache();
   const { ctx, settled } = context();
@@ -428,4 +441,105 @@ test("a stale copy that fails to read answers 503 and is kept", async () => {
       String(args[0]).startsWith("[respond] Cache read failed for"),
     ),
   );
+});
+
+/** Stores `body` for `which` route at time 0, then answers at `at` ms with
+ * upstream answering `next` (a 502 by default). */
+async function later(
+  which: keyof typeof ROUTES,
+  at: number,
+  next = upstream("", { status: 502 }),
+  body = '{"v": 1}',
+) {
+  const { cache, store } = fakeCache();
+  const first = context();
+  await respond(ROUTES[which], KEY, upstream(body), first.ctx, cache, 0);
+  await first.settled();
+  const again = context();
+  const res = await quietly(() =>
+    respond(ROUTES[which], KEY, next, again.ctx, cache, at),
+  );
+  await again.settled();
+  return { res, store };
+}
+
+test("a stale copy just inside the route's limit is served, with its fetch time", async () => {
+  const limit = ROUTES.measurements.maxStaleSeconds * 1000;
+  assert.equal(limit, 30 * 60_000);
+  const { res } = await later("measurements", limit - 1);
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get("x-cache"), "stale");
+  assert.equal(res.headers.get("x-fetched-at"), "0");
+});
+
+test("a stale copy just past the route's limit is not served: the 503", async () => {
+  const limit = ROUTES.measurements.maxStaleSeconds * 1000;
+  const { res } = await later("measurements", limit + 1);
+  assert.equal(res.status, 503);
+  assert.deepEqual(await res.json(), ROUTES.measurements.errorBody);
+});
+
+test("a stale copy with an unreadable fetch time is not served: the 503", async () => {
+  const { cache, store } = fakeCache();
+  const url = new URL(KEY, context().ctx.request.url).toString();
+  store.set(url, {
+    body: '{"v": 1}',
+    headers: new Headers({ "x-fetched-at": "not a time" }),
+  });
+  const { ctx } = context();
+  const res = await quietly(() =>
+    respond(route, KEY, upstream("", { status: 502 }), ctx, cache),
+  );
+  assert.equal(res.status, 503);
+});
+
+test("live values fall back at most an hour, a sounding a day", () => {
+  for (const name of ["measurements", "timeseries", "foehn"] as const)
+    assert.ok(ROUTES[name].maxStaleSeconds <= 3600, name);
+  assert.equal(ROUTES.sounding.maxStaleSeconds, 24 * 3600);
+  // a copy is kept as long as it can be served, no longer
+  for (const r of Object.values(ROUTES)) assert.ok(r.maxStaleSeconds > r.ttl);
+});
+
+test("a sounding copy 23 hours old still stands in", async () => {
+  const { res } = await later("sounding", 23 * 3600_000);
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get("x-cache"), "stale");
+});
+
+test("every 200 says when its body was fetched", async () => {
+  const { cache } = fakeCache();
+  const first = context();
+  const miss = await respond(route, KEY, upstream("{}"), first.ctx, cache, 5);
+  await first.settled();
+  assert.equal(miss.headers.get("x-fetched-at"), "5");
+  const again = context();
+  const hit = await respond(route, KEY, upstream("{}"), again.ctx, cache, 10);
+  assert.equal(hit.headers.get("x-cache"), "hit");
+  assert.equal(hit.headers.get("x-fetched-at"), "5");
+});
+
+test("a fresh empty or cut-off 200 never replaces the good copy", async () => {
+  for (const bad of ["", '{"webcams": [1, 2']) {
+    const { res, store } = await later(
+      "webcams",
+      ROUTES.webcams.ttl * 1000 + 1,
+      upstream(bad),
+    );
+    assert.equal(res.status, 200);
+    assert.equal(res.headers.get("x-cache"), "stale");
+    assert.equal(await res.text(), '{"v": 1}');
+    assert.equal([...store.values()][0].body, '{"v": 1}');
+  }
+});
+
+test("a fresh empty 200 without a copy is the route's 503", async () => {
+  const { cache, store } = fakeCache();
+  const { ctx, settled } = context();
+  const res = await quietly(() =>
+    respond(ROUTES.webcams, KEY, upstream(""), ctx, cache),
+  );
+  await settled();
+  assert.equal(res.status, 503);
+  assert.equal(store.size, 0);
 });

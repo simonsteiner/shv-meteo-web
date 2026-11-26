@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { SoundingLevel } from "../types.ts";
 import {
+  altitudeSvg,
   altitudeY,
   closestIndex,
   gridSvg,
@@ -12,6 +13,7 @@ import {
   pToY,
   rulerSvg,
   soundingCurves,
+  WIND_LABELS,
 } from "./emagram.ts";
 
 const level = (over: Partial<SoundingLevel>): SoundingLevel => ({
@@ -59,10 +61,23 @@ test("soundingCurves draws a segment per level pair and a tick every third level
   });
 });
 
-test("altitudeY uses a level within 150 m, else a linear scale", () => {
+test("altitudeY gives no place outside the levels", () => {
   const levels = [level({ heightM: 1950, pressHpa: 800 })];
-  assert.equal(altitudeY(2000, levels), pToY(800));
-  assert.equal(altitudeY(4000, levels), PAD_T + PLOT_H - 0.8 * PLOT_H);
+  assert.equal(altitudeY(4000, levels), null);
+  assert.equal(altitudeY(1000, []), null);
+});
+
+test("an altitude below the lowest level gets no line, never one above it", () => {
+  // model ground at 1080 m: the 1000 m line used to land 25 px above it
+  const levels = [
+    level({ heightM: 1080, pressHpa: 925 }),
+    level({ heightM: 1300, pressHpa: 900 }),
+    level({ heightM: 2000, pressHpa: 826 }),
+  ];
+  assert.equal(altitudeY(1000, levels), null);
+  const svg = altitudeSvg(levels);
+  assert.ok(!svg.includes(">1000 m<"));
+  assert.ok(svg.includes(">2000 m<"));
 });
 
 test("interpolateStep blends two steps and turns the wind the short way", () => {
@@ -96,4 +111,49 @@ test("gridSvg and rulerSvg draw from numbers and escape the label", () => {
     rulerSvg([], 0, "x", () => 0),
     "",
   );
+});
+
+test("the 15, 30 and 45 km/h labels sit where the curve draws those speeds", () => {
+  for (const { kmh, x } of WIND_LABELS) {
+    const c = soundingCurves([level({ speedKmH: kmh })]);
+    assert.equal(c.wind.split(",")[0], x.toFixed(1), `${kmh} km/h`);
+  }
+  assert.deepEqual(
+    WIND_LABELS.map((l) => l.kmh),
+    [15, 30, 45],
+  );
+});
+
+test("levels past the chart's pressure range leave it instead of smearing along its edge", () => {
+  const top = soundingCurves([
+    level({ pressHpa: 620 }),
+    level({ pressHpa: 560 }),
+  ]);
+  const [, y560] = top.dew.split(" ")[1].split(",").map(Number);
+  assert.ok(y560 < PAD_T, `560 hPa at y ${y560}, above the plot`);
+  const bottom = soundingCurves([level({ pressHpa: 1021 })]);
+  const [, y1021] = bottom.dew.split(",").map(Number);
+  assert.ok(y1021 > PAD_T + PLOT_H, `1021 hPa at y ${y1021}, below it`);
+  // no direction tick outside the chart
+  assert.equal(top.barbs.match(/<g /g)?.length, 1);
+});
+
+test("the highest level inside the chart gets a direction tick", () => {
+  // every third level, plus the last one inside: 0, 3 and 4, not 5 at 560
+  const c = soundingCurves(
+    [950, 900, 850, 800, 700, 560].map((pressHpa) => level({ pressHpa })),
+  );
+  assert.equal(c.barbs.match(/<g /g)?.length, 3);
+});
+
+test("altitudeY interpolates between the levels around an altitude", () => {
+  const levels = [
+    level({ heightM: 1000, pressHpa: 900 }),
+    level({ heightM: 2000, pressHpa: 800 }),
+  ];
+  const y = altitudeY(1500, levels);
+  assert.ok(y !== null && y < pToY(900) && y > pToY(800));
+  assert.equal(y.toFixed(1), ((pToY(900) + pToY(800)) / 2).toFixed(1));
+  // at a level, exactly there
+  assert.equal(altitudeY(2000, levels), pToY(800));
 });

@@ -26,6 +26,14 @@ test("a missing series or no time steps is a problem", () => {
   assert.equal(pointProblem(point), "no time steps");
 });
 
+test("heights that aren't one more than the levels are a problem", () => {
+  const sameCount = { ...COLUMN, height_half_level: [22000, 3800, 2600, 1800] };
+  assert.equal(
+    pointProblem(pointAnswer(sameCount)),
+    "4 height_half_level values for 4 levels, not 5",
+  );
+});
+
 test("a series that is there but misshapen throws", () => {
   // the throw is what moves fetchForecast on to the run before
   const point = pointAnswer();

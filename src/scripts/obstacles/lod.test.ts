@@ -121,3 +121,25 @@ test("the cap orders marked, then cable cars, then taller, then key", () => {
   );
   assert.equal(capFeatures(fs).length, 5);
 });
+
+test("every kind of marking counts as marked, for the zoom and the cap", () => {
+  for (const marking of ["CABLE_WARNER", "ORANGE_MARKS", "RED_WHITE_RED"]) {
+    const low = obstacle("LineString", { obstacleType: "CABLE_CAR", marking });
+    assert.equal(firstZoom(low), 7, marking);
+    const mast = obstacle("Point", { obstacleType: "POLE", marking });
+    assert.equal(firstZoom(mast), 7, marking);
+  }
+  const f = (id: string, props: ObstacleFeature["properties"]) =>
+    obstacle("Point", { sourceId: id, ...props });
+  const kept = capFeatures(
+    [
+      f("tall", { marking: "NONE", maxHeightAgl: 200 }),
+      f("warned", { marking: "CABLE_WARNER", maxHeightAgl: 5 }),
+    ],
+    1,
+  );
+  assert.deepEqual(
+    kept.map((k) => k.properties.sourceId),
+    ["warned"],
+  );
+});

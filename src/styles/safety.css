@@ -166,209 +166,63 @@
   gap: 4px;
 }
 
-/* Vario Card */
-.vario-display-box {
-  display: flex;
-  align-items: center;
-  gap: 24px;
+.dabs-schedule {
   background: var(--bg-primary);
-  padding: 20px;
-  border-radius: 16px;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
 }
 
-.vario-gauge {
-  background: var(--bg-secondary);
-  border: 2px solid var(--border-strong);
-  width: 110px;
-  height: 90px;
-  border-radius: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.vario-digital {
-  font-size: 1.8rem;
-  font-weight: 900;
-  font-family: monospace;
-}
-
-.vario-unit {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-}
-
-.vario-lift {
-  border-color: var(--shv-green);
-  color: var(--shv-green);
-}
-
-.vario-sink {
-  border-color: #ef4444;
-  color: #ef4444;
-}
-
-.vario-slider-wrapper {
-  flex: 1;
-}
-
-.vario-slider-wrapper input[type="range"] {
-  width: 100%;
-  accent-color: var(--shv-green);
-}
-
-.vario-scale-ticks {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  margin-top: 6px;
-}
-
-.btn-vario-audio {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  border: 1px solid var(--border-strong);
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  font-weight: 700;
+.dabs-schedule-title {
   font-size: 0.82rem;
-  cursor: pointer;
-}
-
-.btn-vario-audio.active-audio {
-  background: var(--shv-green);
-  color: white;
-  border-color: var(--shv-green);
-}
-
-/* Logbook */
-.logbook-top-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.log-stats-bar {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  background: var(--bg-primary);
-  padding: 12px;
-  border-radius: 12px;
-  margin-bottom: 16px;
-}
-
-.log-stat-item {
-  display: flex;
-  flex-direction: column;
-  text-align: center;
-}
-
-.log-stat-lbl {
-  font-size: 0.68rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-}
-
-.log-stat-val {
-  font-size: 1.25rem;
-  font-weight: 800;
-}
-
-.flights-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.flight-item-card {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 14px;
-}
-
-.fl-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  font-weight: 700;
   margin-bottom: 8px;
 }
 
-.fl-site {
-  font-size: 0.95rem;
-  font-weight: 800;
-}
-.fl-landing {
+.dabs-schedule-list {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 12px;
   font-size: 0.82rem;
-  color: var(--text-muted);
-}
-.fl-duration-badge {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 800;
 }
 
-.fl-details {
+.dabs-schedule-list dt {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.dabs-schedule-list dd {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.dabs-next {
+  margin-top: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-warning);
+}
+
+.dabs-mandatory {
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.dabs-notes {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.dabs-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  font-size: 0.78rem;
-  color: var(--text-secondary);
-  margin-bottom: 6px;
+  gap: 8px;
 }
 
-.fl-type-pill {
-  background: rgba(59, 130, 246, 0.15);
-  color: #3b82f6;
-  padding: 1px 6px;
-  border-radius: 4px;
-  font-weight: 700;
-}
-
-.fl-notes {
-  font-size: 0.82rem;
-  font-style: italic;
-  color: var(--text-muted);
-}
-
-/* The empty flight log (formerly inline styles in SafetyView.js) */
-.flights-empty {
-  text-align: center;
-  padding: 36px 16px;
-  background: var(--bg-primary);
-  border-radius: 14px;
-  border: 1px dashed var(--border-color);
-}
-
-.flights-empty-title {
-  font-weight: 700;
-  margin: 0 0 6px;
-  color: var(--text-primary);
-}
-
-.flights-empty-hint {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  margin: 0;
-}
-
-/* Parts the safety page shows and hides (src/scripts/safety/page.ts);
-   their own display rules would otherwise win over [hidden]. */
-.modal-scrim[hidden],
-.flights-empty[hidden] {
-  display: none;
-}
-
-/* The sound toggle's icon: waves when on, a cross when off */
-.btn-vario-audio:not(.active-audio) [data-vario-icon="on"],
-.btn-vario-audio.active-audio [data-vario-icon="off"] {
+/* keeps tomorrow's DABS link hidden before 16:00 even once a button class
+   sets a display, which would beat the user-agent [hidden] rule */
+.dabs-links a[hidden] {
   display: none;
 }

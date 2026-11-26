@@ -19,6 +19,8 @@ import type { StationPair } from "../foehn/report.ts";
 import { handoffUrl } from "../handoff.ts";
 import { applyText, fill } from "../i18n/text.ts";
 import type { MeasurementFeature, Webcam } from "../types.ts";
+import { swissTime } from "../swiss-time.ts";
+import { whileVisible } from "../live/refresh.ts";
 import { pairPillsHtml, stationCardHtml, webcamCardHtml } from "./cards.ts";
 import { stationModal } from "./modal.ts";
 import {
@@ -59,6 +61,8 @@ function mountWeather(root: HTMLElement): void {
   let provider: Provider = "ALL";
   let search = "";
   let stations: MeasurementFeature[] | null | undefined;
+  // when the stations were fetched, if they are the edge's stale copy
+  let stationsAsOf: number | null = null;
   let webcams: Webcam[] | null | undefined;
   let lang: string | null = null;
   let chart: Chart | null = null;
@@ -77,6 +81,7 @@ function mountWeather(root: HTMLElement): void {
   const searchInput = q<HTMLInputElement>("[data-weather-search]");
   const providerPills = q("[data-provider-pills]");
   const listStatus = q("[data-list-status]");
+  const asOfNote = q("[data-stations-as-of]");
   const listMore = q("[data-list-more]");
   const stationCards = q("[data-station-cards]");
   const webcamCards = q("[data-webcam-cards]");
@@ -234,6 +239,11 @@ function mountWeather(root: HTMLElement): void {
       view.counts.allProviders,
     );
     q('[data-count="webcams"]').textContent = String(view.counts.webcams);
+    asOfNote.hidden = tab !== "stations" || stationsAsOf === null;
+    if (stationsAsOf !== null)
+      asOfNote.textContent = fill(say("weather.asOf"), {
+        time: swissTime(stationsAsOf),
+      });
     listStatus.hidden = view.statusKey === null;
     if (view.statusKey) listStatus.textContent = say(view.statusKey);
     // the cards show the first matches only; the search narrows them
@@ -251,10 +261,22 @@ function mountWeather(root: HTMLElement): void {
         gust: say("weather.gustShort"),
         temp: say("weather.tempShort"),
         windDirection: say("weather.windDirection"),
+        measuredAt: say("weather.measuredAt"),
+        old: say("weather.oldMeasurement"),
       };
+      // the refresh redraws the cards every 90 s: a focused card keeps focus
+      const focused = stationCards.contains(document.activeElement)
+        ? (document.activeElement as HTMLElement).dataset.stationId
+        : undefined;
       stationCards.innerHTML = view.stations
         .map((st) => stationCardHtml(st, text))
         .join("");
+      if (focused)
+        stationCards
+          .querySelector<HTMLElement>(
+            `[data-station-id="${CSS.escape(focused)}"]`,
+          )
+          ?.focus();
     } else {
       webcamCards.innerHTML = view.webcams.map(webcamCardHtml).join("");
     }
@@ -349,9 +371,33 @@ function mountWeather(root: HTMLElement): void {
   );
 
   loadPair(pairs.pairId);
-  void ShvApi.getMeasurements().then((v) => {
-    stations = v?.features ?? null;
+  // a failed refresh keeps the cards it has: their times show their age
+  const takeMeasurements = (
+    v: Awaited<ReturnType<typeof ShvApi.getMeasurements>>,
+    first: boolean,
+  ) => {
+    if (v || first) stations = v?.features ?? null;
+    if (v) {
+      const fresh = ShvApi.freshness(v);
+      stationsAsOf = fresh?.stale ? fresh.fetchedAt : null;
+    }
     render();
+  };
+  // one request at a time: a refresh never starts while another, or the
+  // first load, is still on its way, so an older answer can't land last
+  let loading = true;
+  void ShvApi.getMeasurements().then((v) => {
+    loading = false;
+    takeMeasurements(v, true);
+  });
+  // every 90 s while the page is visible and the station cards are shown
+  whileVisible(() => {
+    if (loading || tab !== "stations") return;
+    loading = true;
+    void ShvApi.getMeasurements({ fresh: true }).then((v) => {
+      loading = false;
+      takeMeasurements(v, false);
+    });
   });
   void ShvApi.getWebcams().then((v) => {
     webcams = v?.webcams ?? null;

@@ -140,6 +140,17 @@ for (const mode of METEO_MODES)
       assert.equal(local.get("shv_meteoMode"), mode);
     });
 
+test("back on METEO, the layers are the current meteo mode's", () => {
+  for (const mode of ["WEBCAM", "PRESSURE_DIFFERENCE", "NONE"] as const) {
+    const { store } = make();
+    store.setMeteoMode(mode);
+    store.setMapCategory("AIRSPACE");
+    store.setMapCategory("METEO");
+    assert.equal(store.state.meteoMode, mode);
+    assert.deepEqual(shown(store.state.layers), [...MODE_SHOWS[mode]].sort());
+  }
+});
+
 test("the wind filter toggles a direction and clears", () => {
   const { store, local } = make();
   store.toggleWindFilter("N");
@@ -169,18 +180,6 @@ test("the checklist lives in the session storage", () => {
   assert.ok(Object.values(store.state.checklist).every(Boolean));
   store.resetChecklist();
   assert.ok(!Object.values(store.state.checklist).some(Boolean));
-});
-
-test("a new flight goes first; the vario rate rounds to 0.1", () => {
-  const { store, local } = make({ shv_flights: '[{"id":"a"}]' });
-  store.addFlight({ id: "b" });
-  assert.deepEqual(JSON.parse(local.get("shv_flights") ?? "[]"), [
-    { id: "b" },
-    { id: "a" },
-  ]);
-  store.setVarioRate(2.345);
-  assert.equal(store.state.varioRate, 2.3);
-  assert.equal(store.state.varioMuted, true);
 });
 
 test("switching tabs navigates to the tab's page", () => {

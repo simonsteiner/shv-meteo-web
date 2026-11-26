@@ -58,6 +58,30 @@ test("siteKind counts areas and patterns with their take-off or landing", () => 
   assert.equal(siteKind(null), "general");
 });
 
+test("a site sheet shows the fee payment link even when the fee text is empty", () => {
+  // two take-offs on 2026-11-25: fees null, a TWINT payment link
+  const html = siteSheetHtml(
+    site({
+      siteName: "Kandersteg",
+      type: "launch",
+      fees: null,
+      feePaymentLink:
+        "https://pay.raisenow.io/kcmhc?analytics.channel=twint_button",
+      feeQrCodeUrl: null,
+    }),
+    say,
+  );
+  assert.ok(html.includes("[map.sheet.fees]"));
+  assert.ok(
+    html.includes(
+      'href="https://pay.raisenow.io/kcmhc?analytics.channel=twint_button"',
+    ),
+  );
+  assert.ok(!html.includes('<p class="section-text"></p>'));
+  const none = siteSheetHtml(site({ siteName: "X", type: "launch" }), say);
+  assert.ok(!none.includes("[map.sheet.fees]"));
+});
+
 test("a site sheet shows badges, suits, wind and sections", () => {
   const html = siteSheetHtml(
     site({
@@ -165,7 +189,7 @@ test("a station sheet shows converted measurements", () => {
       windSpeedValue: 22.04,
       windGustValue: 40,
       temperature2mValue: 270.15,
-      pressureStandardMslValue: 10180,
+      pressureStandardMslValue: 1018.1,
     }),
     say,
   );
@@ -179,6 +203,43 @@ test("a station sheet shows converted measurements", () => {
     "46.9800° N",
   ])
     assert.ok(html.includes(part), part);
+});
+
+test("a station sheet shows an MSL-only station's QFF and its QFE", () => {
+  const html = stationSheetHtml(
+    station({
+      name: "Konstanz",
+      providerKey: "dwd",
+      pressureMslValue: 1013.4,
+      pressureSurfaceValue: 962.3,
+    }),
+    say,
+  );
+  assert.ok(html.includes("[map.sheet.pressureQff]"));
+  assert.ok(html.includes("1013 hPa"));
+  assert.ok(html.includes("[map.sheet.pressureQfe]"));
+  assert.ok(html.includes("962 hPa"));
+  assert.ok(!html.includes("[map.sheet.pressure]"));
+});
+
+test("a station sheet says when it measured, and when that is over an hour ago", () => {
+  const at = Date.UTC(2026, 10, 25, 17, 40);
+  const sheet = (now: number, asOf: number | null = null) =>
+    stationSheetHtml(
+      station({ name: "Pilatus", windSpeedValue: 20, windSpeedTime: at }),
+      say,
+      { now, asOf },
+    );
+  const fresh = sheet(at + 60_000);
+  assert.ok(fresh.includes("[map.sheet.measuredAt]"));
+  assert.ok(fresh.includes("18:40"));
+  assert.ok(!fresh.includes("[map.sheet.oldMeasurement]"));
+  assert.ok(sheet(at + 2 * 3_600_000).includes("[map.sheet.oldMeasurement]"));
+  // a stale copy from the edge says how old it is
+  const stale = sheet(at + 60_000, at - 20 * 60_000);
+  assert.ok(stale.includes("[map.sheet.asOf]"));
+  assert.ok(stale.includes("18:20"));
+  assert.ok(!fresh.includes("[map.sheet.asOf]"));
 });
 
 test("a station without values or a position says so instead of inventing them", () => {
@@ -287,12 +348,29 @@ test("an obstacle sheet shows heights, marking and lighting", () => {
     "1500 m amsl",
     "80 m",
     "CH-123",
-    "[map.sheet.markedYes]",
+    "[map.sheet.markingName.MARKED]",
     "💡 DAY",
     "/assets/obstacles/ms_pole.svg",
     "46.0000° N, 8.0000° E",
   ])
     assert.ok(html.includes(part), part);
+});
+
+test("an obstacle sheet names a cable warner's marking, never Keine beside Markiert", () => {
+  const html = obstacleSheetHtml(
+    obstacle(
+      { obstacleType: "CABLE_CAR", marking: "CABLE_WARNER" },
+      "LineString",
+    ),
+    say,
+  );
+  assert.ok(html.includes("[map.sheet.marked]"));
+  assert.ok(html.includes("[map.sheet.markingName.CABLE_WARNER]"));
+  // the marking row itself, not the lighting row, which says none here
+  const row = /\[map\.sheet\.marking\]<\/span><span[^>]*>([^<]*)<\/span>/.exec(
+    html,
+  );
+  assert.equal(row?.[1], "\u{1F534} [map.sheet.markingName.CABLE_WARNER]");
 });
 
 test("an obstacle sheet escapes upstream text and needs no position", () => {

@@ -40,4 +40,4 @@ In the Cloudflare dashboard: Workers & Pages, `shv-meteo`, Deployments, then Rol
 ## State and secrets
 
 - **No secrets.** The site has no API keys or client secrets.
-- **No server state.** The Functions keep their last good upstream answers in the edge cache only. What a visitor sets (language, theme, map layers and filters, logbook) stays in their browser's localStorage under `shv_*` keys; the pre-flight checklist stays in sessionStorage.
+- **No server state.** The Functions keep their last good upstream answers in the edge cache only. What a visitor sets (language, theme, map layers and filters) stays in their browser's localStorage under `shv_*` keys (an old logbook's `shv_flights` is left there, unread); the pre-flight checklist stays in sessionStorage.

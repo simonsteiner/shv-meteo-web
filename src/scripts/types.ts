@@ -15,7 +15,7 @@ export interface Context {
 /** A weather station's latest values (`/api/measurements`), a GeoJSON Point
  * feature whose id is `<provider>:<id>`, e.g. `meteo_swiss:KLO`. Wind and
  * gusts arrive in km/h; a temperature above 200 is Kelvin, a pressure above
- * 5000 is in tenths of hPa. */
+ * 20,000 is in pascals (units.ts). */
 export interface MeasurementFeature {
   type?: "Feature";
   id: string;
@@ -53,17 +53,6 @@ export interface Webcam {
   latestImageUrl?: string;
   thumbnailUrl?: string;
   [key: string]: unknown;
-}
-
-/** The Daily Airspace Bulletin Switzerland card on the safety page. */
-export interface Dabs {
-  date: string;
-  status: "ACTIVE";
-  bulletinUrl: string;
-  bulletinPdfUrl: string;
-  validity: string;
-  notesDe: string;
-  notesEn: string;
 }
 
 /** A station of the sounding catalogue (public/data/previtemps_stations.json). */

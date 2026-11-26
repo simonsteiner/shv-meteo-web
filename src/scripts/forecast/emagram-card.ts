@@ -2,6 +2,7 @@
 // loading, no sounding, the chart), the time slider with its eased steps
 // and player, full screen and the info dialog. The drawing is emagram.ts.
 
+import { formatSwiss, swissHour } from "../swiss-time.ts";
 import { must } from "../dom.ts";
 import { fill } from "../i18n/text.ts";
 import type { Sounding } from "../types.ts";
@@ -54,20 +55,28 @@ export function emagramCard(
     position = Math.max(0, Math.min(n - 1, at));
     const step = interpolateStep(steps(), position);
     if (!step) return;
-    const when = new Date(step.timestamp);
-    q("[data-emagram-time]").textContent = when.toLocaleDateString(locale(), {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    q("[data-emagram-date]").textContent = when.toLocaleDateString(locale(), {
-      weekday: "short",
-      day: "2-digit",
-      month: "2-digit",
-    });
-    const time = when.toLocaleTimeString(locale(), {
+    // in Swiss time, whatever the device's zone (swiss-time.ts)
+    q("[data-emagram-time]").textContent = formatSwiss(
+      step.timestamp,
+      locale(),
+      {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      },
+    );
+    q("[data-emagram-date]").textContent = formatSwiss(
+      step.timestamp,
+      locale(),
+      {
+        weekday: "short",
+        day: "2-digit",
+        month: "2-digit",
+      },
+    );
+    const time = formatSwiss(step.timestamp, locale(), {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -155,7 +164,7 @@ export function emagramCard(
       steps(),
       Date.now(),
       say("forecast.now"),
-      (ms) => new Date(ms).getHours(),
+      swissHour,
     );
     draw(position);
   }

@@ -310,6 +310,21 @@
   color: var(--text-muted);
 }
 
+.st-card-time {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* a measurement over an hour old (live/measured.ts) */
+.station-card-item.is-old {
+  opacity: 0.5;
+}
+
+.weather-status.is-old {
+  color: var(--text-warning);
+}
+
 .st-card-arrow {
   color: var(--shv-blue);
 }

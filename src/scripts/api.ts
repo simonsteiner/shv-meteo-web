@@ -1,13 +1,12 @@
 // ShvApi: the browser's only API client and only caller of fetch. Static
 // GIS snapshots come from public/data/ with the upstream CDN as fallback,
-// the outlooks and the isobar chart straight from upstream, the DABS card is
-// built here, and everything else goes through the Pages Functions under
-// /api (docs/architecture/data-queries.md). A read never rejects: a failed
+// the outlooks and the isobar chart straight from upstream, and everything
+// else goes through the Pages Functions under /api
+// (docs/architecture/data-queries.md). A read never rejects: a failed
 // one logs and resolves to null (or an empty list), so a view shows its
 // empty or error state.
 import type {
   Bbox,
-  Dabs,
   FlyingSiteFeature,
   MeasurementFeature,
   ObstacleFeature,
@@ -39,46 +38,42 @@ export function isobarenUrl(lang: string): string {
   return `https://shv-app-ws-prod.shv-app.ch/v1/text/isobaren/${l}.svg`;
 }
 
-/** Today's date in Switzerland as YYYY-MM-DD, from the parts rather than
- * a locale's layout, which older browsers' ICU data varies. */
-function swissDate(now: Date): string {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Europe/Zurich",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(now);
-  const part = (type: string) => parts.find((p) => p.type === type)?.value;
-  return `${part("year")}-${part("month")}-${part("day")}`;
-}
-
-/** The DABS card's fields for `now`, as the former /api/dabs returned
- * them, but dated in Swiss time rather than UTC. */
-export function buildDabs(now: Date): Dabs {
-  const date = swissDate(now);
-  return {
-    date,
-    status: "ACTIVE",
-    bulletinUrl: "https://www.skybriefing.com/de/dabs",
-    bulletinPdfUrl: "https://www.skybriefing.com/dabs/dabs.pdf",
-    validity: `00:00 - 23:59 LT (${date})`,
-    notesDe:
-      "Täglich ab 16:00 LT für den Folgetag durch Skybriefing publiziert. Vor jedem Streckenflug obligatorisch zu konsultieren!",
-    notesEn:
-      "Published daily at 16:00 LT for the next day via Skybriefing. Mandatory consultation prior to cross-country flights!",
-  };
-}
-
 export interface FeatureCollection<F = unknown> {
   type: "FeatureCollection";
   features: F[];
+}
+
+/** When an /api answer's body came from upstream, and whether it is the
+ * edge's stand-in for a failed upstream call (respond.ts sends both as
+ * `x-fetched-at` and `x-cache`). */
+export interface Freshness {
+  /** ms since the epoch. */
+  fetchedAt: number;
+  stale: boolean;
+}
+
+/** Each answer's freshness, keyed by the parsed answer itself, so the
+ * answers keep their types. */
+const freshness = new WeakMap<object, Freshness>();
+
+function noteFreshness(answer: unknown, resp: Response): void {
+  const fetchedAt = Number(resp.headers.get("x-fetched-at"));
+  if (typeof answer !== "object" || answer === null || !(fetchedAt > 0)) return;
+  freshness.set(answer, {
+    fetchedAt,
+    stale: resp.headers.get("x-cache") === "stale",
+  });
 }
 
 /** The JSON at `url`, or null after logging why not. */
 async function getJson<T>(url: string, label: string): Promise<T | null> {
   try {
     const resp = await fetch(url);
-    if (resp.ok) return (await resp.json()) as T;
+    if (resp.ok) {
+      const answer = (await resp.json()) as T;
+      noteFreshness(answer, resp);
+      return answer;
+    }
     console.error(
       `[ShvApi.${label}] HTTP error:`,
       resp.status,
@@ -91,18 +86,22 @@ async function getJson<T>(url: string, label: string): Promise<T | null> {
 }
 
 /** `load` memoised per key: callers share one request, and a null answer
- * is forgotten so the next call asks again. */
+ * is forgotten so the next call asks again; `fresh` asks again anyway, and
+ * later calls share that answer. */
 function retryable<T>(
   load: (key: string) => Promise<T | null>,
-): (key?: string) => Promise<T | null> {
+): (key?: string, fresh?: boolean) => Promise<T | null> {
   const kept = new Map<string, Promise<T | null>>();
-  return (key = "") => {
+  return (key = "", fresh = false) => {
+    if (fresh) kept.delete(key);
     let pending = kept.get(key);
     if (!pending) {
-      pending = load(key).then((answer) => {
-        if (answer === null) kept.delete(key);
+      const asked: Promise<T | null> = load(key).then((answer) => {
+        // a later fresh call may have replaced this one: forget only our own
+        if (answer === null && kept.get(key) === asked) kept.delete(key);
         return answer;
       });
+      pending = asked;
       kept.set(key, pending);
     }
     return pending;
@@ -150,6 +149,15 @@ function snapshot<T>(
 
 const CDN = "https://shv-app-static-prod.ubmeteo.io/v1";
 
+/** The GIS snapshots' upstream copies, each a fallback for its file in
+ * public/data/; with OUTLOOKS_URL, all the browser reads without /api (the
+ * CSP's connect-src, access/csp.ts, allows their origins). */
+export const SNAPSHOT_CDN_URLS = [
+  `${CDN}/flyingsites.geojson`,
+  `${CDN}/airspaces/shv.geojson`,
+  `${CDN}/wildschutz/shv.geojson`,
+] as const;
+
 /** A view's obstacles; `incomplete` when some cells couldn't be read and
  * the rest are drawn. */
 export interface ObstacleAnswer {
@@ -158,10 +166,12 @@ export interface ObstacleAnswer {
 }
 
 // One request per page load: the header's Foehn badge and the view on the
-// same page share a call. Keyed by pair, so the pair switcher gets its own.
+// same page share a call. The measurements are asked again every 90 s
+// while the page is visible (live/refresh.ts).
 const measurements = retryable<FeatureCollection<MeasurementFeature>>(() =>
   getJson("/api/measurements", "getMeasurements"),
 );
+// Keyed by pair, so the pair switcher gets its own.
 const foehn = retryable<FoehnReport>((pair) =>
   getJson(`/api/foehn?pair=${encodeURIComponent(pair)}`, "getFoehn"),
 );
@@ -192,17 +202,17 @@ const fetchObstacleCell = keepRecent(OBSTACLE_CACHE_BYTES, fetchObstacleShard);
 export const ShvApi = {
   getFlyingSites: snapshot<FeatureCollection<FlyingSiteFeature>>(
     "/data/flyingsites.geojson",
-    `${CDN}/flyingsites.geojson`,
+    SNAPSHOT_CDN_URLS[0],
     "getFlyingSites",
   ),
   getAirspaces: snapshot<GeoJSON.FeatureCollection>(
     "/data/airspaces.geojson",
-    `${CDN}/airspaces/shv.geojson`,
+    SNAPSHOT_CDN_URLS[1],
     "getAirspaces",
   ),
   getWildschutz: snapshot<GeoJSON.FeatureCollection>(
     "/data/wildschutz.geojson",
-    `${CDN}/wildschutz/shv.geojson`,
+    SNAPSHOT_CDN_URLS[2],
     "getWildschutz",
   ),
 
@@ -231,8 +241,24 @@ export const ShvApi = {
     }
   },
 
-  getMeasurements(): Promise<FeatureCollection<MeasurementFeature> | null> {
-    return measurements();
+  /** When `answer`, a value another read resolved to, was fetched and
+   * whether it is a stale stand-in; null for one without that (a static
+   * file, an upstream read directly, null) and for a read that builds a new
+   * object from its answer (`getEmagramForecast`'s sounding). */
+  freshness(answer: unknown): Freshness | null {
+    return typeof answer === "object" && answer !== null
+      ? (freshness.get(answer) ?? null)
+      : null;
+  },
+
+  /** The current measurements, shared by every caller on the page; `fresh`
+   * asks /api again (the pages' live refresh, live/refresh.ts). */
+  getMeasurements({
+    fresh = false,
+  }: {
+    fresh?: boolean;
+  } = {}): Promise<FeatureCollection<MeasurementFeature> | null> {
+    return measurements("", fresh);
   },
 
   getWebcams(): Promise<{ webcams: Webcam[] } | null> {
@@ -293,9 +319,5 @@ export const ShvApi = {
       console.error("[ShvApi.getEmagramForecast] Unreadable point data:", e);
       return null;
     }
-  },
-
-  async getDabs(): Promise<Dabs> {
-    return buildDabs(new Date());
   },
 };

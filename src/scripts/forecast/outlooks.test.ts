@@ -3,12 +3,14 @@ import { test } from "node:test";
 import {
   colorize,
   colorLut,
+  intervalHours,
   intervalLabel,
   legendGradient,
   outlookFrames,
   PRECIP_PALETTE,
   SUNSHINE_PALETTE,
 } from "./outlooks.ts";
+import { inZone } from "../test-zone.ts";
 
 test("colorLut makes 0 transparent and 255 the last stop", () => {
   const lut = colorLut(SUNSHINE_PALETTE);
@@ -88,6 +90,19 @@ test("intervalLabel gives the day and both times in the locale", () => {
   );
 });
 
+test("intervalLabel reads the frames' Zurich times as text in any zone", () => {
+  // in Santiago 6 September 2026 has no 00:00: new Date() made it 01:00
+  inZone("America/Santiago", () => {
+    assert.equal(
+      intervalLabel(
+        { start: "2026-09-06T00:00", end: "2026-09-06T06:00", url: "" },
+        "de-CH",
+      ),
+      "So., 06.09. 00:00 \u2013 06:00",
+    );
+  });
+});
+
 test("legendGradient follows the palette of the type", () => {
   assert.equal(
     legendGradient("RELATIVE_SUNSHINE"),
@@ -101,4 +116,25 @@ test("legendGradient follows the palette of the type", () => {
     legendGradient("PRECIPITATION_PROBABILITY_WEAK"),
     /^linear-gradient\(to right, #C7EDD2 0%/,
   );
+});
+
+test("a frame's interval comes from its own times, read as text", () => {
+  // the viewer takes the 6-hour set: its legend must not say 12 h
+  assert.equal(
+    intervalHours({
+      start: "2026-11-25T00:00",
+      end: "2026-11-25T06:00",
+      url: "",
+    }),
+    6,
+  );
+  assert.equal(
+    intervalHours({
+      start: "2026-11-25T00:00",
+      end: "2026-11-26T00:00",
+      url: "",
+    }),
+    24,
+  );
+  assert.equal(intervalHours({ start: "x", end: "y", url: "" }), null);
 });

@@ -3,22 +3,26 @@
 // off at the route's deadline if it stalls), and on a failure before that a
 // 503 with the route's German error that no cache keeps.
 // Functions keep no memory between requests, so Express's "last good copy"
-// lives in the edge cache: each 200 is stored for a day, a copy younger than
-// the route's TTL is served without calling upstream, an older one is
-// refetched and still served when the refetch fails, if it still looks like
-// JSON (the stored body is upstream's, never checked on the way in).
+// lives in the edge cache: each 200 is stored for the route's
+// maxStaleSeconds, a copy younger than the route's TTL is served without
+// calling upstream, an older one is refetched and still served when the
+// refetch fails, if it is younger than maxStaleSeconds and still looks like
+// JSON. A checked route's fresh body is checked on the way in too, so an
+// empty or cut-off 200 never replaces a good copy. Every 200 carries
+// `x-fetched-at`, when its body came from upstream, so the browser can say
+// how old a stand-in is.
 import type { Context } from "../types.ts";
 import { fetchUpstream } from "./fetch.ts";
 import { ROUTES, type Route, type RouteName } from "./routes.ts";
 
 const DEFAULT_TYPE = "application/json; charset=utf-8";
-/** When the cached copy was fetched, in ms since the epoch. */
+/** When the body was fetched from upstream, in ms since the epoch: kept
+ * with the cached copy and sent with every 200. */
 const FETCHED_AT = "x-fetched-at";
-/** How long the edge keeps a copy to fall back on. */
-const KEEP_SECONDS = 24 * 60 * 60;
-/** The largest stale copy parsed in full; a larger one (measurements is
- * about 2 MB) only has its outer brackets checked, since target.md keeps
- * every Function under about 200 KB of parsing and 10 ms of CPU. */
+/** The largest body parsed in full (a stale copy, or a checked route's
+ * fresh one); a larger one (measurements is about 2 MB) only has its outer
+ * brackets checked, since target.md keeps every Function under about 200 KB
+ * of parsing and 10 ms of CPU. */
 const PARSE_LIMIT = 200 * 1024;
 
 function unavailable(route: Route): Response {
@@ -43,6 +47,7 @@ function fromCache(
       "Content-Type": copy.headers.get("Content-Type") ?? DEFAULT_TYPE,
       "Cache-Control": state === "hit" ? `max-age=${left}` : "no-store",
       "x-cache": state,
+      [FETCHED_AT]: copy.headers.get(FETCHED_AT) ?? "",
     },
   });
 }
@@ -71,17 +76,26 @@ function notJson(bytes: Uint8Array): unknown {
     : new Error(`${bytes.length} bytes, framed by ${JSON.stringify(pair)}`);
 }
 
-/** The stale copy as the fallback answer when its body looks like JSON
- * (notJson); else null, so the route answers its 503 rather than a broken
- * body. A body that was read and failed the check is logged and dropped; a
- * failed read keeps the copy. Checked only here, when upstream has already
- * failed, so a fresh hit costs no check. */
+/** The stale copy as the fallback answer when it is younger than the
+ * route's maxStaleSeconds and its body looks like JSON (notJson); else
+ * null, so the route answers its 503 rather than old or broken data. A body
+ * that was read and failed the check is logged and dropped; a failed read
+ * keeps the copy. Checked here, when upstream has already failed, so a
+ * fresh hit costs no check. */
 async function fallback(
   stale: { copy: Response; ageMs: number },
   route: Route,
   key: string,
   drop: () => void,
 ): Promise<Response | null> {
+  // written so an unreadable age (NaN) counts as too old
+  if (!(stale.ageMs <= route.maxStaleSeconds * 1000)) {
+    console.error(
+      `[respond] The cached copy of ${key} is ${Math.round(stale.ageMs / 60_000)} min old, past the route's ${route.maxStaleSeconds / 60} min`,
+    );
+    await stale.copy.body?.cancel();
+    return null;
+  }
   let body: ArrayBuffer;
   try {
     body = await stale.copy.arrayBuffer();
@@ -139,6 +153,7 @@ export async function respond(
       await upstream.body?.cancel();
       throw new Error(`upstream answered 200 with ${type}`);
     }
+    if (route.checked) upstream = await checkedBody(upstream);
   } catch (err) {
     console.error(`[respond] ${key}:`, err);
     const answer =
@@ -162,7 +177,7 @@ export async function respond(
     const copy = new Response(toCache, {
       headers: {
         "Content-Type": contentType,
-        "Cache-Control": `max-age=${KEEP_SECONDS}`,
+        "Cache-Control": `max-age=${route.maxStaleSeconds}`,
         [FETCHED_AT]: String(now),
       },
     });
@@ -178,8 +193,19 @@ export async function respond(
       "Content-Type": contentType,
       "Cache-Control": `max-age=${route.ttl}`,
       "x-cache": "miss",
+      [FETCHED_AT]: String(now),
     },
   });
+}
+
+/** `res` read in full and checked as JSON (notJson): the same body, or a
+ * throw (an empty or cut-off body, or a stalled read) that respond treats
+ * as an upstream failure. */
+async function checkedBody(res: Response): Promise<Response> {
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  const problem = bytes.length === 0 ? "an empty body" : notJson(bytes);
+  if (problem) throw new Error(`upstream's 200 is not JSON: ${problem}`);
+  return new Response(bytes, { headers: res.headers });
 }
 
 /** The edge cache where the runtime has one (Workers), else none (Node). */

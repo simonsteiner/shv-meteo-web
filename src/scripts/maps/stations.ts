@@ -5,7 +5,9 @@
 import { num } from "../coerce.ts";
 import { escapeHtml } from "../escape.ts";
 import type { MeasurementFeature } from "../types.ts";
-import { round1, toCelsius, toHpa } from "../units.ts";
+import { downwindRotation } from "../wind-arrow.ts";
+import { stationPressures, type StationPressures } from "../pressure.ts";
+import { round1, toCelsius } from "../units.ts";
 import type { LatLngTuple } from "./centroid.ts";
 
 /** The official app's wind colour scale: each bucket's upper bound in
@@ -56,22 +58,23 @@ export interface StationMeasurements {
   gustKmh: number | null;
   dirDeg: number | null;
   tempC: number | null;
-  qnhHpa: number | null;
+  /** QNH or QFF, and QFE (pressure.ts). */
+  pressure: StationPressures;
 }
 
-/** A station's latest values, rounded to one decimal (QNH to whole hPa). */
+/** A station's latest values, rounded to one decimal (pressures to whole
+ * hPa). */
 export function stationMeasurements(
   f: MeasurementFeature,
 ): StationMeasurements {
   const p = f.properties ?? {};
   const one = (v: number | null) => (v === null ? null : round1(v));
-  const qnh = toHpa(num(p.pressureStandardMslValue));
   return {
     windKmh: one(num(p.windSpeedValue)),
     gustKmh: one(num(p.windGustValue)),
     dirDeg: num(p.windDirectionValue),
     tempC: one(toCelsius(num(p.temperature2mValue) ?? num(p.temperatureValue))),
-    qnhHpa: qnh === null ? null : Math.round(qnh),
+    pressure: stationPressures(p),
   };
 }
 
@@ -118,11 +121,14 @@ export function stationMarker(
       ...spec,
       html: `<div class="station-wind-arrow-box" title="${name}: ${kmh} km/h"><svg class="wind-arrow-svg wind-dot-svg" width="18" height="18" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="6" fill="#FFFFFF" stroke="#1e293b" stroke-width="1.8"/></svg></div>`,
     };
-  if (r.dirDeg === null) return null;
+  const turn = downwindRotation(r.dirDeg);
+  if (r.dirDeg === null || turn === null) return null;
   const dir = Math.round(r.dirDeg);
+  // ARROW_PATH points east; the inner rotation makes it point north, the
+  // outer one downwind
   return {
     ...spec,
-    html: `<div class="station-wind-arrow-box" style="transform: rotate(${dir}deg);" title="${name}: ${kmh} km/h (${dir}°)"><svg class="wind-arrow-svg" width="24" height="24" viewBox="0 0 26 26" fill="none"><g transform="rotate(90 13 13)"><path d="${ARROW_PATH}" fill="${windColor(kmh)}" stroke="#1e293b" stroke-width="1.2" stroke-linejoin="round"/></g></svg></div>`,
+    html: `<div class="station-wind-arrow-box" style="transform: rotate(${turn}deg);" title="${name}: ${kmh} km/h (${dir}°)"><svg class="wind-arrow-svg" width="24" height="24" viewBox="0 0 26 26" fill="none"><g transform="rotate(-90 13 13)"><path d="${ARROW_PATH}" fill="${windColor(kmh)}" stroke="#1e293b" stroke-width="1.2" stroke-linejoin="round"/></g></svg></div>`,
   };
 }
 

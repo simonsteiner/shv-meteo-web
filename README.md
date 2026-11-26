@@ -27,7 +27,7 @@ It is a static [Astro](https://astro.build) site on Cloudflare Pages. The browse
   * Outlooks: sunshine and precipitation probability, animated over the coming days.
   * The surface pressure (isobar) chart.
   * Soundings from MeteoSwiss ICON-CH1 as an emagram, the temperature coloured by lapse rate.
-* **Safety** (`/safety/`): the SHV 5-point pre-flight check, emergency numbers (Rega 1414, 112, radio channel K) and the tree-landing steps, links to the day's DABS on skybriefing, an audio vario simulator, and a logbook kept in your browser with a CSV export.
+* **Safety** (`/safety/`): the SHV 5-point pre-flight check, emergency numbers (Rega 1414, 112, Rega emergency radio on the E-channel, 161.300 MHz) and the tree-landing steps, and the DABS card: skybriefing's publication times, the next publication, and links to today's bulletin and, from 16:00, tomorrow's.
 
 ---
 
@@ -54,7 +54,7 @@ Taken with `npm run shot` on the built site at 1280×800 (the weather page talle
 | Text Forecasts | Outlooks (`/forecast/outlooks/?type=`) |
 | :---: | :---: |
 | [![Text forecast](screenshots/06_forecast_text.png)](screenshots/06_forecast_text.png) | [![Light precipitation outlook](screenshots/07_forecast_outlooks.png)](screenshots/07_forecast_outlooks.png) |
-| **Isobar Chart** | **Safety: Checklist, Emergency, DABS, Vario, Logbook** |
+| **Isobar Chart** | **Safety: Checklist, Emergency, DABS** |
 | [![Surface pressure chart](screenshots/08_forecast_isobars.png)](screenshots/08_forecast_isobars.png) | [![Safety page](screenshots/09_safety.png)](screenshots/09_safety.png) |
 
 ### 4. Phone

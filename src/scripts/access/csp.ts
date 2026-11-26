@@ -50,7 +50,10 @@ export function policy(hashes: readonly string[]): string {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
-    "connect-src 'self' https:",
+    // /api and public/ on 'self'; the outlooks' index and the GIS snapshots'
+    // fallbacks straight from upstream (ShvApi in api.ts); images, webcams
+    // and map tiles included, stay under img-src
+    "connect-src 'self' https://static-prod.ubmeteo.io https://shv-app-static-prod.ubmeteo.io",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

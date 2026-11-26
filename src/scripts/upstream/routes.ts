@@ -16,6 +16,15 @@ export interface Route {
   url?(params: Record<string, string>, now: number): string;
   /** Seconds a 200 is fresh: its browser max-age and its edge-cache TTL. */
   ttl: number;
+  /** Seconds the edge keeps a 200 to stand in when upstream fails; an older
+   * copy is never served, so live values don't pass for current ones. */
+  maxStaleSeconds: number;
+  /** Whether a fresh 200 is read and checked as JSON (notJson in
+   * respond.ts) before it is answered and replaces the kept copy, so an
+   * empty or cut-off body never evicts a good one. False for measurements,
+   * whose 2 MB body is streamed, and for the routes whose body the Function
+   * builds from upstream JSON it has already parsed (foehn, sounding). */
+  checked: boolean;
   timeoutMs: number;
   /** The JSON body of the 503 every upstream failure answers. */
   errorBody: object;
@@ -81,6 +90,9 @@ export const ROUTES: Record<RouteName, Route> = {
     url: () =>
       `${WEATHER}/measurements/current?${ALPS_BBOX}&parameters=${MEASUREMENT_PARAMETERS}`,
     ttl: 60,
+    // readings are 10 minutes apart: past half an hour a copy no longer passes for live
+    maxStaleSeconds: 30 * 60,
+    checked: false,
     timeoutMs: 12_000,
     errorBody: {
       error: "Live-Messwerte vorübergehend nicht erreichbar",
@@ -92,6 +104,8 @@ export const ROUTES: Record<RouteName, Route> = {
     url: ({ id }, now) =>
       `${WEATHER}/measurements/timeseries/${encodeURIComponent(id)}?parameters=${TIMESERIES_PARAMETERS}&start=${startBefore(now, CHART_SPAN_MS)}`,
     ttl: 180,
+    maxStaleSeconds: 60 * 60,
+    checked: true,
     timeoutMs: 8_000,
     errorBody: { error: "Stations-Zeitreihe vorübergehend nicht erreichbar" },
     parse: (path) => {
@@ -105,6 +119,8 @@ export const ROUTES: Record<RouteName, Route> = {
     url: () =>
       "https://webcam-prod.ubmeteo.io/v1/webcams/overview?west=5.9&south=45.8&east=10.5&north=47.8",
     ttl: 120,
+    maxStaleSeconds: 60 * 60,
+    checked: true,
     timeoutMs: 8_000,
     errorBody: {
       error: "Webcams vorübergehend nicht erreichbar",
@@ -116,6 +132,9 @@ export const ROUTES: Record<RouteName, Route> = {
     url: ({ lang }) =>
       `https://shv-app-ws-prod.shv-app.ch/v1/text/forecast/${lang}.json`,
     ttl: 900,
+    // the forecast carries its issueTime, which the page shows
+    maxStaleSeconds: 12 * 60 * 60,
+    checked: true,
     timeoutMs: 8_000,
     errorBody: { error: "Textprognose vorübergehend nicht erreichbar" },
     parse: (path) => {
@@ -130,6 +149,8 @@ export const ROUTES: Record<RouteName, Route> = {
   // keyed by its pair; four calls, described in foehn/fetch.ts
   foehn: {
     ttl: 60,
+    maxStaleSeconds: 30 * 60,
+    checked: false,
     timeoutMs: 8_000,
     errorBody: { error: "Föhndaten vorübergehend nicht erreichbar" },
     // an unknown or missing pair gets the Gotthard pair, as before
@@ -138,6 +159,9 @@ export const ROUTES: Record<RouteName, Route> = {
   // keyed by station; its calls are described in emagram/fetch.ts
   sounding: {
     ttl: 1200,
+    // the chart shows its run and valid times
+    maxStaleSeconds: 24 * 60 * 60,
+    checked: false,
     timeoutMs: 8_000,
     errorBody: { error: "Sondierung vorübergehend nicht erreichbar" },
     parse: (path) => {

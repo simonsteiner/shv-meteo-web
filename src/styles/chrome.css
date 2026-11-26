@@ -78,8 +78,6 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.15s ease;
-  /* the member portal link wears it too */
-  text-decoration: none;
 }
 
 .icon-btn:hover {
@@ -126,6 +124,10 @@
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+.badge-unknown .foehn-dot {
+  background: var(--text-muted);
 }
 
 .badge-safe {

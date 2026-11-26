@@ -3,7 +3,6 @@ import { map } from "./map/fr.ts";
 
 export const fr: Strings = {
   appName: "Swiss Free Flight",
-  memberPortal: "Portail des membres FSVL",
   appSub: "Météo vol libre & sites · Source : FSVL SHV",
   tabs: {
     map: "Carte Live",
@@ -51,6 +50,7 @@ export const fr: Strings = {
       DEM_GRE: "Traversée du Jura (Delémont \u2013 Granges)",
     },
     foehnStatus: {
+      NO_DATA: "Pas de données",
       CALM: "Calme",
       MODERATE_SOUTH_FOEHN: "Fœhn du sud modéré",
       SEVERE_SOUTH_FOEHN: "Fort fœhn du sud",
@@ -60,6 +60,8 @@ export const fr: Strings = {
       STRONG_GRADIENT: "Fort gradient de pression",
     },
     foehnText: {
+      NO_DATA:
+        "Une valeur actuelle manque pour cette paire de stations. Aucune indication sur le fœhn possible.",
       CALM: "Pression normale. Conditions de vol sûres.",
       MODERATE_SOUTH_FOEHN:
         "Fœhn du sud modéré ({delta} hPa). Turbulence croissante et risque de percée du fœhn dans les vallées alpines.",
@@ -94,6 +96,11 @@ export const fr: Strings = {
     dewPoint: "Point de rosée",
     humidityFull: "Humidité",
     qnhFull: "Pression QNH",
+    measuredAt: "Heure de mesure",
+    oldMeasurement: "plus d'une heure",
+    asOf: "État à {time} : mesures en direct indisponibles, valeurs en cache",
+    qffFull: "Pression QFF",
+    qfeFull: "Pression station QFE",
     history24h: "Évolution 24h (vent & température)",
     loadingSeries: "Chargement de la série...",
     seriesUnavailable: "Aucune série disponible",
@@ -143,9 +150,11 @@ export const fr: Strings = {
     typeSunshine: "Ensoleillement",
     typePrecipWeak: "Précipitations faibles",
     typePrecipStrong: "Précipitations fortes",
-    legendSunshine: "Durée d'ensoleillement relative (6h)",
-    legendPrecipWeak: "Probabilité de précipitations faibles (> 0.1 mm / 12h)",
-    legendPrecipStrong: "Probabilité de précipitations fortes (> 1.0 mm / 12h)",
+    legendSunshine: "Durée d'ensoleillement relative ({hours}h)",
+    legendPrecipWeak:
+      "Probabilité de précipitations faibles (> 0.1 mm / {hours}h)",
+    legendPrecipStrong:
+      "Probabilité de précipitations fortes (> 1.0 mm / {hours}h)",
     interval: "Intervalle {n} sur {total}",
     center: "Centrer",
     centerTitle: "Centrer sur la Suisse",
@@ -229,7 +238,8 @@ export const fr: Strings = {
     resetChecklist: "Réinitialiser la checklist",
     sosTitle: "Numéros d'urgence & Secours aérien Suisse",
     rega: "Rega Urgences: 1414",
-    kRadio: "Canal Radio Rega (Canal K): 161.300 MHz (CTCSS 151.4 Hz)",
+    // Rega's own wording (2026-11-25): https://www.rega.ch/fr/en-mission/sites-et-infrastructures/radio-de-detresse/radio-de-detresse-alerter-la-rega
+    kRadio: "Radio de détresse Rega, canal E : 161.300 MHz",
     treeRescueTitle: "Procédure atterrissage dans les arbres",
     treeRescue1:
       "1. Restez calme! Assurez-vous immédiatement avec votre longe à une branche solide.",
@@ -242,25 +252,6 @@ export const fr: Strings = {
     dabsTitle: "DABS - Daily Airspace Bulletin Switzerland",
     dabsSub: "Bulletin officiel quotidien de l'espace aérien suisse",
     dabsLink: "Consulter le DABS sur Skybriefing",
-    logbookTitle: "Carnet de vol numérique",
-    addFlight: "Ajouter un vol",
-    totalFlights: "Total des vols",
-    totalAirtime: "Temps de vol total",
-    longestFlight: "Vol le plus long",
-    date: "Date",
-    site: "Décollage",
-    landing: "Atterrissage",
-    glider: "Voile / Sellette",
-    duration: "Durée (minutes)",
-    distance: "Distance XC (km)",
-    notes: "Remarques",
-    saveFlight: "Enregistrer le vol",
-    exportLog: "Exporter (CSV)",
-    varioTitle: "Simulateur Variomètre Acoustique",
-    varioSub: "Bips vario réalistes pour entraînement thermique",
-    varioClimb: "Montée / Descente:",
-    varioMute: "Activer son",
-    varioUnmute: "Couper son",
     checklistBadge: "Pre-Flight",
     checklistSub:
       "Check de décollage standardisé de la Fédération Suisse de Vol Libre",
@@ -271,25 +262,22 @@ export const fr: Strings = {
     regaSub: "Gratuit depuis tous les réseaux suisses",
     euroName: "Numéro d'urgence européen",
     euroSub: "Fonctionne aussi sans carte SIM",
+    // Rega's own wording (2026-11-25): https://www.rega.ch/fr/en-mission/sites-et-infrastructures/radio-de-detresse/radio-de-detresse-alerter-la-rega
     kRadioSub:
-      "Canal radio d'urgence pour le sauvetage en montagne en Suisse. Activer la tonalité CTCSS 151.4 Hz !",
-    dabsBadge: "Statut de l'espace aérien",
-    dabsValidity: "Validité aujourd'hui :",
+      "Touche « alarme » ou appel 5 tons 21414 (ZVEI), avec ou sans squelch (CTCSS) 123.0 Hz. Quittance : 3 longs tons. À utiliser seulement sans réseau mobile.",
+    dabsBadge: "Espace aérien",
+    dabsScheduleTitle: "Heures de publication (Skybriefing)",
+    dabsFirstVersion: "Première version (version 1) pour le lendemain",
+    dabsUpdates:
+      "Mises à jour (version 2 / 3 / 4) pour le jour même, en vigueur immédiatement",
+    dabsNext: "Prochaine publication : {time} LT",
+    dabsNextTomorrow: "Prochaine publication : demain {time} LT",
+    dabsNextFirst:
+      "Prochaine publication : {time} LT, avec la première version pour demain",
     dabsNotes:
-      "Publié chaque jour dès 16:00 LT pour le lendemain par Skybriefing. À consulter obligatoirement avant chaque vol de distance !",
-    dabsPdf: "Télécharger le DABS en PDF",
-    varioSinkLabel: "Dégueulante",
-    varioLiftLabel: "Plafond !",
-    logbookBadge: "Carnet de vol",
-    logbookSub: "Vols enregistrés & statistiques",
-    emptyTitle: "Aucun vol enregistré dans le carnet",
-    emptyHint:
-      "Enregistre ton premier vol avec «Ajouter un vol» en haut à droite.",
-    newFlight: "Enregistrer un nouveau vol",
-    sitePlaceholder: "p. ex. Fiescheralp, Interlaken, Brunni...",
-    landingPlaceholder: "p. ex. atterrissage de Fiesch, Höhematte...",
-    distancePlaceholder: "p. ex. 25.4",
-    notesPlaceholder: "Thermique, conditions, itinéraire...",
-    cancel: "Annuler",
+      "En complément des NOTAM, la carte DABS représente graphiquement les dangers, restrictions et modifications dans l'espace aérien suisse. Pour les détails, toujours consulter les NOTAM.",
+    dabsMandatory: "À consulter obligatoirement avant chaque vol de distance !",
+    dabsPdfToday: "DABS aujourd'hui (PDF)",
+    dabsPdfTomorrow: "DABS demain (PDF)",
   },
 };

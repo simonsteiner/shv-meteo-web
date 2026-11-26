@@ -2,6 +2,7 @@
 // language, sanitizes upstream's HTML and switches category and region.
 // `?cat=` and `?region=` open a forecast and follow the choice.
 
+import { formatSwiss } from "../swiss-time.ts";
 import { store } from "../state.ts";
 import { ShvApi } from "../api.ts";
 import { must } from "../dom.ts";
@@ -97,7 +98,19 @@ export function mountTextForecast(root: HTMLElement): void {
         : textProduct(answer, category, region);
     issued.hidden = !product?.issueTime;
     if (product?.issueTime)
-      issued.textContent = `${say("forecast.issued")} ${new Date(product.issueTime).toLocaleString(localeFor(store.state.lang))}`;
+      issued.textContent = `${say("forecast.issued")} ${formatSwiss(
+        product.issueTime,
+        localeFor(store.state.lang),
+        {
+          // explicit fields: dateStyle and timeStyle are newer than the
+          // build target (Firefox 79, Safari 14.1), which would drop the time
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        },
+      )}`;
     const html = product?.html
       ? sanitizeForecastHtml(product.html, browserParse)
       : "";

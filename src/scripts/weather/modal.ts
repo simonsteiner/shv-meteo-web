@@ -67,7 +67,13 @@ export function stationModal(
     field("dew").textContent = v.dewC === null ? DASH : `${v.dewC}°C`;
     field("humidity").textContent =
       v.humidity === null ? DASH : `${v.humidity}%`;
-    field("qnh").textContent = v.qnhHpa === null ? DASH : `${v.qnhHpa} hPa`;
+    // the same pressures as the station's card: QNH or QFF, and QFE
+    const { sea, qfeHpa } = v.pressure;
+    field("sea-label").textContent = say(
+      sea?.kind === "QFF" ? "weather.qffFull" : "weather.qnhFull",
+    );
+    field("qnh").textContent = sea ? `${sea.hpa} hPa` : DASH;
+    field("qfe").textContent = qfeHpa === null ? DASH : `${qfeHpa} hPa`;
 
     const status = field("series-status");
     const box = field("chart-box");

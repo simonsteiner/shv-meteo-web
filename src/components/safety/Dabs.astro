@@ -1,9 +1,16 @@
 ---
-// The Daily Airspace Bulletin card. The links don't change with the date,
-// so they are built in; page.ts fills today's validity in the browser,
-// since a built page outlives its day.
-import { buildDabs } from "../../scripts/api.ts";
-const { bulletinUrl, bulletinPdfUrl } = buildDabs(new Date());
+// The Daily Airspace Bulletin card: a reminder with skybriefing's links.
+// Nothing is fetched, so it claims no status and no validity. Today's and
+// tomorrow's PDF are skybriefing's own links (/o/dabs?today, ?tomorrow,
+// checked 2026-11-25); the page is the one the official app links.
+// Tomorrow's shows only once skybriefing publishes it, at 16:00 Swiss time:
+// hidden here, shown by safety/page.ts (safety/dabs.ts). The schedule is
+// skybriefing's (skybriefing.com/dabs); the page script adds the next
+// publication from the Swiss clock.
+import { DABS_FIRST_VERSION, DABS_UPDATES } from "../../scripts/safety/dabs.ts";
+const BULLETIN_URL = "https://www.skybriefing.com/de/dabs";
+const PDF_TODAY_URL = "https://www.skybriefing.com/o/dabs?today";
+const PDF_TOMORROW_URL = "https://www.skybriefing.com/o/dabs?tomorrow";
 ---
 
 <section id="dabs" class="safety-section">
@@ -16,25 +23,39 @@ const { bulletinUrl, bulletinPdfUrl } = buildDabs(new Date());
   </div>
 
   <div class="dabs-card-box">
-    <div class="dabs-status-row">
-      <span class="status-indicator-dot dot-active"></span>
-      <span class="dabs-date-text">
-        <span data-t="safety.dabsValidity"></span>{" "}
-        <span data-dabs-validity></span>
-      </span>
+    <div class="dabs-schedule">
+      <h3 class="dabs-schedule-title" data-t="safety.dabsScheduleTitle"></h3>
+      <dl class="dabs-schedule-list">
+        <dt>{DABS_FIRST_VERSION} LT</dt>
+        <dd data-t="safety.dabsFirstVersion"></dd>
+        <dt>{DABS_UPDATES.join(", ")} LT</dt>
+        <dd data-t="safety.dabsUpdates"></dd>
+      </dl>
+      <p class="dabs-next" data-dabs-next></p>
     </div>
     <p class="dabs-notes" data-t="safety.dabsNotes"></p>
+    <p class="dabs-mandatory" data-t="safety.dabsMandatory"></p>
     <div class="dabs-links">
-      <a href={bulletinUrl} target="_blank" rel="noopener" class="btn-primary">
+      <a href={BULLETIN_URL} target="_blank" rel="noopener" class="btn-primary">
         <span data-t="safety.dabsLink"></span> ↗
       </a>
       <a
-        href={bulletinPdfUrl}
+        href={PDF_TODAY_URL}
         target="_blank"
         rel="noopener"
         class="btn-secondary"
       >
-        <span data-t="safety.dabsPdf"></span> ↗
+        <span data-t="safety.dabsPdfToday"></span> ↗
+      </a>
+      <a
+        href={PDF_TOMORROW_URL}
+        target="_blank"
+        rel="noopener"
+        class="btn-secondary"
+        data-dabs-tomorrow
+        hidden
+      >
+        <span data-t="safety.dabsPdfTomorrow"></span> ↗
       </a>
     </div>
   </div>

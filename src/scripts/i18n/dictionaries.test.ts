@@ -36,3 +36,29 @@ test("every entry is a string or a nested dictionary", () => {
     walk(DICTIONARIES[lang], "");
   }
 });
+
+test("every language gives Rega's radio frequency, tone squelch and alarm call", () => {
+  // rega.ch: 161.300 MHz E-channel, with or without a 123.0 Hz tone
+  // squelch, 5-tone alarm 21414 (ZVEI), acknowledged by three long tones
+  for (const lang of LANGS) {
+    const { kRadio, kRadioSub } = DICTIONARIES[lang].safety;
+    const text = `${kRadio} ${kRadioSub}`;
+    for (const part of ["161.300 MHz", "123.0 Hz", "21414"])
+      assert.ok(text.includes(part), `${lang}: ${part}`);
+    assert.ok(!text.includes("151.4"), `${lang}: no 151.4 Hz`);
+  }
+});
+
+test("the outlook legends take their interval from the frames", () => {
+  for (const lang of LANGS) {
+    const f = DICTIONARIES[lang].forecast;
+    for (const key of [
+      "legendSunshine",
+      "legendPrecipWeak",
+      "legendPrecipStrong",
+    ] as const) {
+      assert.ok(f[key].includes("{hours}"), `${lang} ${key}`);
+      assert.ok(!/\d+h/.test(f[key]), `${lang} ${key}: no fixed hours`);
+    }
+  }
+});

@@ -14,7 +14,7 @@ function station(
   };
 }
 
-test("stationValues converts Kelvin and tenths of hPa, keeps km/h", () => {
+test("stationValues converts Kelvin and pascals, keeps km/h", () => {
   assert.deepEqual(
     stationValues(
       station("meteo_swiss:PIL", {
@@ -24,7 +24,8 @@ test("stationValues converts Kelvin and tenths of hPa, keeps km/h", () => {
         temperature2mValue: 279.65,
         dewPoint2mValue: 270.15,
         relativeHumidity2mValue: 81.6,
-        pressureMslValue: 10213,
+        pressureMslValue: 1021.3,
+        pressureSurfaceValue: 98730,
       }),
     ),
     {
@@ -34,8 +35,7 @@ test("stationValues converts Kelvin and tenths of hPa, keeps km/h", () => {
       tempC: 6.5,
       dewC: -3,
       humidity: 82,
-      qnhHpa: 1021,
-      surfaceHpa: null,
+      pressure: { sea: { kind: "QFF", hpa: 1021 }, qfeHpa: 987 },
     },
   );
 });
@@ -53,8 +53,7 @@ test("stationValues keeps 0 and falls back to the other fields", () => {
   assert.equal(v.tempC, 0);
   assert.equal(v.humidity, 40);
   // station pressure is no QNH; it stays in its own field
-  assert.equal(v.qnhHpa, null);
-  assert.equal(v.surfaceHpa, 850);
+  assert.deepEqual(v.pressure, { sea: null, qfeHpa: 850 });
   assert.equal(v.gustKmh, null);
   assert.equal(v.dewC, null);
 });
