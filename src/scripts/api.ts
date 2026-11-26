@@ -130,7 +130,7 @@ export async function readGis<T>(
         resp.status,
       );
     } catch (e) {
-      console.warn(
+      console.error(
         `[ShvApi.${label}] Local copy unreadable, reading the CDN:`,
         e,
       );
