@@ -1,6 +1,8 @@
 // A flying site's sheet: kind, difficulty and status badges, elevation and
 // position, what it suits, its notices, rules, hazards, access, fees and
-// club, and the directions and Rega buttons.
+// club, and the directions and Rega buttons; after the suits (under the
+// status when there is one), a link to the official SHV map for the
+// current status.
 
 import { text } from "../coerce.ts";
 import { escapeHtml, safeUrl } from "../escape.ts";
@@ -19,6 +21,10 @@ import {
 } from "./parts.ts";
 
 type Props = FlyingSiteFeature["properties"];
+
+/** The official SHV map, which keeps each site's status up to date;
+ * the sheet points pilots there instead of being the reference itself. */
+export const OFFICIAL_MAP_URL = "https://airspace.shv-fsvl.ch/map";
 
 /** The badge a site's type gets: areas count as their take-off or landing. */
 export function siteKind(type: unknown): "launch" | "landing" | "general" {
@@ -173,6 +179,7 @@ export function siteSheetHtml(
           "section-opening",
         )
       : "",
+    `<p class="sheet-official"><a href="${OFFICIAL_MAP_URL}" target="_blank" rel="noopener">${escapeHtml(say("map.sheet.officialMap"))}</a></p>`,
     kind === "launch" && dirs.length
       ? section(
           say("map.sheet.windSuitable"),

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { test } from "node:test";
-import { OUTLOOKS_URL, SNAPSHOT_CDN_URLS } from "../api.ts";
+import { OUTLOOKS_URL, GIS_URLS } from "../api.ts";
 import { inlineScriptHashes, policy, withCsp } from "./csp.ts";
 
 const sha = (body: string) =>
@@ -64,7 +64,7 @@ test("connect-src allows the app itself and the origins ShvApi reads directly, n
   assert.equal(connect[0], "'self'");
   assert.ok(!connect.includes("https:"));
   // every upstream the browser fetches without /api (api.ts)
-  for (const url of [OUTLOOKS_URL, ...SNAPSHOT_CDN_URLS])
+  for (const url of [OUTLOOKS_URL, ...GIS_URLS])
     assert.ok(connect.includes(new URL(url).origin), url);
   assert.equal(connect.length, 3);
 });

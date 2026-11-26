@@ -117,6 +117,8 @@ test("a site sheet shows badges, suits, wind and sections", () => {
     'href="https://club.example/"',
     "maps.apple.com/?daddr=47.0136,8.5856",
     "tel:1414",
+    'href="https://airspace.shv-fsvl.ch/map"',
+    "[map.sheet.officialMap]",
   ])
     assert.ok(html.includes(part), part);
   assert.ok(!html.includes("[map.sheet.suit.hangglider]"));

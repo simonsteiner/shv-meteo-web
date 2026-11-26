@@ -355,6 +355,21 @@
   font-size: 0.9rem;
 }
 
+.sheet-official {
+  margin: 0 0 14px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.section-opening + .sheet-official {
+  margin-top: -6px;
+}
+
+.sheet-official a {
+  color: inherit;
+  text-decoration: underline;
+}
+
 .sheet-actions {
   display: flex;
   gap: 10px;

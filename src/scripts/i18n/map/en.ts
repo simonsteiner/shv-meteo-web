@@ -148,6 +148,7 @@ export const map: MapStrings = {
     qrAlt: "Twint QR code",
     qrHint: "Scan the Twint QR code on site",
     responsible: "Managing club",
+    officialMap: "Current status on the official SHV map ↗",
     website: "Website ↗",
     openInMaps: "Navigation / Directions",
     station: "Weather station",

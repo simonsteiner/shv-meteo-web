@@ -1,6 +1,4 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import util from "node:util";
 import { test } from "node:test";
 import { de } from "../i18n/de.ts";
@@ -21,28 +19,33 @@ test("each legend entry draws the style the map gives its type", () => {
   );
 });
 
-test("every airspace in the snapshot is drawn in a style the legend shows", () => {
-  const path = join(
-    import.meta.dirname,
-    "../../../public/data/airspaces.geojson",
-  );
-  const data = JSON.parse(readFileSync(path, "utf8")) as {
-    features: {
-      properties: { type?: unknown; inactiveByAgreement?: unknown };
-    }[];
-  };
-  const seen = new Set<string>();
-  for (const { properties: p } of data.features) {
-    const style = airspaceStyle(p.type, p.inactiveByAgreement);
-    const key = `${String(p.type)}|${Boolean(p.inactiveByAgreement)}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
+// Every type and agreement flag the SHV CDN's airspaces carried on
+// 2026-11-26 (airspaces/shv.geojson, 359 zones).
+const UPSTREAM_AIRSPACES: [string, boolean][] = [
+  ["AWY", false],
+  ["Airfield", false],
+  ["Airfield", true],
+  ["CTA", false],
+  ["CTR", false],
+  ["FIZ", false],
+  ["FIZ", true],
+  ["Heliport", false],
+  ["Heliport", true],
+  ["Q", false],
+  ["R", false],
+  ["RMZ", false],
+  ["TMA", false],
+  ["W", false],
+];
+
+test("every airspace upstream sends is drawn in a style the legend shows", () => {
+  for (const [type, byAgreement] of UPSTREAM_AIRSPACES)
     assert.ok(
-      AIRSPACE_LEGEND.some((e) => util.isDeepStrictEqual(e.style, style)),
-      key,
+      AIRSPACE_LEGEND.some((e) =>
+        util.isDeepStrictEqual(e.style, airspaceStyle(type, byAgreement)),
+      ),
+      `${type}|${byAgreement}`,
     );
-  }
-  assert.ok(seen.size > 0);
 });
 
 test("every legend entry has its words in the dictionary", () => {

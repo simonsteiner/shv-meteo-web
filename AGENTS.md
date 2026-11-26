@@ -1,6 +1,6 @@
 # Swiss Free Flight
 
-A web app for Swiss paraglider and hang glider pilots that shows flying sites, airspace hazards, live weather and soaring forecasts from the public data behind the official SHV FSVL app. It is a static Astro site (`src/pages/`, one page per tab, each with its components in `src/components/<tab>/` and its TypeScript in `src/scripts/`; the header and bottom nav in `src/components/shell/`), plus Cloudflare Pages Functions (`functions/api/`) for the upstream calls a browser can't make. The browser loads static GIS data from `public/data/`, a few upstreams directly, and everything else through `/api/*`, where the Functions proxy and cache the upstream services (Ubique weather and webcams, SHV, MeteoSwiss ICON).
+A web app for Swiss paraglider and hang glider pilots that shows flying sites, airspace hazards, live weather and soaring forecasts from the public data behind the official SHV FSVL app. It is a static Astro site (`src/pages/`, one page per tab, each with its components in `src/components/<tab>/` and its TypeScript in `src/scripts/`; the header and bottom nav in `src/components/shell/`), plus Cloudflare Pages Functions (`functions/api/`) for the upstream calls a browser can't make. The browser loads the flying sites, airspaces and wildlife reserves live from the SHV CDN, the sounding stations and obstacle shards from `public/data/`, a few other upstreams directly, and everything else through `/api/*`, where the Functions proxy and cache the upstream services (Ubique weather and webcams, SHV, MeteoSwiss ICON).
 
 Domain terms are in `GLOSSARY.md`. Open work is planned in `docs/plan/`.
 
@@ -19,6 +19,7 @@ npm run lint  # oxlint and prettier --check, as in the pre-commit hook
 npx rumdl check .  # Markdown lint, as CI runs it; pass file paths to lint only those
 npm run format  # prettier --write
 npm run grid  # rewrite src/data/previtemps_grid.json from the station catalogue (needs network)
+npm run gis  # dev-only copies of the GIS datasets into public/data/gis/ (needs network)
 npm run obstacles  # build the BAZL obstacle shards into public/data/obstacles/ (needs network)
 npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a running dev server; see docs/setup.md
 ```
@@ -71,7 +72,7 @@ npm run shot -- http://localhost:4321/map/ /tmp/map.png  # PNG of a page on a ru
 - **Browser code stays at ES2020.** `astro.config.mjs` keeps the old build target (Safari 14, Chrome 87, Firefox 78); syntax is lowered but builtins are not polyfilled, so don't use newer ones (`Object.hasOwn`, `Array.prototype.at`, `structuredClone`).
 - **The sounding Function reads a generated grid.** Rerun `npm run grid` after changing `public/data/previtemps_stations.json`, or when a station's sounding answers 503 for a day.
 - **The BAZL obstacles are build-time shards.** `npm run obstacles` writes `public/data/obstacles/` (git-ignored, about 275 MB); without it locally the obstacle layer stays empty.
-- **`public/data/*.geojson` are snapshots of the upstream CDN datasets.** `ShvApi` loads them first and falls back to the CDN URLs in `src/scripts/api.ts`.
+- **Flying sites, airspaces and wildlife reserves come live from the SHV CDN** (`GIS_URLS` in `src/scripts/api.ts`), and a built page never reads a copy: a copy goes stale (closures, new airspaces). Only `npm run dev` reads the local copies `npm run gis` writes into `public/data/gis/` (git-ignored, dropped from every build), and the CDN when there are none. Every site sheet links the official map (`airspace.shv-fsvl.ch/map`) for the current status; don't rebuild its features.
 
 ## Docs
 

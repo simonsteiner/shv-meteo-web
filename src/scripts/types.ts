@@ -140,7 +140,7 @@ export interface Bbox {
   maxLat: number;
 }
 
-/** A feature of the flying-site snapshot (public/data/flyingsites.geojson):
+/** A feature of the SHV CDN's flying sites (flyingsites.geojson, GIS_URLS):
  * a take-off or landing (Point), its areas (Polygon), its landing pattern
  * (LineString) and more, all sharing their site's `siteId`. Take-offs and
  * landings each have a `siteId` of their own. */

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { isobarenUrl, OUTLOOKS_URL, ShvApi } from "./api.ts";
+import { isobarenUrl, OUTLOOKS_URL, readGis, ShvApi } from "./api.ts";
+import { GIS_DATASETS } from "./gis.ts";
 import { pointAnswer } from "./emagram/point.fixture.ts";
 
 test("getFoehn() twice makes one fetch, getFoehn('GVE_GUT') a second", async () => {
@@ -102,19 +103,15 @@ test("getEmagramForecast builds the sounding, or null when it can't", async () =
   assert.equal(calls[0], "/api/meteo/previtemps/forecast/Interlaken");
 });
 
-test("a snapshot falls back to the CDN once, and retries after both fail", async () => {
+test("a GIS dataset comes live from the CDN once, and is asked again after a failure", async () => {
   const sites = await withFetch(
-    (url) =>
-      url.startsWith("/")
-        ? new Response("", { status: 404 })
-        : Response.json({ type: "FeatureCollection", features: [] }),
+    () => Response.json({ type: "FeatureCollection", features: [] }),
     async () => {
       await Promise.all([ShvApi.getFlyingSites(), ShvApi.getFlyingSites()]);
       await ShvApi.getFlyingSites();
     },
   );
   assert.deepEqual(sites, [
-    "/data/flyingsites.geojson",
     "https://shv-app-static-prod.ubmeteo.io/v1/flyingsites.geojson",
   ]);
 
@@ -130,7 +127,50 @@ test("a snapshot falls back to the CDN once, and retries after both fail", async
       assert.deepEqual((await ShvApi.getAirspaces())?.features, []);
     },
   );
-  assert.equal(airspaces.length, 3);
+  assert.deepEqual(airspaces, [
+    "https://shv-app-static-prod.ubmeteo.io/v1/airspaces/shv.geojson",
+    "https://shv-app-static-prod.ubmeteo.io/v1/airspaces/shv.geojson",
+  ]);
+});
+
+test("only the dev server reads the local GIS copy, and the CDN without one", async () => {
+  const empty = { type: "FeatureCollection", features: [] };
+  const local = await withFetch(
+    () => Response.json(empty),
+    async () => {
+      await readGis(GIS_DATASETS.airspaces, "getAirspaces", true);
+    },
+  );
+  assert.deepEqual(local, ["/data/gis/airspaces.geojson"]);
+
+  const missing = await withFetch(
+    (url) =>
+      url.startsWith("/")
+        ? new Response("", { status: 404 })
+        : Response.json(empty),
+    async () => {
+      const answer = await readGis(
+        GIS_DATASETS.airspaces,
+        "getAirspaces",
+        true,
+      );
+      assert.deepEqual(answer, empty);
+    },
+  );
+  assert.deepEqual(missing, [
+    "/data/gis/airspaces.geojson",
+    "https://shv-app-static-prod.ubmeteo.io/v1/airspaces/shv.geojson",
+  ]);
+
+  const built = await withFetch(
+    () => Response.json(empty),
+    async () => {
+      await readGis(GIS_DATASETS.airspaces, "getAirspaces", false);
+    },
+  );
+  assert.deepEqual(built, [
+    "https://shv-app-static-prod.ubmeteo.io/v1/airspaces/shv.geojson",
+  ]);
 });
 
 test("en gets the German isobar chart, fr and it keep theirs", () => {
