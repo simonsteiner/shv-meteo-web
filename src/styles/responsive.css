@@ -2,10 +2,10 @@
    RESPONSIVE DESIGN (DESKTOP / TABLET)
    ========================================================== */
 /* The header by width, measured with the German words, the longest:
-   below 540px the logo alone; the title from 540px; from 768px the tabs
-   join the header as icons, which leave room for the title again from
-   900px; from 1280px the tabs show their names and the subtitle returns,
-   in at most two lines. */
+   below 540px the logo alone; the title from 540px and the subtitle,
+   in at most two lines, from 768px. The tabs stay in the bottom nav, with
+   their names, until 1280px, the first width where the header fits them
+   with their names. */
 @media (min-width: 540px) {
   .brand-text {
     display: flex;
@@ -15,7 +15,6 @@
 @media (min-width: 768px) {
   :root {
     --header-height: 64px;
-    --bottom-nav-height: 0px;
   }
 
   #app {
@@ -39,6 +38,51 @@
     padding: 0 24px;
   }
 
+  .brand-sub {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+
+  #view-container {
+    flex: 1;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .weather-view-wrapper,
+  .forecast-view-wrapper,
+  .safety-view-wrapper {
+    max-width: 1240px;
+    padding: 32px 40px 60px 40px;
+    margin: 0 auto;
+  }
+
+  #bottom-sheet-container {
+    bottom: calc(var(--bottom-nav-height) + 24px);
+    left: auto;
+    right: 24px;
+    width: 440px;
+  }
+
+  #bottom-sheet-container:has(.sheet-webcam-content) {
+    width: 620px;
+  }
+
+  .sheet-content {
+    border-radius: 20px;
+    border: 1px solid var(--border-strong);
+    max-height: 82vh;
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --bottom-nav-height: 0px;
+  }
+
   .header-nav-desktop {
     display: flex;
     align-items: center;
@@ -51,7 +95,7 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 10px;
+    padding: 8px 14px;
     border-radius: 10px;
     border: 1px solid transparent;
     background: transparent;
@@ -60,20 +104,6 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.15s ease;
-    white-space: nowrap;
-  }
-
-  .brand-text {
-    display: none;
-  }
-
-  /* the name stays for screen readers; the link's title shows it on hover */
-  .header-nav-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
     white-space: nowrap;
   }
 
@@ -91,65 +121,5 @@
 
   #bottom-nav-container {
     display: none !important;
-  }
-
-  #view-container {
-    flex: 1;
-    width: 100%;
-    height: calc(100vh - var(--header-height));
-    position: relative;
-    overflow: hidden;
-  }
-
-  .weather-view-wrapper,
-  .forecast-view-wrapper,
-  .safety-view-wrapper {
-    max-width: 1240px;
-    padding: 32px 40px 60px 40px;
-    margin: 0 auto;
-  }
-
-  #bottom-sheet-container {
-    bottom: 24px;
-    left: auto;
-    right: 24px;
-    width: 440px;
-  }
-
-  #bottom-sheet-container:has(.sheet-webcam-content) {
-    width: 620px;
-  }
-
-  .sheet-content {
-    border-radius: 20px;
-    border: 1px solid var(--border-strong);
-    max-height: 82vh;
-  }
-}
-
-@media (min-width: 900px) {
-  .brand-text {
-    display: flex;
-  }
-}
-
-@media (min-width: 1280px) {
-  .header-nav-link {
-    padding: 8px 14px;
-  }
-
-  .header-nav-label {
-    position: static;
-    width: auto;
-    height: auto;
-    overflow: visible;
-    clip: auto;
-  }
-
-  .brand-sub {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
   }
 }

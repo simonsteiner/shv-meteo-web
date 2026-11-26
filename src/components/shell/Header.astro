@@ -65,13 +65,9 @@ const icon = {
         href={`/${tab}/`}
         data-tab={tab}
         aria-current={tabCurrent(tab, view, Astro.url.pathname)}
-        title={de.tabs[tab]}
-        data-t-title={`tabs.${tab}`}
       >
         <TabIcon tab={tab} size={18} />
-        <span class="header-nav-label" data-t={`tabs.${tab}`}>
-          {de.tabs[tab]}
-        </span>
+        <span data-t={`tabs.${tab}`}>{de.tabs[tab]}</span>
       </a>
     ))}
   </nav>
