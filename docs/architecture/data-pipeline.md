@@ -2,14 +2,15 @@
 
 What the upstream data holds and how the app reads it. Which upstream each resource comes from, and whether the browser calls it directly or through a Function, is the table in [data-queries.md](data-queries.md). Terms follow [GLOSSARY.md](../../GLOSSARY.md).
 
-## Static GIS snapshots
+## GIS datasets
 
-`public/data/` holds snapshots of the SHV CDN datasets (`shv-app-static-prod.ubmeteo.io`); `ShvApi` loads them first and falls back to the CDN ([src/scripts/api.ts](../../src/scripts/api.ts)). Counts as of the current snapshots:
+`ShvApi` reads the flying sites, airspaces and wildlife reserves live from the SHV CDN (`shv-app-static-prod.ubmeteo.io`, `GIS_URLS` in [src/scripts/api.ts](../../src/scripts/api.ts)), which regenerates them every hour; when a read fails the layer stays empty. Until 2026-11-26 the app loaded copies from `public/data/` first; saved once on 2026-10-21, they went stale (a cable car closure missing from the take-off status, 66 sites, 6 airspaces and 6 wildlife reserves behind), so there is no copy any more. The take-off sheet links the official map, [airspace.shv-fsvl.ch/map](https://airspace.shv-fsvl.ch/map), for the current status (`OFFICIAL_MAP_URL` in [src/scripts/sheet/site.ts](../../src/scripts/sheet/site.ts)). Counts on 2026-11-26:
 
-- `flyingsites.geojson`: 1,341 features (358 take-offs, 199 landings, 111 landing circuits, and the auxiliary areas below).
-- `airspaces.geojson`: 353 airspaces.
-- `wildschutz.geojson`: 51 wildlife reserves.
-- `previtemps_stations.json`: the 107 sounding stations.
+- `flyingsites.geojson`: 1,407 features.
+- `airspaces/shv.geojson`: 359 airspaces.
+- `wildschutz/shv.geojson`: 57 wildlife reserves.
+
+`public/data/previtemps_stations.json` holds the 107 sounding stations.
 
 ## Flying sites
 

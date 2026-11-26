@@ -1,5 +1,5 @@
 // What every browser test starts from: the browser reaches only the site
-// under test (map tiles, CDN snapshots and direct upstreams are refused; the
+// under test (map tiles, the GIS datasets and direct upstreams are refused; the
 // Functions behind /api still call the live upstreams, so a page may take its
 // data path or its empty state), and the errors that must fail a test are
 // collected: uncaught errors, the shell's global error logs

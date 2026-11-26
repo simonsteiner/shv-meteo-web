@@ -21,7 +21,7 @@ What the app calls on each host, from the 2026-11-24 capture (app 1.1.0), and wh
 | `weather-ws-prod.ubmeteo.io` | Ubique | `/v1/measurements/current` and `/timeseries/<id>`; `/v1/point-data/<model>/...` (Previtemps); provider and product catalogues | `/api/measurements`, `/api/measurements/timeseries/:id`, `/api/foehn`, `/api/meteo/previtemps/forecast/:name`; the catalogues no |
 | `webcam-prod.ubmeteo.io` | Ubique | `/v1/webcams/overview`, thumbnails | `/api/webcams`, thumbnails direct |
 | `static-prod.ubmeteo.io` | Ubique | vector base map, hillshade and elevation tiles; `/v1/products/grid/...` (Previtemps grid); Swiss and European forecast animations; outlook frames | outlooks direct; the grid at build time (`npm run grid`); the map tiles and the Swiss and European animations no |
-| `shv-app-static-prod.ubmeteo.io` | Ubique | flying sites, airspaces and wildlife reserves as GeoJSON; obstacle and environment vector tiles | GeoJSON as snapshots in `public/data/`, the CDN as fallback; obstacles built from `/v1/obstacles/bazl.geojson` into our own shards (`npm run obstacles`, PR12); the vector tiles no |
+| `shv-app-static-prod.ubmeteo.io` | Ubique | flying sites, airspaces and wildlife reserves as GeoJSON; obstacle and environment vector tiles | GeoJSON read live by the browser; obstacles built from `/v1/obstacles/bazl.geojson` into our own shards (`npm run obstacles`, PR12); the vector tiles no |
 | `wmts.geo.admin.ch`, `vectortiles*.geo.admin.ch` | swisstopo | raster maps, aerial images, the glider chart; vector base map | raster maps, aerial images and the glider chart direct; the vector tiles no |
 | `app-in.ubmeteo.io`, `sentry.ubique.ch` | Ubique | app config, usage events, crash reports | no |
 

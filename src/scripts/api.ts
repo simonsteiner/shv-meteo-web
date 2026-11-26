@@ -1,5 +1,5 @@
-// ShvApi: the browser's only API client and only caller of fetch. Static
-// GIS snapshots come from public/data/ with the upstream CDN as fallback,
+// ShvApi: the browser's only API client and only caller of fetch. The
+// flying sites, airspaces and wildlife reserves come live from the SHV CDN,
 // the outlooks and the isobar chart straight from upstream, and everything
 // else goes through the Pages Functions under /api
 // (docs/architecture/data-queries.md). A read never rejects: a failed
@@ -108,51 +108,21 @@ function retryable<T>(
   };
 }
 
-/** A GIS snapshot from public/data/, else the upstream CDN; kept for the
- * page's lifetime. Null (logged) when both fail. */
-function snapshot<T>(
-  local: string,
-  cdn: string,
-  label: string,
-): () => Promise<T | null> {
-  const memo = retryable<T>(async () => {
-    try {
-      const resp = await fetch(local);
-      if (resp.ok) return (await resp.json()) as T;
-      console.warn(
-        `[ShvApi.${label}] Local fetch returned status:`,
-        resp.status,
-      );
-    } catch (e) {
-      console.warn(
-        `[ShvApi.${label}] Local fetch failed, trying live CDN fallback:`,
-        e,
-      );
-    }
-    try {
-      const resp = await fetch(cdn);
-      if (resp.ok) return (await resp.json()) as T;
-      console.error(
-        `[ShvApi.${label}] Failed to load from both local and CDN: CDN status`,
-        resp.status,
-      );
-    } catch (e) {
-      console.error(
-        `[ShvApi.${label}] Failed to load from both local and CDN:`,
-        e,
-      );
-    }
-    return null;
-  });
+/** A GIS dataset from the SHV CDN, read once per page load; null (logged)
+ * when it fails, and asked again next time. */
+function live<T>(url: string, label: string): () => Promise<T | null> {
+  const memo = retryable<T>(() => getJson<T>(url, label));
   return () => memo();
 }
 
 const CDN = "https://shv-app-static-prod.ubmeteo.io/v1";
 
-/** The GIS snapshots' upstream copies, each a fallback for its file in
- * public/data/; with OUTLOOKS_URL, all the browser reads without /api (the
- * CSP's connect-src, access/csp.ts, allows their origins). */
-export const SNAPSHOT_CDN_URLS = [
+/** The GIS datasets on the SHV CDN, regenerated there every hour; with
+ * OUTLOOKS_URL, all the browser reads without /api (the CSP's connect-src,
+ * access/csp.ts, allows their origins). Never copied into public/data/: a
+ * copy goes stale (closures, new airspaces); the site sheet links the
+ * official map for the reference (OFFICIAL_MAP_URL, sheet/site.ts). */
+export const GIS_URLS = [
   `${CDN}/flyingsites.geojson`,
   `${CDN}/airspaces/shv.geojson`,
   `${CDN}/wildschutz/shv.geojson`,
@@ -200,21 +170,12 @@ async function fetchObstacleShard(
 const fetchObstacleCell = keepRecent(OBSTACLE_CACHE_BYTES, fetchObstacleShard);
 
 export const ShvApi = {
-  getFlyingSites: snapshot<FeatureCollection<FlyingSiteFeature>>(
-    "/data/flyingsites.geojson",
-    SNAPSHOT_CDN_URLS[0],
+  getFlyingSites: live<FeatureCollection<FlyingSiteFeature>>(
+    GIS_URLS[0],
     "getFlyingSites",
   ),
-  getAirspaces: snapshot<GeoJSON.FeatureCollection>(
-    "/data/airspaces.geojson",
-    SNAPSHOT_CDN_URLS[1],
-    "getAirspaces",
-  ),
-  getWildschutz: snapshot<GeoJSON.FeatureCollection>(
-    "/data/wildschutz.geojson",
-    SNAPSHOT_CDN_URLS[2],
-    "getWildschutz",
-  ),
+  getAirspaces: live<GeoJSON.FeatureCollection>(GIS_URLS[1], "getAirspaces"),
+  getWildschutz: live<GeoJSON.FeatureCollection>(GIS_URLS[2], "getWildschutz"),
 
   /** The obstacles a map view shows, `incomplete` when some of its cells
    * couldn't be read (the rest still come); null when its index couldn't

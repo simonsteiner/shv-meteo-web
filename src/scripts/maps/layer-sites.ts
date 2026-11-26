@@ -1,5 +1,5 @@
 // The flying-site layers: take-offs, landings and landing circuits, drawn
-// from the snapshot as the search and wind filter leave them.
+// from the SHV CDN's flying sites as the search and wind filter leave them.
 
 import L from "leaflet";
 import type { Say } from "../i18n/text.ts";

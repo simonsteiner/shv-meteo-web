@@ -102,19 +102,15 @@ test("getEmagramForecast builds the sounding, or null when it can't", async () =
   assert.equal(calls[0], "/api/meteo/previtemps/forecast/Interlaken");
 });
 
-test("a snapshot falls back to the CDN once, and retries after both fail", async () => {
+test("a GIS dataset comes live from the CDN once, and is asked again after a failure", async () => {
   const sites = await withFetch(
-    (url) =>
-      url.startsWith("/")
-        ? new Response("", { status: 404 })
-        : Response.json({ type: "FeatureCollection", features: [] }),
+    () => Response.json({ type: "FeatureCollection", features: [] }),
     async () => {
       await Promise.all([ShvApi.getFlyingSites(), ShvApi.getFlyingSites()]);
       await ShvApi.getFlyingSites();
     },
   );
   assert.deepEqual(sites, [
-    "/data/flyingsites.geojson",
     "https://shv-app-static-prod.ubmeteo.io/v1/flyingsites.geojson",
   ]);
 
@@ -130,7 +126,10 @@ test("a snapshot falls back to the CDN once, and retries after both fail", async
       assert.deepEqual((await ShvApi.getAirspaces())?.features, []);
     },
   );
-  assert.equal(airspaces.length, 3);
+  assert.deepEqual(airspaces, [
+    "https://shv-app-static-prod.ubmeteo.io/v1/airspaces/shv.geojson",
+    "https://shv-app-static-prod.ubmeteo.io/v1/airspaces/shv.geojson",
+  ]);
 });
 
 test("en gets the German isobar chart, fr and it keep theirs", () => {
