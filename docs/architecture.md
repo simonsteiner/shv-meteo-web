@@ -8,7 +8,7 @@ flowchart LR
     pages["map, weather, forecast, safety"]
   end
   subgraph pagesdev["Cloudflare Pages"]
-    static["public/data/: flying sites, airspaces, wildlife zones,<br/>sounding stations, obstacle shards"]
+    static["public/data/: sounding stations, obstacle shards"]
     fn["Functions /api/*<br/>measurements, timeseries, webcams,<br/>text-forecast, foehn, previtemps forecast"]
     cache[("edge cache:<br/>last good answer")]
   end

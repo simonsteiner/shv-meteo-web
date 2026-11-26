@@ -1,7 +1,8 @@
 // A flying site's sheet: kind, difficulty and status badges, elevation and
 // position, what it suits, its notices, rules, hazards, access, fees and
-// club, and the directions and Rega buttons; under the status, a link to
-// the official SHV map for the current one.
+// club, and the directions and Rega buttons; after the suits (under the
+// status when there is one), a link to the official SHV map for the
+// current status.
 
 import { text } from "../coerce.ts";
 import { escapeHtml, safeUrl } from "../escape.ts";
