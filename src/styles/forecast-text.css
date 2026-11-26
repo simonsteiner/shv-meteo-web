@@ -149,20 +149,19 @@
   margin-bottom: 14px;
 }
 
-.isobaren-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.isobaren-map-container {
   background: #ffffff;
   border-radius: 12px;
   padding: 12px;
   margin-top: 16px;
-  overflow: auto;
 }
 
-.isobaren-svg {
-  max-width: 100%;
+/* Upstream's SVG declares 1168x756 px; scale it to the card's width. */
+.isobaren-img {
+  display: block;
+  width: 100%;
   height: auto;
+  aspect-ratio: 1168 / 756;
   border-radius: 8px;
 }
 
