@@ -44,6 +44,8 @@ export function mountIsobaren(root: HTMLElement): void {
     const point = { x: tap.x - before.left, y: tap.y - before.top };
     const padding = parseFloat(getComputedStyle(box).paddingLeft) || 0;
     const viewX = tap.x - box.getBoundingClientRect().left - padding;
+    // read before the resize: a shorter page clamps scrollTop on zoom-out
+    const top = scroller.scrollTop;
     zoom.style.width = zoomed
       ? ""
       : `${zoomedWidth(before.width, NATURAL_WIDTH)}px`;
@@ -51,7 +53,7 @@ export function mountIsobaren(root: HTMLElement): void {
     const after = img.getBoundingClientRect().width;
     const { left, down } = keepPoint(point, after / before.width, viewX);
     box.scrollLeft = left;
-    scroller.scrollTop += down;
+    scroller.scrollTop = top + down;
     showHint();
   });
 
